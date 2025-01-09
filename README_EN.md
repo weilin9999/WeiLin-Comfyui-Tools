@@ -14,8 +14,7 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 > 0.0.0.1 Version Introduction (Due to my work, I have time to update the plug-in, forgive me! Thank you very much for your support of this plugin!)
 >
-> 1. Fixed an issue in the merge code: [#15](https://github.com/weilin9999/WeiLin-ComfyUI-prompt-all-in-one/pull/15) to the modified Lora loading apis in a timeout situation in (thanks for the code contributor provides the help, Thanks to contributors for supporting this plugin, thanks to everyone who uses this plugin)
-> 2. Added a new function to load all Lora covers at the bottom of the input box, and the background can view the loading progress. This code is provided by [#15](https://github.com/weilin9999/WeiLin-ComfyUI-prompt-all-in-one/pull/15) contributor
+> 1. Upload Version 0.0.0.1
 
 <details>
 <summary>Click here for more updates from the past</summary>
