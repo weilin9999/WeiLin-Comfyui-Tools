@@ -1,0 +1,176 @@
+{
+  "url": "https://civitai.com/api/v1/model-versions/by-hash/e830decc8363884f237b118d2cf12e19a00684becfbdf944616f93ea93da46a3",
+  "timestamp": 1736166719.343832,
+  "response": {
+    "id": 531579,
+    "modelId": 391013,
+    "name": "SDXL",
+    "createdAt": "2024-05-26T23:00:35.459Z",
+    "updatedAt": "2024-12-03T03:43:30.915Z",
+    "status": "Published",
+    "publishedAt": "2024-05-26T23:06:45.492Z",
+    "trainedWords": [
+      "hingo yabuki, brown eyes, headband, blue jacket, white t-shirt, fingerless gloves, blue pants, open jacket,"
+    ],
+    "trainingStatus": null,
+    "trainingDetails": null,
+    "baseModel": "SDXL 1.0",
+    "baseModelType": null,
+    "earlyAccessEndsAt": null,
+    "earlyAccessConfig": {},
+    "description": "<p>Showcase made with <strong><u>CAT - Citron Anime Treasure </u></strong></p>",
+    "uploadType": "Created",
+    "air": "urn:air:sdxl:lora:civitai:391013@531579",
+    "stats": {
+      "downloadCount": 56,
+      "ratingCount": 0,
+      "rating": 0,
+      "thumbsUpCount": 8
+    },
+    "model": {
+      "name": "Shingo Yabuki (Multiple Outfits) - King Of Fighters (Pony) / (Illustrious)/ (SDXL)",
+      "type": "LORA",
+      "nsfw": false,
+      "poi": false
+    },
+    "files": [
+      {
+        "id": 448405,
+        "sizeKB": 250054.9921875,
+        "name": "Shingo Yabuki (KOFG(_SDXL.safetensors",
+        "type": "Model",
+        "pickleScanResult": "Success",
+        "pickleScanMessage": "No Pickle imports",
+        "virusScanResult": "Success",
+        "virusScanMessage": null,
+        "scannedAt": "2024-05-26T23:10:57.071Z",
+        "metadata": {
+          "format": "SafeTensor",
+          "size": null,
+          "fp": null
+        },
+        "hashes": {
+          "AutoV1": "91B115C8",
+          "AutoV2": "E830DECC83",
+          "SHA256": "E830DECC8363884F237B118D2CF12E19A00684BECFBDF944616F93EA93DA46A3",
+          "CRC32": "D3B63BBB",
+          "BLAKE3": "BDAD04AF68AE84B92C515B68155D7B3AD8225162BDCFCD033448FD1855282CED",
+          "AutoV3": "FC90E5467B66"
+        },
+        "primary": true,
+        "downloadUrl": "https://civitai.com/api/download/models/531579"
+      }
+    ],
+    "images": [
+      {
+        "url": "https://image.civitai.com/xG1nkqKTMzGDvpLrqFT7WA/21e1c416-8419-4441-aa23-824243f940fe/width=450/13680768.jpeg",
+        "nsfwLevel": 1,
+        "width": 768,
+        "height": 1280,
+        "hash": "UUHnjK-pIA%1~A%Lo#azxsxtNHRjxuj?xZt7",
+        "type": "image",
+        "metadata": {
+          "hash": "UUHnjK-pIA%1~A%Lo#azxsxtNHRjxuj?xZt7",
+          "size": 1664749,
+          "width": 768,
+          "height": 1280
+        },
+        "meta": null,
+        "availability": "Public",
+        "hasMeta": false,
+        "onSite": false
+      },
+      {
+        "url": "https://image.civitai.com/xG1nkqKTMzGDvpLrqFT7WA/04aab6c7-4880-41fc-b599-0d40d18b4507/width=450/13680766.jpeg",
+        "nsfwLevel": 1,
+        "width": 768,
+        "height": 1280,
+        "hash": "UIHxEBkWIAJD~VRpOts9-o9bxuR*tR9b%1xr",
+        "type": "image",
+        "metadata": {
+          "hash": "UIHxEBkWIAJD~VRpOts9-o9bxuR*tR9b%1xr",
+          "size": 1637090,
+          "width": 768,
+          "height": 1280
+        },
+        "meta": null,
+        "availability": "Public",
+        "hasMeta": false,
+        "onSite": false
+      },
+      {
+        "url": "https://image.civitai.com/xG1nkqKTMzGDvpLrqFT7WA/05e257e7-c86a-40cf-9719-ef2fac989e72/width=450/13680770.jpeg",
+        "nsfwLevel": 1,
+        "width": 768,
+        "height": 1280,
+        "hash": "UBHUnO00Rh%N~A9ZcFR.xA0L^*9bAxV=nOW;",
+        "type": "image",
+        "metadata": {
+          "hash": "UBHUnO00Rh%N~A9ZcFR.xA0L^*9bAxV=nOW;",
+          "size": 1743093,
+          "width": 768,
+          "height": 1280
+        },
+        "meta": null,
+        "availability": "Public",
+        "hasMeta": false,
+        "onSite": false
+      },
+      {
+        "url": "https://image.civitai.com/xG1nkqKTMzGDvpLrqFT7WA/34445321-650f-4dde-922d-c3c6d9d58901/width=450/13680771.jpeg",
+        "nsfwLevel": 1,
+        "width": 768,
+        "height": 1280,
+        "hash": "UEG[KD0Lz-9b~BM_x^jE4?$xNftRA0xsiwsl",
+        "type": "image",
+        "metadata": {
+          "hash": "UEG[KD0Lz-9b~BM_x^jE4?$xNftRA0xsiwsl",
+          "size": 1733816,
+          "width": 768,
+          "height": 1280
+        },
+        "meta": null,
+        "availability": "Public",
+        "hasMeta": false,
+        "onSite": false
+      },
+      {
+        "url": "https://image.civitai.com/xG1nkqKTMzGDvpLrqFT7WA/bd5a77e7-048c-4cf9-9deb-892a8ad75bba/width=450/13680773.jpeg",
+        "nsfwLevel": 1,
+        "width": 768,
+        "height": 1280,
+        "hash": "UAG[KF0qMb-=#R5Z_NRp4:JD%3WB0hR*%MNG",
+        "type": "image",
+        "metadata": {
+          "hash": "UAG[KF0qMb-=#R5Z_NRp4:JD%3WB0hR*%MNG",
+          "size": 1675785,
+          "width": 768,
+          "height": 1280
+        },
+        "meta": null,
+        "availability": "Public",
+        "hasMeta": false,
+        "onSite": false
+      },
+      {
+        "url": "https://image.civitai.com/xG1nkqKTMzGDvpLrqFT7WA/7f0c34cf-3b9d-4af1-b540-a3e483121085/width=450/13680772.jpeg",
+        "nsfwLevel": 1,
+        "width": 768,
+        "height": 1280,
+        "hash": "UVI53.~px[%M=_-pbc%L%LtRxtR*Rjt7xaIp",
+        "type": "image",
+        "metadata": {
+          "hash": "UVI53.~px[%M=_-pbc%L%LtRxtR*Rjt7xaIp",
+          "size": 1650585,
+          "width": 768,
+          "height": 1280
+        },
+        "meta": null,
+        "availability": "Public",
+        "hasMeta": false,
+        "onSite": false
+      }
+    ],
+    "downloadUrl": "https://civitai.com/api/download/models/531579"
+  }
+}

@@ -1,0 +1,265 @@
+{
+  "url": "https://civitai.com/api/v1/model-versions/by-hash/f35fec6f8753419a74e3ca52905ad1d902188d718340184121beb33046da8d8d",
+  "timestamp": 1736165159.179792,
+  "response": {
+    "id": 1246717,
+    "modelId": 1109597,
+    "name": "V1",
+    "createdAt": "2025-01-06T04:12:50.658Z",
+    "updatedAt": "2025-01-06T05:40:23.008Z",
+    "status": "Published",
+    "publishedAt": "2025-01-06T05:40:23.007Z",
+    "trainedWords": [],
+    "trainingStatus": "Approved",
+    "trainingDetails": {
+      "type": "Character",
+      "params": {
+        "engine": "kohya",
+        "unetLR": 0.0005,
+        "clipSkip": 1,
+        "loraType": "lora",
+        "keepTokens": 0,
+        "networkDim": 32,
+        "numRepeats": 25,
+        "resolution": 1024,
+        "lrScheduler": "cosine_with_restarts",
+        "minSnrGamma": 5,
+        "noiseOffset": 0.1,
+        "targetSteps": 500,
+        "enableBucket": true,
+        "networkAlpha": 16,
+        "optimizerType": "Adafactor",
+        "textEncoderLR": 5e-05,
+        "maxTrainEpochs": 10,
+        "shuffleCaption": false,
+        "trainBatchSize": 4,
+        "flipAugmentation": false,
+        "lrSchedulerNumCycles": 3
+      },
+      "staging": false,
+      "baseModel": "sdxl",
+      "highPriority": false,
+      "baseModelType": "sdxl",
+      "samplePrompts": [
+        "",
+        "",
+        ""
+      ]
+    },
+    "baseModel": "SDXL 1.0",
+    "baseModelType": null,
+    "earlyAccessEndsAt": null,
+    "earlyAccessConfig": null,
+    "description": null,
+    "uploadType": "Trained",
+    "air": "urn:air:sdxl:lora:civitai:1109597@1246717",
+    "stats": {
+      "downloadCount": 11,
+      "ratingCount": 0,
+      "rating": 0,
+      "thumbsUpCount": 1
+    },
+    "model": {
+      "name": "Yi sun shin(mlbb)",
+      "type": "LORA",
+      "nsfw": false,
+      "poi": false
+    },
+    "files": [
+      {
+        "id": 1152336,
+        "sizeKB": 223100.17578125,
+        "name": "Yi_sun_shinmlbb-000002.safetensors",
+        "type": "Model",
+        "pickleScanResult": "Success",
+        "pickleScanMessage": "No Pickle imports",
+        "virusScanResult": "Success",
+        "virusScanMessage": null,
+        "scannedAt": "2025-01-06T05:41:52.625Z",
+        "metadata": {
+          "format": "SafeTensor"
+        },
+        "hashes": {
+          "AutoV1": "5EECB9A1",
+          "AutoV2": "F35FEC6F87",
+          "SHA256": "F35FEC6F8753419A74E3CA52905AD1D902188D718340184121BEB33046DA8D8D",
+          "CRC32": "7C8B67F4",
+          "BLAKE3": "A6A3AD8F5F59525F36E75FC194072FF4E587F9ADD3A83381DF53868E13C93986",
+          "AutoV3": "D6DBD008D578"
+        },
+        "primary": true,
+        "downloadUrl": "https://civitai.com/api/download/models/1246717"
+      },
+      {
+        "id": 1152169,
+        "sizeKB": 1541.0048828125,
+        "name": "1246717_training_data.zip",
+        "type": "Training Data",
+        "pickleScanResult": "Success",
+        "pickleScanMessage": "No Pickle imports",
+        "virusScanResult": "Success",
+        "virusScanMessage": null,
+        "scannedAt": "2025-01-06T04:35:58.416Z",
+        "metadata": {
+          "format": "Other"
+        },
+        "hashes": {
+          "AutoV2": "1C5D678FD2",
+          "SHA256": "1C5D678FD2190CA25BA898A03FB2792A6B6ECE3062659ECFD5592640CD651EB4",
+          "CRC32": "A306A722",
+          "BLAKE3": "CBFC4F1350E970DEE8422431643C76DFD3DFD837D010873D4EA960BB02E05755",
+          "AutoV3": "868F62F6EEED"
+        },
+        "primary": false,
+        "downloadUrl": "https://civitai.com/api/download/models/1246717?type=Training%20Data"
+      }
+    ],
+    "images": [
+      {
+        "url": "https://image.civitai.com/xG1nkqKTMzGDvpLrqFT7WA/21d9c566-e7bf-4a68-a66f-ac735a3f792c/width=450/49855798.jpeg",
+        "nsfwLevel": 1,
+        "width": 1024,
+        "height": 1024,
+        "hash": "UYF=wAXo%gS5?wbwo#t7tmxsRjs+tRs,WBM{",
+        "type": "image",
+        "metadata": {
+          "hash": "UYF=wAXo%gS5?wbwo#t7tmxsRjs+tRs,WBM{",
+          "size": 1290889,
+          "width": 1024,
+          "height": 1024
+        },
+        "meta": {
+          "Size": "512x512",
+          "Model": "128078.safetensors",
+          "steps": 30,
+          "hashes": {
+            "model": "E6BB9EA85B"
+          },
+          "prompt": "sharp facial features, including shoulder plates and knee guards. Accessories include a yellow sash, a blue-beaded necklace, male, and a stoic expression. He wears a red tunic, brown boots, piercing blue-gray eyes, and layered metallic armor, and a sheathed weapon on his back., black pants, The character has long black hair tied partially back with a red headband. He has a fair to lightly tan complexion, Yi sun shin(mlbb)",
+          "sampler": "DDIM",
+          "cfgScale": 7.5,
+          "resources": [
+            {
+              "hash": "E6BB9EA85B",
+              "name": "128078.safetensors",
+              "type": "model"
+            }
+          ],
+          "Model hash": "E6BB9EA85B"
+        },
+        "availability": "Public",
+        "hasMeta": true,
+        "onSite": false
+      },
+      {
+        "url": "https://image.civitai.com/xG1nkqKTMzGDvpLrqFT7WA/5d2f78df-7797-426d-b831-9c53f29ca8d0/width=450/49855915.jpeg",
+        "nsfwLevel": 1,
+        "width": 1024,
+        "height": 1024,
+        "hash": "U29G,U-o00EN#8oLKij=1OM{|E%Lr=o}ODR5",
+        "type": "image",
+        "metadata": {
+          "hash": "U29G,U-o00EN#8oLKij=1OM{|E%Lr=o}ODR5",
+          "size": 1014013,
+          "width": 1024,
+          "height": 1024
+        },
+        "meta": {
+          "Size": "512x512",
+          "Model": "128078.safetensors",
+          "steps": 30,
+          "hashes": {
+            "model": "E6BB9EA85B"
+          },
+          "prompt": "and a sheathed weapon on his back., Yi sun shin(mlbb), piercing blue-gray eyes, male, including shoulder plates and knee guards. Accessories include a yellow sash, a blue-beaded necklace, sharp facial features, and a stoic expression. He wears a red tunic, and layered metallic armor, The character has long black hair tied partially back with a red headband. He has a fair to lightly tan complexion, black pants, brown boots",
+          "sampler": "DDIM",
+          "cfgScale": 7.5,
+          "resources": [
+            {
+              "hash": "E6BB9EA85B",
+              "name": "128078.safetensors",
+              "type": "model"
+            }
+          ],
+          "Model hash": "E6BB9EA85B"
+        },
+        "availability": "Public",
+        "hasMeta": true,
+        "onSite": false
+      },
+      {
+        "url": "https://image.civitai.com/xG1nkqKTMzGDvpLrqFT7WA/0c08412a-e3af-4897-af31-1057de5bc758/width=450/49855964.jpeg",
+        "nsfwLevel": 1,
+        "width": 1024,
+        "height": 1024,
+        "hash": "U8D9I{J800nN00t7xbNG9vs9~BxuKOso9ZaK",
+        "type": "image",
+        "metadata": {
+          "hash": "U8D9I{J800nN00t7xbNG9vs9~BxuKOso9ZaK",
+          "size": 891137,
+          "width": 1024,
+          "height": 1024
+        },
+        "meta": {
+          "Size": "512x512",
+          "Model": "128078.safetensors",
+          "steps": 30,
+          "hashes": {
+            "model": "E6BB9EA85B"
+          },
+          "prompt": "Yi sun shin(mlbb), including shoulder plates and knee guards. Accessories include a yellow sash, male, piercing blue-gray eyes, and a sheathed weapon on his back., a blue-beaded necklace, brown boots, The character has long black hair tied partially back with a red headband. He has a fair to lightly tan complexion, black pants, and a stoic expression. He wears a red tunic, and layered metallic armor, sharp facial features",
+          "sampler": "DDIM",
+          "cfgScale": 7.5,
+          "resources": [
+            {
+              "hash": "E6BB9EA85B",
+              "name": "128078.safetensors",
+              "type": "model"
+            }
+          ],
+          "Model hash": "E6BB9EA85B"
+        },
+        "availability": "Public",
+        "hasMeta": true,
+        "onSite": false
+      },
+      {
+        "url": "https://image.civitai.com/xG1nkqKTMzGDvpLrqFT7WA/7b80dbca-430d-4c4c-ac6c-b926fb9339cb/width=450/49856008.jpeg",
+        "nsfwLevel": 1,
+        "width": 1024,
+        "height": 1024,
+        "hash": "U29ZvH#j15S]TWoPI7Nx0^Sd=h#q06tO_3wb",
+        "type": "image",
+        "metadata": {
+          "hash": "U29ZvH#j15S]TWoPI7Nx0^Sd=h#q06tO_3wb",
+          "size": 1059086,
+          "width": 1024,
+          "height": 1024
+        },
+        "meta": {
+          "Size": "512x512",
+          "Model": "128078.safetensors",
+          "steps": 30,
+          "hashes": {
+            "model": "E6BB9EA85B"
+          },
+          "prompt": "sharp facial features, including shoulder plates and knee guards. Accessories include a yellow sash, a blue-beaded necklace, male, and a stoic expression. He wears a red tunic, brown boots, piercing blue-gray eyes, and layered metallic armor, and a sheathed weapon on his back., black pants, The character has long black hair tied partially back with a red headband. He has a fair to lightly tan complexion, Yi sun shin(mlbb)",
+          "sampler": "DDIM",
+          "cfgScale": 7.5,
+          "resources": [
+            {
+              "hash": "E6BB9EA85B",
+              "name": "128078.safetensors",
+              "type": "model"
+            }
+          ],
+          "Model hash": "E6BB9EA85B"
+        },
+        "availability": "Public",
+        "hasMeta": true,
+        "onSite": false
+      }
+    ],
+    "downloadUrl": "https://civitai.com/api/download/models/1246717"
+  }
+}
