@@ -251,6 +251,16 @@ async def _batch_delete_tags(request):
     
     return web.json_response({"info": 'ok'})
 
+@PromptServer.instance.routes.post(baseUrl+"prompt/move_tag")
+async def _move_tag(request):
+    data = await request.json()
+    try:
+        result = move_tag(data['lang'], data['id_index'], data['reference_id_index'], data['position'])
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+    
+    return web.json_response({"info": result})
 
 # =====================================================================================================
 

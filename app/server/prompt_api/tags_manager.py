@@ -20,6 +20,12 @@ def get_group_tags(lang):
     try:
         with open(tags_file, 'r', encoding='utf8') as f:
             data = json.load(f)
+        
+        # 对每个子组的标签按创建时间进行排序
+        for group in data:
+            for subgroup in group['groups']:
+                subgroup['tags'] = sorted(subgroup['tags'], key=lambda x: x['create_time'], reverse=True)
+        
         return data
     except Exception as e:
         print(f"Error parsing JSON from file {tags_file}: {e}")
@@ -28,8 +34,8 @@ def get_group_tags(lang):
 def generate_unique_id():
     return str(uuid.uuid4())
 
-def get_current_timestamp():
-    return int(time.time())
+def generate_unique_timestamp():
+    return int(time.time() * 1000) + uuid.uuid4().int % 1000
 
 def add_group_tag(lang, text, desc, id_index, color):
     file_path = _get_tags_filename(lang)
@@ -48,7 +54,7 @@ def add_group_tag(lang, text, desc, id_index, color):
                     "desc": desc,
                     "color": color,
                     "id_index": generate_unique_id(),
-                    "create_time": get_current_timestamp()
+                    "create_time": generate_unique_timestamp()
                 }
                 subgroup['tags'].append(new_tag)
 
@@ -74,6 +80,59 @@ def edit_group_tag(lang, text, desc, id_index, color):
 
     with open(file_path, 'w', encoding='utf-8') as file:
         json.dump(data, file, ensure_ascii=False, indent=4)
+
+def move_tag(lang, id_index, reference_id_index, position='before'):
+    file_path = _get_tags_filename(lang)
+
+    if os.path.exists(file_path):
+        with open(file_path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+    else:
+        data = []
+
+    target_tag = None
+    found_reference = False
+    original_subgroup = None
+
+    # 查找并移除目标标签
+    for group in data:
+        for subgroup in group['groups']:
+            for tag in subgroup['tags']:
+                if tag['id_index'] == id_index:
+                    target_tag = tag
+                    original_subgroup = subgroup
+                    subgroup['tags'].remove(tag)
+                    break
+
+    if target_tag is None:
+        return {"info": "Tag not found"}
+
+    # 查找参考标签并调整创建时间
+    for group in data:
+        for subgroup in group['groups']:
+            for tag in subgroup['tags']:
+                if tag['id_index'] == reference_id_index:
+                    found_reference = True
+                    if position == 'before':
+                        target_tag['create_time'] = tag['create_time'] + 1
+                    elif position == 'after':
+                        target_tag['create_time'] = tag['create_time'] - 1
+                    else:
+                        return {"info": "Invalid position"}
+                    break
+
+    if not found_reference:
+        return {"info": "Reference tag not found"}
+
+    # 将目标标签重新插入到原来的子组并排序
+    if original_subgroup is not None:
+        original_subgroup['tags'].append(target_tag)
+        original_subgroup['tags'] = sorted(original_subgroup['tags'], key=lambda x: x['create_time'], reverse=True)
+
+    with open(file_path, 'w', encoding='utf-8') as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
+
+    return {"info": "Tag moved"}
 
 def delete_group_tag(lang, id_index):
     file_path = _get_tags_filename(lang)
@@ -121,7 +180,7 @@ def add_new_node_group(lang, key, color):
         'name': key,
         'color': color,
         'id_index': generate_unique_id(),
-        "create_time": get_current_timestamp(),
+        "create_time": generate_unique_timestamp(),
         'groups': []
     }
 
@@ -143,7 +202,7 @@ def add_new_group(lang, key, group_key, color):
         'name': group_key,
         'color': color,
         'id_index': generate_unique_id(),
-        "create_time": get_current_timestamp(),
+        "create_time": generate_unique_timestamp(),
         'tags': []
     }
 

@@ -5,12 +5,16 @@ import csv
 
 # 获取文件路径
 current_dir = os.path.dirname(os.path.abspath(__file__))
-collect_history_file_path = os.path.join(current_dir, '../../../history_userdatas/collect_history_datas.json')
+collect_history_file_path = os.path.join(
+    current_dir, '../../../history_userdatas/collect_history_datas.json')
+
 
 def _get_tags_filename(name):
     """获取 zh_CN.json 文件的路径"""
-    file = os.path.join(current_dir, '../../../tags_userdatas/', name + '.json')
+    file = os.path.join(
+        current_dir, '../../../tags_userdatas/', name + '.json')
     return file
+
 
 def read_collect_history():
     """读取 collect_history_datas.json 文件并返回内容"""
@@ -20,6 +24,7 @@ def read_collect_history():
             return data
     else:
         return []
+
 
 def read_tag_json(lang):
     """读取 zh_CN.json 文件并返回内容"""
@@ -31,9 +36,11 @@ def read_tag_json(lang):
     else:
         return []
 
+
 def read_danbooru_csv(language):
     """读取 danbooru-0-zh_CN.csv 文件并返回内容"""
-    csv_files = glob.glob(os.path.join(current_dir, '../../../translate_userdatas', '*-'+language+'.csv'))
+    csv_files = glob.glob(os.path.join(
+        current_dir, '../../../translate_userdatas', '*-'+language+'.csv'))
     translations = {}
     for csv_file in csv_files:
         with open(csv_file, 'r', encoding='utf-8') as file:
@@ -43,6 +50,7 @@ def read_danbooru_csv(language):
                     tag, desc = row[0], row[1]
                     translations[tag] = desc
     return translations
+
 
 def integrate_files(lang):
     """整合三个文件的内容"""
@@ -56,7 +64,8 @@ def integrate_files(lang):
     for entry in collect_history:
         integrated_data.append({
             "tag": entry['tag'],
-            "desc": entry['name']
+            "desc": entry['name'],
+            "color": entry['color']
         })
 
     # 整合 zh_CN.json
@@ -65,14 +74,16 @@ def integrate_files(lang):
             for tag in subgroup['tags']:
                 integrated_data.append({
                     "tag": tag['text'],
-                    "desc": tag['desc']
+                    "desc": tag['desc'],
+                    "color": tag['color']
                 })
 
     # 整合 danbooru-0-zh_CN.csv
     for tag, desc in danbooru_translations.items():
         integrated_data.append({
             "tag": tag,
-            "desc": desc
+            "desc": desc,
+            "color": ""
         })
 
     return integrated_data

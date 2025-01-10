@@ -168,9 +168,10 @@ def copy_folder(source_folder, destination_folder):
 # 检测Tag组是否存在，不存在则复制模板
 dir = os.path.join(os.path.dirname(__file__),'./tags_userdatas/')
 filenames=os.listdir(dir)
-if len(filenames) <= 0:
-    dirDes = os.path.join(os.path.dirname(__file__),'./tags_templete/')
-    copy_folder(dirDes, dir)
+if len(filenames) <= 1:
+    if filenames[0] == ".gitignore":
+        dirDes = os.path.join(os.path.dirname(__file__),'./tags_templete/')
+        copy_folder(dirDes, dir)
 
 
 # A dictionary that contains all nodes you want to export with their names
