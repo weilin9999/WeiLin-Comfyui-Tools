@@ -7,6 +7,8 @@ import json
 import shutil
 
 # Server Init
+from .install_request import *
+install_requirements()
 from .app.server.prompt_server import *
 
 # 检测系统语言
@@ -47,7 +49,6 @@ class WeiLinPromptUI:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "clip": ("CLIP", ),
                 "positive": ("STRING", {
                     "multiline": True,
                     "default": "",
@@ -55,6 +56,7 @@ class WeiLinPromptUI:
                 }),
             },
             "optional": {
+                "clip": ("CLIP", ),
                 "model": ("MODEL",)
             }
         }
@@ -114,11 +116,12 @@ class WeiLinPromptUI:
                     self.loaded_loraA = (lora_path, lora)
 
                 model_lora_secondA, clip_lora_secondA = load_lora_for_models(model_lora_secondA, clip_lora_secondA, lora, strength_model, strength_clip)
-        
-        tokensA = clip_lora_secondA.tokenize(text_dec)
-        outputA = clip_lora_secondA.encode_from_tokens(tokensA, return_pooled=True, return_dict=True)
-        condA = outputA.pop("cond")
-        return (text_dec,[[condA, outputA]], model_lora_secondA)
+        if clip != None:
+            tokensA = clip_lora_secondA.tokenize(text_dec)
+            outputA = clip_lora_secondA.encode_from_tokens(tokensA, return_pooled=True, return_dict=True)
+            condA = outputA.pop("cond")
+            return (text_dec,[[condA, outputA]], model_lora_secondA)
+        return (text_dec, clip_lora_secondA, model_lora_secondA)
         # return (model_lora_second, clip_lora_second)
 
 
@@ -165,13 +168,13 @@ def copy_folder(source_folder, destination_folder):
         else:
             shutil.copy2(source, destination)
 
-# 检测Tag组是否存在，不存在则复制模板
-dir = os.path.join(os.path.dirname(__file__),'./tags_userdatas/')
-filenames=os.listdir(dir)
-if len(filenames) <= 1:
-    if filenames[0] == ".gitignore":
-        dirDes = os.path.join(os.path.dirname(__file__),'./tags_templete/')
-        copy_folder(dirDes, dir)
+# # 检测Tag组是否存在，不存在则复制模板
+# dir = os.path.join(os.path.dirname(__file__),'./tags_userdatas/')
+# filenames=os.listdir(dir)
+# if len(filenames) <= 1:
+#     if filenames[0] == ".gitignore":
+#         dirDes = os.path.join(os.path.dirname(__file__),'./tags_templete/')
+#         copy_folder(dirDes, dir)
 
 
 # A dictionary that contains all nodes you want to export with their names

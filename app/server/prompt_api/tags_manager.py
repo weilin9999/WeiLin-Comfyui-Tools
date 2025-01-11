@@ -1,282 +1,222 @@
-import os
-import json
 import time
+from ..dao.dao import execute_query, fetch_all, fetch_one, db_path
 import uuid
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-
-def _get_tags_filename(name):
-    file = os.path.join(current_dir, '../../../tags_userdatas/', name + '.json')
-    return file
-
-def get_group_tags(lang):
-    tags_file = _get_tags_filename(lang)
-    if not os.path.exists(tags_file):
-        tags_file = _get_tags_filename('default')
-    if not os.path.exists(tags_file):
-        print(f"File {tags_file} does not exist.")
-        return []
-
-    try:
-        with open(tags_file, 'r', encoding='utf8') as f:
-            data = json.load(f)
-        
-        # 对每个子组的标签按创建时间进行排序
-        for group in data:
-            for subgroup in group['groups']:
-                subgroup['tags'] = sorted(subgroup['tags'], key=lambda x: x['create_time'], reverse=True)
-        
-        return data
-    except Exception as e:
-        print(f"Error parsing JSON from file {tags_file}: {e}")
-        return []
-
-def generate_unique_id():
-    return str(uuid.uuid4())
+import sqlite3
 
 def generate_unique_timestamp():
     return int(time.time() * 1000) + uuid.uuid4().int % 1000
 
-def add_group_tag(lang, text, desc, id_index, color):
-    file_path = _get_tags_filename(lang)
+def add_group_tag(text, desc, subgroup_id, color):
+    query = '''
+        INSERT INTO tag_tags (subgroup_id, text, desc, color, create_time)
+        VALUES (?, ?, ?, ?, ?)
+    '''
+    execute_query(query, (subgroup_id, text, desc, color, generate_unique_timestamp()))
 
-    if os.path.exists(file_path):
-        with open(file_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-    else:
-        data = []
+def edit_group_tag(text, desc, id_index, color):
+    query = '''
+        UPDATE tag_tags
+        SET text = ?, desc = ?, color = ?
+        WHERE id_index = ?
+    '''
+    execute_query(query, (text, desc, color, id_index))
 
-    for group in data:
-        for subgroup in group['groups']:
-            if subgroup['id_index'] == id_index:
-                new_tag = {
-                    "text": text,
-                    "desc": desc,
-                    "color": color,
-                    "id_index": generate_unique_id(),
-                    "create_time": generate_unique_timestamp()
-                }
-                subgroup['tags'].append(new_tag)
-
-    with open(file_path, 'w', encoding='utf-8') as file:
-        json.dump(data, file, ensure_ascii=False, indent=4)
-
-def edit_group_tag(lang, text, desc, id_index, color):
-    file_path = _get_tags_filename(lang)
-
-    if os.path.exists(file_path):
-        with open(file_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-    else:
-        data = []
-
-    for group in data:
-        for subgroup in group['groups']:
-            for tag in subgroup['tags']:
-                if tag['id_index'] == id_index:
-                    tag['text'] = text
-                    tag['desc'] = desc
-                    tag['color'] = color
-
-    with open(file_path, 'w', encoding='utf-8') as file:
-        json.dump(data, file, ensure_ascii=False, indent=4)
-
-def move_tag(lang, id_index, reference_id_index, position='before'):
-    file_path = _get_tags_filename(lang)
-
-    if os.path.exists(file_path):
-        with open(file_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-    else:
-        data = []
-
-    target_tag = None
-    found_reference = False
-    original_subgroup = None
-
-    # 查找并移除目标标签
-    for group in data:
-        for subgroup in group['groups']:
-            for tag in subgroup['tags']:
-                if tag['id_index'] == id_index:
-                    target_tag = tag
-                    original_subgroup = subgroup
-                    subgroup['tags'].remove(tag)
-                    break
-
-    if target_tag is None:
-        return {"info": "Tag not found"}
-
-    # 查找参考标签并调整创建时间
-    for group in data:
-        for subgroup in group['groups']:
-            for tag in subgroup['tags']:
-                if tag['id_index'] == reference_id_index:
-                    found_reference = True
-                    if position == 'before':
-                        target_tag['create_time'] = tag['create_time'] + 1
-                    elif position == 'after':
-                        target_tag['create_time'] = tag['create_time'] - 1
-                    else:
-                        return {"info": "Invalid position"}
-                    break
-
-    if not found_reference:
+def move_tag(id_index, reference_id_index, position='before'):
+    query = 'SELECT create_time FROM tag_tags WHERE id_index = ?'
+    reference_tag = fetch_one(query, (reference_id_index,))
+    if not reference_tag:
         return {"info": "Reference tag not found"}
 
-    # 将目标标签重新插入到原来的子组并排序
-    if original_subgroup is not None:
-        original_subgroup['tags'].append(target_tag)
-        original_subgroup['tags'] = sorted(original_subgroup['tags'], key=lambda x: x['create_time'], reverse=True)
+    reference_create_time = reference_tag[0]
 
-    with open(file_path, 'w', encoding='utf-8') as file:
-        json.dump(data, file, ensure_ascii=False, indent=4)
+    if position == 'after':
+        new_create_time = reference_create_time - 1
+    elif position == 'before':
+        new_create_time = reference_create_time + 1
+    else:
+        return {"info": "Invalid position"}
+
+    query = '''
+        UPDATE tag_tags
+        SET create_time = ?
+        WHERE id_index = ?
+    '''
+    execute_query(query, (new_create_time, id_index))
 
     return {"info": "Tag moved"}
 
-def delete_group_tag(lang, id_index):
-    file_path = _get_tags_filename(lang)
+def delete_group_tag(id_index):
+    query = 'DELETE FROM tag_tags WHERE id_index = ?'
+    execute_query(query, (id_index,))
 
-    if os.path.exists(file_path):
-        with open(file_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-    else:
-        data = []
+def batch_delete_group_tags(id_indices):
+    query = "DELETE FROM tag_tags WHERE id_index IN ({seq})".format(
+        seq=','.join(['?']*len(id_indices)))
+    execute_query(query, id_indices)
 
-    for group in data:
-        for subgroup in group['groups']:
-            subgroup['tags'] = [tag for tag in subgroup['tags'] if tag['id_index'] != id_index]
+def add_new_node_group(key, color):
+    # 检查 name 是否已经存在
+    query = 'SELECT COUNT(*) FROM tag_groups WHERE name = ?'
+    result = fetch_one(query, (key,))
+    if result[0] > 0:
+        return {"info": "Group name already exists"}
 
-    with open(file_path, 'w', encoding='utf-8') as file:
-        json.dump(data, file, ensure_ascii=False, indent=4)
+    query = '''
+        INSERT INTO tag_groups (name, color, create_time)
+        VALUES (?, ?, ?)
+    '''
+    execute_query(query, (key, color, generate_unique_timestamp()))
+    return {"info": "Group added"}
 
-def batch_delete_group_tags(lang, id_indices):
-    file_path = _get_tags_filename(lang)
+def add_new_group(key, group_key, color):
+    # 检查 name 是否已经存在
+    query = 'SELECT COUNT(*) FROM tag_subgroups WHERE name = ?'
+    result = fetch_one(query, (group_key,))
+    if result[0] > 0:
+        return {"info": "Subgroup name already exists"}
 
-    if os.path.exists(file_path):
-        with open(file_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-    else:
-        data = []
+    query = '''
+        INSERT INTO tag_subgroups (group_id, name, color, create_time)
+        VALUES (?, ?, ?, ?)
+    '''
+    execute_query(query, (key, group_key, color, generate_unique_timestamp()))
+    return {"info": "Subgroup added"}
 
-    for id_index in id_indices:
-        for group in data:
-            for subgroup in group['groups']:
-                subgroup['tags'] = [tag for tag in subgroup['tags'] if tag['id_index'] != id_index]
+def edit_node_group(id_index, new_key, new_color):
+    # 检查 name 是否已经存在
+    query = 'SELECT COUNT(*) FROM tag_groups WHERE name = ? AND id_index != ?'
+    result = fetch_one(query, (new_key, id_index))
+    if result[0] > 0:
+        return {"info": "Group name already exists"}
 
-    with open(file_path, 'w', encoding='utf-8') as file:
-        json.dump(data, file, ensure_ascii=False, indent=4)
+    query = '''
+        UPDATE tag_groups
+        SET name = ?, color = ?
+        WHERE id_index = ?
+    '''
+    execute_query(query, (new_key, new_color, id_index))
+    return {"info": "Group updated"}
 
-def add_new_node_group(lang, key, color):
-    file_path = _get_tags_filename(lang)
+def edit_child_node_group(id_index, new_key, new_color):
+    # 检查 name 是否已经存在
+    query = 'SELECT COUNT(*) FROM tag_subgroups WHERE name = ? AND id_index != ?'
+    result = fetch_one(query, (new_key, id_index))
+    if result[0] > 0:
+        return {"info": "Subgroup name already exists"}
 
-    if os.path.exists(file_path):
-        with open(file_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-    else:
-        data = []
+    query = '''
+        UPDATE tag_subgroups
+        SET name = ?, color = ?
+        WHERE id_index = ?
+    '''
+    execute_query(query, (new_key, new_color, id_index))
+    return {"info": "Subgroup updated"}
 
-    new_group = {
-        'name': key,
-        'color': color,
-        'id_index': generate_unique_id(),
-        "create_time": generate_unique_timestamp(),
-        'groups': []
-    }
+def delete_node_group(id_index):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    
+    try:
+        # 开始事务
+        cursor.execute('BEGIN')
+        
+        # 删除与该组关联的子组和标签
+        query = '''
+            DELETE FROM tag_tags
+            WHERE subgroup_id IN (
+                SELECT id_index FROM tag_subgroups WHERE group_id = ?
+            )
+        '''
+        cursor.execute(query, (id_index,))
+        
+        query = 'DELETE FROM tag_subgroups WHERE group_id = ?'
+        cursor.execute(query, (id_index,))
+        
+        # 删除组
+        query = 'DELETE FROM tag_groups WHERE id_index = ?'
+        cursor.execute(query, (id_index,))
+        
+        # 提交事务
+        conn.commit()
+    except Exception as e:
+        # 回滚事务
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
 
-    data.append(new_group)
-
-    with open(file_path, 'w', encoding='utf-8') as file:
-        json.dump(data, file, ensure_ascii=False, indent=4)
-
-def add_new_group(lang, key, group_key, color):
-    file_path = _get_tags_filename(lang)
-
-    if os.path.exists(file_path):
-        with open(file_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-    else:
-        data = []
-
-    new_subgroup = {
-        'name': group_key,
-        'color': color,
-        'id_index': generate_unique_id(),
-        "create_time": generate_unique_timestamp(),
-        'tags': []
-    }
-
-    for group in data:
-        if group['id_index'] == key:
-            group['groups'].append(new_subgroup)
-
-    with open(file_path, 'w', encoding='utf-8') as file:
-        json.dump(data, file, ensure_ascii=False, indent=4)
-
-def edit_node_group(lang, id_index, new_key, new_color):
-    file_path = _get_tags_filename(lang)
-
-    if os.path.exists(file_path):
-        with open(file_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-    else:
-        data = []
-
-    if not data:
-        return
-    for group in data:
-        if group['id_index'] == id_index:
-            group['name'] = new_key
-            group['color'] = new_color
-
-    with open(file_path, 'w', encoding='utf-8') as file:
-        json.dump(data, file, ensure_ascii=False, indent=4)
-
-def edit_child_node_group(lang, id_index, new_key, new_color):
-    file_path = _get_tags_filename(lang)
-
-    if os.path.exists(file_path):
-        with open(file_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-    else:
-        data = []
-
-    for group in data:
-        for subgroup in group['groups']:
-            if subgroup['id_index'] == id_index:
-                subgroup['name'] = new_key
-                subgroup['color'] = new_color
+def delete_child_node_group(id_index):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    
+    try:
+        # 开始事务
+        cursor.execute('BEGIN')
+        
+        # 删除与该子组关联的标签
+        query = 'DELETE FROM tag_tags WHERE subgroup_id = ?'
+        cursor.execute(query, (id_index,))
+        
+        # 删除子组
+        query = 'DELETE FROM tag_subgroups WHERE id_index = ?'
+        cursor.execute(query, (id_index,))
+        
+        # 提交事务
+        conn.commit()
+    except Exception as e:
+        # 回滚事务
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
 
 
-    with open(file_path, 'w', encoding='utf-8') as file:
-        json.dump(data, file, ensure_ascii=False, indent=4)
+def get_group_tags():
+    query = '''
+        SELECT g.id_index as group_id, g.name as group_name, g.color as group_color, g.create_time as group_create_time,
+               sg.id_index as subgroup_id, sg.name as subgroup_name, sg.color as subgroup_color, sg.create_time as subgroup_create_time,
+               t.id_index as tag_id, t.text as tag_text, t.desc as tag_desc, t.color as tag_color, t.create_time as tag_create_time
+        FROM tag_groups g
+        LEFT JOIN tag_subgroups sg ON g.id_index = sg.group_id
+        LEFT JOIN tag_tags t ON sg.id_index = t.subgroup_id
+        ORDER BY g.create_time ASC, sg.create_time ASC, t.create_time DESC
+    '''
+    data = fetch_all(query)
 
-def delete_node_group(lang, id_index):
-    file_path = _get_tags_filename(lang)
+    result = []
+    group_map = {}
+    subgroup_map = {}
 
-    if os.path.exists(file_path):
-        with open(file_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-    else:
-        data = []
+    for row in data:
+        group_id, group_name, group_color, group_create_time, subgroup_id, subgroup_name, subgroup_color, subgroup_create_time, tag_id, tag_text, tag_desc, tag_color, tag_create_time = row
 
-    data = [group for group in data if group['id_index'] != id_index]
+        if group_id not in group_map:
+            group_map[group_id] = {
+                'id_index': group_id,
+                'name': group_name,
+                'color': group_color,
+                'create_time': group_create_time,
+                'groups': []
+            }
+            result.append(group_map[group_id])
 
-    with open(file_path, 'w', encoding='utf-8') as file:
-        json.dump(data, file, ensure_ascii=False, indent=4)
+        if subgroup_id and subgroup_id not in subgroup_map:
+            subgroup_map[subgroup_id] = {
+                'id_index': subgroup_id,
+                'name': subgroup_name,
+                'color': subgroup_color,
+                'create_time': subgroup_create_time,
+                'tags': []
+            }
+            group_map[group_id]['groups'].append(subgroup_map[subgroup_id])
 
-def delete_child_node_group(lang, id_index):
-    file_path = _get_tags_filename(lang)
+        if tag_id:
+            subgroup_map[subgroup_id]['tags'].append({
+                'id_index': tag_id,
+                'text': tag_text,
+                'desc': tag_desc,
+                'color': tag_color,
+                'create_time': tag_create_time
+            })
 
-    if os.path.exists(file_path):
-        with open(file_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-    else:
-        data = []
-
-    for group in data:
-        group['groups'] = [subgroup for subgroup in group['groups'] if subgroup['id_index'] != id_index]
-
-    with open(file_path, 'w', encoding='utf-8') as file:
-        json.dump(data, file, ensure_ascii=False, indent=4)
-
+    return result

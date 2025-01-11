@@ -1,81 +1,86 @@
-import os
-import json
-import uuid
 import time
-
-# 获取 collect_history_datas.json 文件的路径
-current_dir = os.path.dirname(os.path.abspath(__file__))
-collect_history_file_path = os.path.join(current_dir, '../../../history_userdatas/collect_history_datas.json')
+from ..dao.dao import execute_query, fetch_all, fetch_one
 
 def read_collect_history():
-    """读取 collect_history_datas.json 文件并返回内容"""
-    if os.path.exists(collect_history_file_path):
-        with open(collect_history_file_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-            return data
-    else:
-        return []
+    """读取 collect_history 表并返回内容"""
+    query = "SELECT id_index, tag, name, color, create_time FROM collect_history WHERE is_deleted = 0"
+    data = fetch_all(query)
+    
+    # 将数据转换为 JSON 格式
+    result = []
+    for row in data:
+        result.append({
+            "id_index": row[0],
+            "tag": row[1],
+            "name": row[2],
+            "color": row[3],
+            "create_time": row[4]
+        })
+    
+    return result
 
 def add_collect_history(tag, name="", color=""):
-    """添加新的历史记录到 collect_history_datas.json 文件"""
-    data = read_collect_history()
-    # 检查是否存在相同的 tag
-    for entry in data:
-        if entry['tag'] == tag:
-            return {"code": 201}
+    """添加新的历史记录到 collect_history 表"""
+    create_time = int(time.time())
     
-    new_entry = {
-        "name": name,
-        "color": color,
-        "id_index": str(uuid.uuid4()),
-        "create_time": int(time.time()),
-        "tag": tag
-    }
+    # 检查是否有可复用的 id_index
+    query = "SELECT id_index FROM collect_history WHERE is_deleted = 1 LIMIT 1"
+    deleted_id = fetch_one(query)
     
-    data = read_collect_history()
-    data.append(new_entry)
+    if deleted_id:
+        id_index = deleted_id[0]
+        # 更新复用的 id_index
+        query = '''
+            UPDATE collect_history
+            SET tag = ?, name = ?, color = ?, create_time = ?, is_deleted = 0
+            WHERE id_index = ?
+        '''
+        execute_query(query, (tag, name, color, create_time, id_index))
+    else:
+        query = '''
+            INSERT INTO collect_history (tag, name, color, create_time)
+            VALUES (?, ?, ?, ?)
+        '''
+        execute_query(query, (tag, name, color, create_time))
     
-    with open(collect_history_file_path, 'w', encoding='utf-8') as file:
-        json.dump(data, file, ensure_ascii=False, indent=4)
-    
-    return new_entry
+    return {"info": "Append"}
 
 def delete_collect_history(id_index):
     """删除指定 id_index 的历史记录"""
-    data = read_collect_history()
-    data = [entry for entry in data if entry['id_index'] != id_index]
-    
-    with open(collect_history_file_path, 'w', encoding='utf-8') as file:
-        json.dump(data, file, ensure_ascii=False, indent=4)
-    
+    query = "UPDATE collect_history SET is_deleted = 1 WHERE id_index = ?"
+    execute_query(query, (id_index,))
     return {"info": "Deleted"}
 
 def batch_delete_collect_history(id_indices):
     """批量删除指定 id_index 的历史记录"""
-    data = read_collect_history()
-    data = [entry for entry in data if entry['id_index'] not in id_indices]
-    
-    with open(collect_history_file_path, 'w', encoding='utf-8') as file:
-        json.dump(data, file, ensure_ascii=False, indent=4)
-    
+    query = "UPDATE collect_history SET is_deleted = 1 WHERE id_index IN ({seq})".format(
+        seq=','.join(['?']*len(id_indices)))
+    execute_query(query, id_indices)
     return {"info": "Batch Deleted"}
-
 
 def edit_collect_history(id_index, name=None, color=None, tag=None):
     """编辑指定 id_index 的历史记录"""
-    data = read_collect_history()
-    for entry in data:
-        if entry['id_index'] == id_index:
-            if name is not None:
-                entry['name'] = name
-            if color is not None:
-                entry['color'] = color
-            if tag is not None:
-                entry['tag'] = tag
-            break
-    
-    with open(collect_history_file_path, 'w', encoding='utf-8') as file:
-        json.dump(data, file, ensure_ascii=False, indent=4)
-    
-    return {"info": "Edited"}
+    query = "SELECT id_index, tag, name, color, create_time FROM collect_history WHERE id_index = ?"
+    entry = fetch_one(query, (id_index,))
+    if not entry:
+        return {"info": "Record not found"}
 
+    update_fields = []
+    params = []
+
+    if name is not None:
+        update_fields.append("name = ?")
+        params.append(name)
+    if color is not None:
+        update_fields.append("color = ?")
+        params.append(color)
+    if tag is not None:
+        update_fields.append("tag = ?")
+        params.append(tag)
+
+    if update_fields:
+        query = f"UPDATE collect_history SET {', '.join(update_fields)} WHERE id_index = ?"
+        params.append(id_index)
+        execute_query(query, params)
+
+    return {"info": "Edited"}

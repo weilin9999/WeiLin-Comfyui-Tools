@@ -1,34 +1,51 @@
-import os
-import glob
-import csv
+from ..dao.dao import fetch_one
 
-# =================================离线翻译功能=================================
+def get_translation_from_tag_tags(word):
+    """从 tag_tags 表中获取单词的翻译"""
+    query = 'SELECT desc, color FROM tag_tags WHERE text = ?'
+    result = fetch_one(query, (word,))
+    if result:
+        return {"translate": result[0], "color": result[1], "color_id": -1}
+    return None
 
-def read_csv_to_dict(file_path):
-    translation_dict = {}
-    try:
-        with open(file_path, 'r', encoding='utf-8-sig') as file:  # 使用 utf-8-sig 来处理 BOM
-            reader = csv.reader(file)
-            for i, row in enumerate(reader, start=1):  # 使用 enumerate 记录行号
-                if len(row) >= 2:
-                    original, translated = row[0], row[1]
-                    translation_dict[original] = translated
-                else:
-                    print(f"Warning: Row {i} in {file_path} does not have enough columns.")
-    except Exception as e:
-        print(f"Failed to read {file_path}: {e}")
-    return translation_dict
+def get_translation_from_danbooru_tag(word):
+    """从 danbooru_tag 表中获取单词的翻译"""
+    query = 'SELECT translate, color_id FROM danbooru_tag WHERE tag = ?'
+    result = fetch_one(query, (word,))
+    if result:
+        return {"translate": result[0], "color": None, "color_id": result[1]}
+    return None
 
-def translate_text(text, language):
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    csv_files = glob.glob(os.path.join(current_dir, '../../../translate_userdatas', '*-'+language+'.csv'))
-    
-    for csv_file in csv_files:
-        translations = read_csv_to_dict(csv_file)
-        if text in translations:
-            return translations[text]
-    
-    return ""
+def get_translation(word):
+    """从数据库中获取单词的翻译，优先从 tag_tags 表中获取"""
+    translation = get_translation_from_tag_tags(word)
+    if translation:
+        return translation
+    return get_translation_from_danbooru_tag(word)
 
+def translate_phrase(phrase):
+    """翻译整个词组"""
+    words = phrase.split()
+    translated_dict = {"translate": "", "color": None, "color_id": None}
+    i = 0
 
-# ==============================================================================
+    while i < len(words):
+        found_translation = False
+        for j in range(len(words), i, -1):
+            sub_phrase = ' '.join(words[i:j])
+            translation = get_translation(sub_phrase)
+            if translation:
+                translated_dict["translate"] += translation["translate"] + " "
+                if translation["color"] is not None:
+                    translated_dict["color"] = translation["color"]
+                if translation["color_id"] is not None:
+                    translated_dict["color_id"] = translation["color_id"]
+                i = j
+                found_translation = True
+                break
+        if not found_translation:
+            translated_dict["translate"] += words[i] + " "
+            i += 1
+
+    translated_dict["translate"] = translated_dict["translate"].strip()
+    return translated_dict
