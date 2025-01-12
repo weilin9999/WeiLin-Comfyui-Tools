@@ -59,35 +59,35 @@ def add_new_node_group(key, color):
     query = 'SELECT COUNT(*) FROM tag_groups WHERE name = ?'
     result = fetch_one(query, (key,))
     if result[0] > 0:
-        return {"info": "Group name already exists"}
+        return {"code": 201}
 
     query = '''
         INSERT INTO tag_groups (name, color, create_time)
         VALUES (?, ?, ?)
     '''
     execute_query(query, (key, color, generate_unique_timestamp()))
-    return {"info": "Group added"}
+    return {"code": 200}
 
 def add_new_group(key, group_key, color):
     # 检查 name 是否已经存在
     query = 'SELECT COUNT(*) FROM tag_subgroups WHERE name = ?'
     result = fetch_one(query, (group_key,))
     if result[0] > 0:
-        return {"info": "Subgroup name already exists"}
+        return {"code": 201}
 
     query = '''
         INSERT INTO tag_subgroups (group_id, name, color, create_time)
         VALUES (?, ?, ?, ?)
     '''
     execute_query(query, (key, group_key, color, generate_unique_timestamp()))
-    return {"info": "Subgroup added"}
+    return {"code": 200}
 
 def edit_node_group(id_index, new_key, new_color):
     # 检查 name 是否已经存在
     query = 'SELECT COUNT(*) FROM tag_groups WHERE name = ? AND id_index != ?'
     result = fetch_one(query, (new_key, id_index))
     if result[0] > 0:
-        return {"info": "Group name already exists"}
+        return {"code": 201}
 
     query = '''
         UPDATE tag_groups
@@ -95,14 +95,14 @@ def edit_node_group(id_index, new_key, new_color):
         WHERE id_index = ?
     '''
     execute_query(query, (new_key, new_color, id_index))
-    return {"info": "Group updated"}
+    return {"code": 200}
 
 def edit_child_node_group(id_index, new_key, new_color):
     # 检查 name 是否已经存在
     query = 'SELECT COUNT(*) FROM tag_subgroups WHERE name = ? AND id_index != ?'
     result = fetch_one(query, (new_key, id_index))
     if result[0] > 0:
-        return {"info": "Subgroup name already exists"}
+        return {"code": 201}
 
     query = '''
         UPDATE tag_subgroups
@@ -110,7 +110,7 @@ def edit_child_node_group(id_index, new_key, new_color):
         WHERE id_index = ?
     '''
     execute_query(query, (new_key, new_color, id_index))
-    return {"info": "Subgroup updated"}
+    return {"code": 200}
 
 def delete_node_group(id_index):
     conn = sqlite3.connect(db_path)

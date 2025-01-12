@@ -158,25 +158,27 @@ async def _get_group_tags(request):
 @PromptServer.instance.routes.post(baseUrl+"prompt/add_new_f_group")
 async def _add_new_s_group(request):
     data = await request.json()
+    resp = {"code":202}
     try:
-        add_new_node_group(data['name'], data['color'])
+       resp = add_new_node_group(data['name'], data['color'])
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
 
-    return web.json_response({"info": 'ok'})
+    return web.json_response(resp)
 
 
 @PromptServer.instance.routes.post(baseUrl+"prompt/edit_f_group")
 async def _edit_s_group(request):
     data = await request.json()
+    resp = {"code":202}
     try:
-        edit_node_group(data['id_index'], data['name'], data['color'])
+        resp = edit_node_group(data['id_index'], data['name'], data['color'])
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
 
-    return web.json_response({"info": 'ok'})
+    return web.json_response(resp)
 
 
 @PromptServer.instance.routes.post(baseUrl+"prompt/delete_f_group")
@@ -194,25 +196,27 @@ async def _delete_s_group(request):
 @PromptServer.instance.routes.post(baseUrl+"prompt/add_new_s_group")
 async def _add_new_s_group(request):
     data = await request.json()
+    resp = {"code":202}
     try:
-        add_new_group(data['key'], data['name'], data['color'])
+        resp = add_new_group(data['key'], data['name'], data['color'])
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
 
-    return web.json_response({"info": 'ok'})
+    return web.json_response(resp)
 
 
 @PromptServer.instance.routes.post(baseUrl+"prompt/edit_s_group")
 async def _edit_new_s_group(request):
     data = await request.json()
+    resp = {"code":202}
     try:
-        edit_child_node_group(data['id_index'], data['name'], data['color'])
+        resp = edit_child_node_group(data['id_index'], data['name'], data['color'])
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
 
-    return web.json_response({"info": 'ok'})
+    return web.json_response(resp)
 
 
 @PromptServer.instance.routes.post(baseUrl+"prompt/delete_s_group")
