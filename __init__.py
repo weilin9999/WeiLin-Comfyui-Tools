@@ -74,7 +74,7 @@ class WeiLinPromptUI:
     CATEGORY = node_name_text
 
     # 加载Lora
-    def load_lora_ing(self,positive, model=None, clip=None):
+    def load_lora_ing(self, positive, model=None, clip=None):
         model_lora_secondA = model
         clip_lora_secondA = clip
 

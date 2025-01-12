@@ -1,0 +1,15 @@
+[project]
+name = "weilin-comfyui-tools"
+description = "quickly use the prompt word tool in ComfyUI"
+version = "0.0.3"
+license = {file = "LICENSE"}
+dependencies = []
+
+[project.urls]
+Repository = "https://github.com/weilin9999/WeiLin-Comfyui-Tools"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = "weilin"
+DisplayName = "WeiLin-Comfyui-Tools"
+Icon = ""
