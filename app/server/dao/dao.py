@@ -131,9 +131,12 @@ def set_language(lang):
             else:
                 raise FileNotFoundError(f"Template database not found at {template_path}")
     else:
-        db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../user_data/userdatas_default.db')
+        db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../user_data/userdatas_'+lang+'.db')
     create_tables()
     migrate()
+
+def get_db_path():
+    return db_path
 
 # 根据系统语言设置数据库文件
 system_lang = locale.getdefaultlocale()[0]

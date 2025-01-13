@@ -1,0 +1,2 @@
+首先需要安装库pip install ruamel.yaml，安装完即可运行下面的
+然后在本目录下运行python run_panel.py即可然后访问http://127.0.0.1:9898 即可

@@ -1,4 +1,4 @@
-from ..dao.dao import execute_query, fetch_all, fetch_one, db_path
+from ..dao.dao import execute_query, fetch_all, fetch_one, get_db_path
 import sqlite3
 import time
 import uuid
@@ -17,7 +17,7 @@ def edit_tag_group(id_index, name, color):
     execute_query(query, (name, color, id_index))
 
 def delete_tag_group(id_index):
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(get_db_path())
     cursor = conn.cursor()
     try:
         cursor.execute('BEGIN')
@@ -40,7 +40,7 @@ def delete_tag_group(id_index):
         conn.close()
 
 def get_tag_groups():
-    query = 'SELECT * FROM tag_groups'
+    query = 'SELECT * FROM tag_groups ORDER BY create_time ASC'
     result = fetch_all(query)
     json_result = []
     for row in result:
@@ -62,7 +62,7 @@ def edit_tag_subgroup(id_index, name, color):
     execute_query(query, (name, color, id_index))
 
 def delete_tag_subgroup(id_index):
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(get_db_path())
     cursor = conn.cursor()
     try:
         cursor.execute('BEGIN')
@@ -78,7 +78,7 @@ def delete_tag_subgroup(id_index):
         conn.close()
 
 def get_tag_subgroups(group_id):
-    query = 'SELECT * FROM tag_subgroups WHERE group_id = ?'
+    query = 'SELECT * FROM tag_subgroups WHERE group_id = ? ORDER BY create_time ASC'
     result = fetch_all(query, (group_id,))
     json_result = []
     for row in result:
@@ -105,7 +105,7 @@ def delete_tag(id_index):
     execute_query(query, (id_index,))
 
 def get_tags(subgroup_id):
-    query = 'SELECT * FROM tag_tags WHERE subgroup_id = ?'
+    query = 'SELECT * FROM tag_tags WHERE subgroup_id = ? ORDER BY create_time DESC'
     result = fetch_all(query, (subgroup_id,))
     json_result = []
     for row in result:
