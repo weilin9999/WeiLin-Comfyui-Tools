@@ -2,7 +2,7 @@ import time
 import uuid
 from ruamel.yaml import YAML
 import sqlite3
-from app.server.dao.dao import get_db_path
+from ..dao.dao import get_db_path
 
 def create_tables_for_json_util(db_path):
     conn = sqlite3.connect(db_path)

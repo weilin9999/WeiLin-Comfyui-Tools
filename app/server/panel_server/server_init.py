@@ -1,8 +1,8 @@
 import os
 import json
 from http.server import BaseHTTPRequestHandler
-from app.server.dao.dao import set_language
-from app.server.panel_server.ymal_utils import mergerDataToDb
+from ..dao.dao import set_language
+from .ymal_utils import mergerDataToDb
 
 class FileListHandler:
     def __init__(self, directory='user_data'):

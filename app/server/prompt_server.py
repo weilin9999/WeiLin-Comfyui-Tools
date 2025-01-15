@@ -1,4 +1,3 @@
-import sys
 import os
 from server import PromptServer
 from aiohttp import web
@@ -530,4 +529,16 @@ async def _set_select_openai(request):
     return web.json_response({"info": 'ok'})
 # =====================================================================================================
 
+# =================================== 启动面板 无法实现 暂时不考虑 =============================================
+@PromptServer.instance.routes.post(baseUrl+"panel/start")
+async def _start_panel(request):
+    try:
+        return web.json_response({"status": "success", "message": f"Panel started on port 9898"})
+    except Exception as e:
+        print(f"Error starting panel: {e}")
+        return web.json_response({"status": "error", "message": str(e)}, status=500)
+# =====================================================================================================
+
+
+print("======== WeiLin插件服务已启动 ========")
 print("======== WeiLin Server Init ========")

@@ -1,7 +1,10 @@
+
+import os
+
 import argparse
 from http.server import SimpleHTTPRequestHandler, HTTPServer
-import os
 from urllib.parse import urlparse
+import webbrowser
 
 from app.server.panel_server.tag_manager_handel import TagManagerHandler
 from app.server.panel_server.server_init import FileListHandler, LanguageHandler, YamlConvertHandler
@@ -127,6 +130,10 @@ def main():
     server_address = ('', args.port)
     httpd = HTTPServer(server_address, CustomHandler)
     print(f"Starting HTTP server on port {args.port}")
+     # 在启动服务后自动打开浏览器
+    url = f"http://localhost:{args.port}"
+    print(f"Opening browser at {url}")
+    webbrowser.open(url)
     httpd.serve_forever()
 
 if __name__ == "__main__":
