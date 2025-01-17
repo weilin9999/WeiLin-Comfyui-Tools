@@ -2,8 +2,7 @@ import { app } from '../../scripts/app.js'
 
 // 提示词 Node
 
-let global_randomID = (Math.random() + new Date().getTime()).toString(32).slice(0, 8); // 随机种子ID
-localStorage.setItem("weilin_prompt_ui_onfirst", 0);
+// localStorage.setItem("weilin_prompt_ui_onfirst", 0);
 
 app.registerExtension({
   name: "weilin.prompt_ui_node",
@@ -40,12 +39,14 @@ app.registerExtension({
       nodeType.prototype.onNodeCreated = async function () {
         const r = onNodeCreated ? onNodeCreated.apply(this, arguments) : undefined;
 
+        let global_randomID = (Math.random() + new Date().getTime()).toString(32).slice(0, 8); // 随机种子ID
+
         const thisNodeName = nodeData.name // 存储当前的节点名称
         let nodeTextAreaList = []
         for (let index = 0; index < this.widgets.length; index++) {
           const element = this.widgets[index];
           let thisInputElement = element.element
-          thisInputElement.readOnly = true
+          // thisInputElement.readOnly = true
           nodeTextAreaList[0] = thisInputElement
         }
 
@@ -57,7 +58,7 @@ app.registerExtension({
 
         window.addEventListener('message', event => {
           // console.log(e)
-          if(event.data.type === 'weilin_prompt_ui_prompt_update_prompt_'+global_randomID){
+          if (event.data.type === 'weilin_prompt_ui_prompt_update_prompt_' + global_randomID) {
             nodeTextAreaList[0].value = event.data.data
           }
         })
