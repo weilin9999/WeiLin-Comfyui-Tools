@@ -4,6 +4,16 @@ import { app } from '../../scripts/app.js'
 
 // localStorage.setItem("weilin_prompt_ui_onfirst", 0);
 
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random() * 16 | 0,
+          v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+  });
+}
+
+let global_randomID = generateUUID(); // 随机种子ID
+
 app.registerExtension({
   name: "weilin.prompt_ui_node",
 
@@ -38,7 +48,6 @@ app.registerExtension({
       const onNodeCreated = nodeType.prototype.onNodeCreated;
       nodeType.prototype.onNodeCreated = async function () {
         const r = onNodeCreated ? onNodeCreated.apply(this, arguments) : undefined;
-        let global_randomID = (Math.random() + new Date().getTime()).toString(32).slice(0, 8); // 随机种子ID
 
         const thisNodeName = nodeData.name // 存储当前的节点名称
         let nodeTextAreaList = []
@@ -49,20 +58,23 @@ app.registerExtension({
           nodeTextAreaList[0] = thisInputElement
         }
 
+        let randomID = ""
         this.addWidget("button", "打开可视化PromptUI", '', ($e) => {
           // console.log(thisNodeName)
           // 发送消息给父窗口
-          global_randomID = (Math.random() + new Date().getTime()).toString(32).slice(0, 8);
           // console.log(global_randomID)
-          window.parent.postMessage({ type: 'weilin_prompt_ui_openPromptBox', id: global_randomID, prompt: nodeTextAreaList[0].value }, '*')
-        }, false);
+          randomID = generateUUID();
+          // console.log("register====>",randomID)
+          window.parent.postMessage({ type: 'weilin_prompt_ui_openPromptBox', id: randomID, prompt: nodeTextAreaList[0].value }, '*')
+        });
 
         window.addEventListener('message', event => {
           // console.log(e)
-          if (event.data.type === 'weilin_prompt_ui_prompt_update_prompt_' + global_randomID) {
+          if (event.data.type === 'weilin_prompt_ui_prompt_update_prompt_' + randomID) {
             nodeTextAreaList[0].value = event.data.data
+            // console.log(nodeTextAreaList)
           }
-        })
+        }, false);
 
         return r;
       };
