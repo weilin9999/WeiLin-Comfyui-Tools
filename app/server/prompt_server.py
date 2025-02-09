@@ -54,6 +54,10 @@ async def _get_extra_networks(request):
 @PromptServer.instance.routes.get(baseUrl+"get_lora_load_all")
 async def _get_extra_networks_load_all(request):
     return web.json_response({"data": await get_extra_networks(auto_fetch=True)})
+
+@PromptServer.instance.routes.get(baseUrl+"get_lora_load_status")
+async def _get_lora_load_status(request):
+    return web.json_response({"data": loading_status})
 # =======================================================================================================
 
 # ============================================= Lora 信息 ============================================
@@ -113,6 +117,7 @@ async def _refresh_get_loras_info(request):
                                                  maybe_fetch_civitai=True,
                                                  maybe_fetch_metadata=True)
     return web.json_response(api_response)
+
 
 
 @PromptServer.instance.routes.get(baseUrl+'lorainfo/api/loras/img')

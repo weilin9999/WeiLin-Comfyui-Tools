@@ -11,6 +11,13 @@ from tqdm import tqdm
 
 from .lora_info import get_model_info
 
+loading_status = {
+    "isLoading": False,
+    "progress": 0,
+    "total": 0,
+    "current": 0
+}
+
 filters = [
     # 'filename',
     # 'description',
@@ -60,14 +67,27 @@ def prepare_lora_item_data(item_path, auto_fetch=False):
     return item
 
 async def get_extra_networks(auto_fetch=False):
+    global loading_status
     loras_path  = folder_paths.get_filename_list("loras")
     return_response= {"path": "", "loras": []}
     return_response["path"] = loras_path
     items = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=os.cpu_count()*2) as executor:
-        futures = [executor.submit(prepare_lora_item_data, item_path, auto_fetch) for item_path in loras_path]
-        for future in tqdm(futures):
-            items.append(future.result())
+    
+    loading_status["isLoading"] = True
+    loading_status["total"] = len(loras_path)
+    loading_status["current"] = 0
+    loading_status["progress"] = 0
+    
+    try:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=os.cpu_count()*2) as executor:
+            futures = [executor.submit(prepare_lora_item_data, item_path, auto_fetch) for item_path in loras_path]
+            for future in tqdm(futures):
+                items.append(future.result())
+                loading_status["current"] += 1
+                loading_status["progress"] = int((loading_status["current"] / loading_status["total"]) * 100)
+    finally:
+        loading_status["isLoading"] = False
+        
     return_response["loras"] = items
     return return_response
 
