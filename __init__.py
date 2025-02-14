@@ -70,7 +70,7 @@ class WeiLinPromptUI:
                 }),
             },
             "optional": {
-                "opt_text": (ANY, {"default": None}),
+                "opt_text": (ANY, {"default": ""}),
                 "opt_clip": ("CLIP", ),
                 "opt_model": ("MODEL",)
             }
@@ -89,7 +89,7 @@ class WeiLinPromptUI:
     CATEGORY = node_name_text
 
     # 加载Lora
-    def load_lora_ing(self, positive, opt_model=None, opt_clip=None, opt_text=None):
+    def load_lora_ing(self, positive, opt_text="", opt_clip=None, opt_model=None):
         model_lora_secondA = opt_model
         clip_lora_secondA = opt_clip
 
