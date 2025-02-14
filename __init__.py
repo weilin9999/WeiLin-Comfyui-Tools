@@ -22,7 +22,7 @@ if localLan == "zh_CN":
     placeholder_text = "输入提示词"
     retrun_name_text = "条件"
     retrun_type_text = "条件"
-    node_name_text = "WeiLin-节点工具"
+    node_name_text = "WeiLin-Tools-节点工具"
     node_model_text = "模型"
 else:
     placeholder_text = "input prompt words"
@@ -38,6 +38,20 @@ def is_json(myjson):
     except ValueError as e:
         return False
     return True
+
+class AnyType(str):
+    """
+    A class representing any type in ComfyUI nodes.
+    Used for parameters that can accept any type of input.
+    """
+    def __ne__(self, __value: object) -> bool:
+        return False
+
+    @classmethod
+    def INPUT_TYPE(cls):
+        return (ANY, {})
+
+ANY = AnyType("*")
 
 # 提示词UI
 class WeiLinPromptUI:
@@ -56,15 +70,16 @@ class WeiLinPromptUI:
                 }),
             },
             "optional": {
-                "clip": ("CLIP", ),
-                "model": ("MODEL",)
+                "opt_text": (ANY, {"default": None}),
+                "opt_clip": ("CLIP", ),
+                "opt_model": ("MODEL",)
             }
         }
 
     # RETURN_TYPES = ("STRING",)
     # RETURN_TYPES = ("MODEL", "CLIP")
-    RETURN_TYPES = ("STRING", "CONDITIONING", "MODEL", )
-    RETURN_NAMES = ("STRING", "CONDITIONING", "MODEL", )
+    RETURN_TYPES = ("STRING", "CONDITIONING", "CLIP", "MODEL", )
+    RETURN_NAMES = ("STRING", "CONDITIONING", "CLIP", "MODEL", )
 
     # FUNCTION = "encode"
     FUNCTION = "load_lora_ing"
@@ -74,9 +89,9 @@ class WeiLinPromptUI:
     CATEGORY = node_name_text
 
     # 加载Lora
-    def load_lora_ing(self, positive, model=None, clip=None):
-        model_lora_secondA = model
-        clip_lora_secondA = clip
+    def load_lora_ing(self, positive, opt_model=None, opt_clip=None, opt_text=None):
+        model_lora_secondA = opt_model
+        clip_lora_secondA = opt_clip
 
         text_dec = ""
         lora_list= None
@@ -84,12 +99,18 @@ class WeiLinPromptUI:
         if is_json(positive):
             json_object = json.loads(positive)
             lora_list = json_object.get("lora", None)
-            text_dec = json_object.get("prompt", "")
+            if len(opt_text) > 0:
+                text_dec = opt_text +", "+ json_object.get("prompt", "")
+            else:
+                text_dec = json_object.get("prompt", "")
         else:
-            text_dec = positive
+            if len(opt_text) > 0:
+                text_dec = opt_text +", "+positive
+            else:
+                text_dec = positive
 
         # 当模型不为空时
-        if model != None and lora_list != None:
+        if opt_model != None and lora_list != None:
             for str_lora_item in lora_list:
                 # print(loar_sim_path,str_n_arr)
                 strength_model = float(str_lora_item["weight"])
@@ -116,12 +137,12 @@ class WeiLinPromptUI:
                     self.loaded_loraA = (lora_path, lora)
 
                 model_lora_secondA, clip_lora_secondA = load_lora_for_models(model_lora_secondA, clip_lora_secondA, lora, strength_model, strength_clip)
-        if clip != None:
+        if opt_clip != None:
             tokensA = clip_lora_secondA.tokenize(text_dec)
             outputA = clip_lora_secondA.encode_from_tokens(tokensA, return_pooled=True, return_dict=True)
             condA = outputA.pop("cond")
-            return (text_dec,[[condA, outputA]], model_lora_secondA)
-        return (text_dec, clip_lora_secondA, model_lora_secondA)
+            return (text_dec,[[condA, outputA]], clip_lora_secondA, model_lora_secondA)
+        return (text_dec, clip_lora_secondA, opt_clip, model_lora_secondA)
         # return (model_lora_second, clip_lora_second)
 
 
