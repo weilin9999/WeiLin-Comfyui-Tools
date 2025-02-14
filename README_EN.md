@@ -19,7 +19,7 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 # Version update introduction
 
 > Last updated: 2025-02-14
-> 0.0.14 Public beta version introduction If you want to use this plugin, please be sure to join our official QQ group (1018231382)!
+> 0.0.15 Public beta version introduction If you want to use this plugin, please be sure to join our official QQ group (1018231382)!
 >
 >1. Node modification, adding clip node output
 >
