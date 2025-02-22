@@ -1,0 +1,760 @@
+.weilin_prompt_ui_prompt-box {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    box-sizing: border-box;
+    overflow: visible;
+    background: var(--weilin-prompt-ui-primary-bg);
+    transition: width 0.3s ease;
+}
+
+.weilin_prompt_ui_main-content {
+    height: auto;
+    /* 高度自动调整 */
+    transition: width 0.3s ease;
+    /* 添加过渡效果 */
+}
+
+.input-area {
+    width: 100%;
+    padding: 8px 12px;
+    resize: vertical;
+    border: 2px solid var(--weilin-prompt-ui-border-color);
+    border-radius: 6px;
+    overflow-y: auto;
+    box-sizing: border-box;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--weilin-prompt-ui-primary-text);
+    background-color: var(--weilin-prompt-ui-input-bg);
+    transition: all 0.3s ease;
+    box-shadow: inset 0 1px 3px var(--weilin-prompt-ui-shadow-color);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.input-area:hover {
+    border-color: var(--weilin-prompt-ui-secondary-text);
+}
+
+.input-area:focus {
+    outline: none;
+    border-color: var(--weilin-prompt-ui-primary-color);
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.input-area::placeholder {
+    color: var(--weilin-prompt-ui-secondary-text);
+    font-size: 14px;
+}
+
+.tokens-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid var(--weilin-prompt-ui-border-color);
+    border-radius: 6px;
+    align-items: flex-start;
+    background-color: var(--weilin-prompt-ui-primary-bg);
+    transition: border-color 0.2s ease;
+    margin-top: 10px;
+}
+
+.tokens-container:hover {
+    border-color: var(--weilin-prompt-ui-secondary-text);
+}
+
+.token-item {
+    overflow: visible;
+    color: var(--weilin-prompt-ui-primary-text);
+    font-size: 13px;
+    line-height: 1.5;
+    display: flex;
+    align-items: center;
+}
+
+.token-item-icon {
+    width: 12px;
+    height: 12px;
+    fill: var(--weilin-prompt-ui-icon-color);
+}
+
+.token-item input {
+    width: auto;
+    min-width: 20px;
+    padding: 4px 8px;
+    border: 2px solid var(--weilin-prompt-ui-primary-color);
+    border-radius: 4px;
+    font-size: inherit;
+    font-family: inherit;
+    line-height: inherit;
+    margin: -4px 0;
+    box-sizing: border-box;
+    background: var(--weilin-prompt-ui-input-bg);
+    color: var(--weilin-prompt-ui-primary-text);
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+    transition: all 0.2s ease;
+}
+
+.token-item input:focus {
+    outline: none;
+    border-color: #40a9ff;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.line-break {
+    display: block;
+    width: 100%;
+    height: 0;
+    clear: both;
+}
+
+.newline-token {
+    color: var(--weilin-prompt-ui-secondary-text);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    font-size: 14px;
+    display: block;
+    width: 100%;
+}
+
+.tab-token {
+    color: var(--weilin-prompt-ui-secondary-text);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    font-size: 14px;
+}
+
+.newline-token:hover,
+.tab-token:hover {
+    transform: translateY(-1px);
+}
+
+.token-symbol {
+    font-family: monospace;
+    user-select: none;
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.tokens-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tokens-container::-webkit-scrollbar-track {
+    background: var(--weilin-prompt-ui-scrollbar-track);
+    border-radius: 3px;
+}
+
+.tokens-container::-webkit-scrollbar-thumb {
+    background: var(--weilin-prompt-ui-scrollbar-thumb);
+    border-radius: 3px;
+}
+
+.tokens-container::-webkit-scrollbar-thumb:hover {
+    background: var(--weilin-prompt-ui-scrollbar-thumb-hover);
+}
+
+.input-area::-webkit-scrollbar {
+    width: 6px;
+}
+
+.input-area::-webkit-scrollbar-track {
+    background: var(--weilin-prompt-ui-scrollbar-track);
+    border-radius: 3px;
+}
+
+.input-area::-webkit-scrollbar-thumb {
+    background: var(--weilin-prompt-ui-scrollbar-thumb);
+    border-radius: 3px;
+}
+
+.input-area::-webkit-scrollbar-thumb:hover {
+    background: var(--weilin-prompt-ui-scrollbar-thumb-hover);
+}
+
+.center-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 0 0 10px 0;
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--weilin-prompt-ui-primary-bg);
+}
+
+.action-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.language-switch-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.language-switch-btn:hover {
+    background-color: var(--weilin-prompt-ui-hover-bg-color);
+}
+
+.translate-icon {
+    width: 20px;
+    height: 20px;
+    fill: var(--weilin-prompt-ui-icon-color);
+}
+
+.action-text {
+    font-size: 12px;
+    color: var(--weilin-prompt-ui-secondary-text);
+    white-space: nowrap;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: all 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+    transform: translateY(-10px);
+}
+
+.token-controls {
+    position: fixed;
+    transform: translateX(-50%);
+    background-color: var(--weilin-prompt-ui-primary-bg);
+    padding: 6px;
+    border: 1px solid var(--weilin-prompt-ui-border-color);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px var(--weilin-prompt-ui-shadow-color);
+    z-index: 1000;
+    display: flex;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+
+.delete-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    background-color: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.delete-btn:hover {
+    background-color: rgba(255, 77, 79, 0.1);
+}
+
+.delete-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: #ff4d4f;
+    transition: transform 0.2s ease;
+}
+
+.delete-btn:hover svg {
+    transform: scale(1.1);
+}
+
+.settings-icon {
+    width: 24px;
+    height: 24px;
+    fill: var(--weilin-prompt-ui-icon-color);
+    transition: transform 0.3s ease;
+}
+
+.settings-btn:hover .settings-icon {
+    transform: rotate(30deg);
+}
+
+.token-item.punctuation {
+    cursor: default;
+    color: var(--weilin-prompt-ui-secondary-text);
+}
+
+.token-item.punctuation:hover {
+    transform: none;
+    box-shadow: none;
+    background-color: var(--weilin-prompt-ui-secondary-bg);
+}
+
+/* 修改分隔线样式 */
+.action-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 24px;
+    width: 1px;
+    background-color: var(--weilin-prompt-ui-border-color);
+    opacity: 0.5;
+}
+
+.action-item button:hover {
+    background-color: var(--weilin-prompt-ui-hover-bg-color);
+    transform: translateY(-1px);
+}
+
+.action-item button:active {
+    transform: translateY(0);
+}
+
+/* 确保语言切换按钮容器是相对定位且不被遮挡 */
+.action-item {
+    position: relative;
+    z-index: 9999;
+}
+
+/* 添加过渡动画样式 */
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
+.action-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.settings-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.settings-btn:hover {
+    background-color: var(--weilin-prompt-ui-hover-bg-color);
+}
+
+.settings-icon {
+    width: 20px;
+    height: 20px;
+    fill: var(--weilin-prompt-ui-icon-color);
+    transition: transform 0.3s ease;
+}
+
+.settings-btn:hover .settings-icon {
+    transform: rotate(30deg);
+}
+
+.action-text {
+    font-size: 12px;
+    color: var(--weilin-prompt-ui-secondary-text);
+    white-space: nowrap;
+    margin-top: 2px;
+}
+
+/* 确保所有按钮样式一致 */
+.language-switch-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.language-switch-btn:hover .translate-icon {
+    transform: rotate(10deg);
+}
+
+.language-switch-btn:hover {
+    background-color: var(--weilin-prompt-ui-hover-bg-color);
+}
+
+.translate-icon {
+    width: 20px;
+    height: 20px;
+    fill: var(--weilin-prompt-ui-icon-color);
+}
+
+/* 修改分隔线样式 */
+.action-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 24px;
+    width: 1px;
+    background-color: var(--weilin-prompt-ui-border-color);
+    opacity: 0.5;
+}
+
+/* 添加按钮点击效果 */
+.settings-btn:active,
+.tag-manager-btn:active,
+.language-switch-btn:active {
+    transform: scale(0.95);
+}
+
+.tag-manager-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 48px;
+}
+
+.tag-manager-btn:hover .tag-icon {
+    transform: rotate(10deg);
+}
+
+.tag-icon {
+    width: 20px;
+    height: 20px;
+    fill: var(--weilin-prompt-ui-icon-color);
+}
+
+.tag-manager-btn .action-text {
+    font-size: 12px;
+    text-align: center;
+}
+
+.tag-manager-container {
+    margin-top: 1px;
+}
+
+.tag-manager-section {
+    margin-top: 16px;
+    background: var(--weilin-prompt-ui-primary-bg);
+    border: 1px solid var(--weilin-prompt-ui-border-color);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.tag-manager-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.3s ease;
+    background: var(--weilin-prompt-ui-secondary-bg);
+    border-bottom: 1px solid var(--weilin-prompt-ui-border-color);
+}
+
+.tag-manager-header:hover {
+    background: var(--weilin-prompt-ui-hover-bg-color);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tag-icon {
+    width: 18px;
+    height: 18px;
+    fill: var(--weilin-prompt-ui-icon-color);
+}
+
+.section-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--weilin-prompt-ui-primary-text);
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+}
+
+.collapse-icon {
+    width: 20px;
+    height: 20px;
+    fill: var(--weilin-prompt-ui-secondary-text);
+    transition: transform 0.3s ease;
+}
+
+.collapse-icon.is-collapsed {
+    transform: rotate(180deg);
+}
+
+.tag-manager-container {
+    background: var(--weilin-prompt-ui-primary-bg);
+    transition: all 0.3s ease;
+}
+
+/* 翻译 */
+/* 翻译结果显示区域 */
+.translation-result {
+    display: flex;
+    align-items: center;
+    margin-top: 5px;
+    font-size: 12px;
+}
+
+/* 翻译按钮样式 */
+.translation-result .translate-button {
+    margin-right: 5px;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 12px;
+}
+
+.translation-result button:hover {
+    background-color: var(--weilin-prompt-ui-primary-color-hover);
+}
+
+/* 翻译结果文本样式 */
+.translated-text {
+    color: var(--weilin-prompt-ui-primary-text);
+    font-weight: bold;
+}
+
+.token-item-box {
+    display: inline-flex;
+    flex-direction: column;
+    padding: 3px 6px;
+    background-color: var(--weilin-prompt-ui-token-bg);
+    border-radius: 6px;
+    overflow: visible;
+    color: var(--weilin-prompt-ui-primary-text);
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    font-size: 14px;
+    line-height: 1.5;
+    box-shadow: 0 1px 2px var(--weilin-prompt-ui-shadow-color);
+    cursor: grab;
+}
+
+.token-item-box:active {
+    cursor: grabbing;
+}
+
+.token-item-box:hover {
+    background-color: var(--weilin-prompt-ui-hover-bg-color);
+    border-color: var(--weilin-prompt-ui-border-color);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px var(--weilin-prompt-ui-shadow-color);
+}
+
+/* 自动补全 */
+/* 自动补全容器 */
+.autocomplete-container {
+    position: absolute;
+    z-index: 1000;
+    width: 300px;
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 8px 0;
+    margin-top: 4px;
+    background-color: var(--weilin-prompt-ui-primary-bg);
+}
+
+/* 关闭按钮 */
+.autocomplete-container .close-autocomplete-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--weilin-prompt-ui-primary-bg);
+    border: 1px solid var(--weilin-prompt-ui-border-color);
+    border-radius: 50%;
+    color: var(--weilin-prompt-ui-primary-text);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.autocomplete-container .close-autocomplete-btn:hover {
+    background-color: var(--weilin-prompt-ui-danger-color);
+}
+
+/* 自动补全项 */
+.autocomplete-item {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.autocomplete-item:hover {
+    color: var(--weilin-prompt-ui-primary-text);
+    background-color: var(--weilin-prompt-ui-hover-bg-color);
+}
+
+/* 选中项 */
+.autocomplete-item.selected {
+    color: var(--weilin-prompt-ui-primary-text);
+    background-color: var(--weilin-prompt-ui-primary-color);
+}
+
+/* 标签样式 */
+.tag {
+    font-weight: 500;
+    color: var(--text-color);
+    font-size: 14px;
+}
+
+/* 描述样式 */
+.desc {
+    color: var(--text-secondary-color);
+    font-size: 12px;
+    margin-top: 4px;
+    padding: 10px;
+}
+
+/* 中间翻译区域 */
+.prompt-input-translate-area {
+    margin-top: 10px;
+    width: 100%;
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+.prompt-input-translate-area-textarea {
+    width: 300px;
+    height: 45px;
+    border: 1px solid var(--weilin-prompt-ui-border-color);
+    background-color: var(--weilin-prompt-ui-input-bg);
+    border-radius: 8px;
+    padding: 6px;
+}
+
+.prompt-input-translate-area-textarea:hover {
+    border-color: var(--weilin-prompt-ui-primary-color);
+}
+
+/* 添加权重输入框样式 */
+.weight-control {
+    display: flex;
+    align-items: center;
+    margin-right: 8px;
+}
+
+.weight-input {
+    width: 50px;
+    padding: 4px;
+    margin-right: 4px;
+    border: 1px solid var(--weilin-prompt-ui-border-color);
+    border-radius: 4px;
+    background: var(--weilin-prompt-ui-input-bg);
+    color: var(--weilin-prompt-ui-primary-text);
+}
+
+.weight-label {
+    font-size: 12px;
+    color: var(--weilin-prompt-ui-secondary-text);
+}
+
+/* 添加括号按钮样式 */
+.bracket-btn {
+    padding: 4px 8px;
+    color: var(--weilin-prompt-ui-primary-text);
+}
+
+.translate-btn {
+    padding: 4px 8px;
+    margin-right: 4px;
+    background: var(--weilin-prompt-ui-secondary-bg);
+    border: 1px solid var(--weilin-prompt-ui-border-color);
+    border-radius: 4px;
+    color: var(--weilin-prompt-ui-primary-text);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.translate-btn:hover {
+    background: var(--weilin-prompt-ui-primary-color);
+    color: white;
+}
+
+/* 操作按钮 */
+.bracket-btn-group {
+    display: flex;
+    gap: 8px;
+}
+
+.bracket-btn-container {
+    display: flex;
+    align-items: center;
+    background: var(--weilin-prompt-ui-secondary-bg);
+    border: 1px solid var(--weilin-prompt-ui-border-color);
+    border-radius: 4px;
+}
+
+.vertical-btn-group {
+    display: flex;
+    flex-direction: column;
+    border-left: none;
+}
+
+.vertical-btn {
+    padding: 2px 4px;
+    border: 1px solid var(--weilin-prompt-ui-border-color);
+    background-color: var(--weilin-prompt-ui-secondary-bg);
+    cursor: pointer;
+    font-size: 12px;
+    height: 15px;
+    width: 15px;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.vertical-btn:hover {
+    background-color: var(--weilin-prompt-ui-primary-color);
+}

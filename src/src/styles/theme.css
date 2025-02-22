@@ -1,0 +1,211 @@
+#weilin_comfyui_tools_prompt_ui_div {
+  /* 亮色主题变量 */
+  --weilin-prompt-ui-primary-bg: #ffffff;
+  --weilin-prompt-ui-secondary-bg: #f5f5f5;
+  --weilin-prompt-ui-primary-text: #333333;
+  --weilin-prompt-ui-secondary-text: #666666;
+  --weilin-prompt-ui-border-color: #e8e8e8;
+  --weilin-prompt-ui-hover-bg-color: rgba(0, 0, 0, 0.1);
+  --weilin-prompt-ui-icon-color: #666666;
+  --weilin-prompt-ui-input-bg: #ffffff;
+  --weilin-prompt-ui-token-bg: #f0f0f0;
+  --weilin-prompt-ui-shadow-color: rgba(0, 0, 0, 0.1);
+  --weilin-prompt-ui-scrollbar-track: #f5f5f5;
+  --weilin-prompt-ui-scrollbar-thumb: #d9d9d9;
+  --weilin-prompt-ui-scrollbar-thumb-hover: #bfbfbf;
+  --weilin-prompt-ui-tag-hover: #e6f7ff;
+  
+  /* 主题色相关变量 */
+  --weilin-prompt-ui-primary-color: #1890ff;
+  
+  /* 颜色选择器相关变量 */
+  --weilin-prompt-ui-color-picker-bg: var(--weilin-prompt-ui-secondary-bg);
+  --weilin-prompt-ui-color-picker-border: var(--weilin-prompt-ui-border-color);
+  --weilin-prompt-ui-color-preview-size: 48px;
+  --weilin-prompt-ui-color-input-height: 32px;
+  --weilin-prompt-ui-slider-height: 8px;
+  --weilin-prompt-ui-slider-thumb-size: 16px;
+  --weilin-prompt-ui-danger-color: #ff4d4f;
+  --weilin-prompt-ui-danger-color-hover: #ff7875;
+  --weilin-prompt-ui-success-color: #52c41a;
+  --weilin-prompt-ui-warning-color: #faad14;
+  
+  /* 透明度相关 */
+  --weilin-prompt-ui-checkerboard-size: 10px;
+  --weilin-prompt-ui-checkerboard-color: #ccc;
+  
+  /* lora_detail 相关变量 */
+  --weilin-prompt-ui-button-bg: #ffffff;
+  --weilin-prompt-ui-button-text: #333333;
+  --weilin-prompt-ui-button-hover: #f5f5f5;
+  --weilin-prompt-ui-input-text: #333333;
+  --weilin-prompt-ui-tag-bg: #f5f5f5;
+  --weilin-prompt-ui-tag-text: #333333;
+  --weilin-prompt-ui-header-bg: #f5f5f5;
+
+  --weilin-prompt-ui-primary-color-hover: #40a9ff;
+}
+
+#weilin_comfyui_tools_prompt_ui_div[data-theme="dark"] {
+  /* 暗色主题变量 */
+  --weilin-prompt-ui-primary-bg: #1a1a1a;
+  --weilin-prompt-ui-secondary-bg: #2d2d2d;
+  --weilin-prompt-ui-primary-text: #e0e0e0;
+  --weilin-prompt-ui-secondary-text: #a0a0a0;
+  --weilin-prompt-ui-border-color: #404040;
+  --weilin-prompt-ui-hover-bg-color: rgba(255, 255, 255, 0.1);
+  --weilin-prompt-ui-icon-color: #a0a0a0;
+  --weilin-prompt-ui-input-bg: #2d2d2d;
+  --weilin-prompt-ui-token-bg: #404040;
+  --weilin-prompt-ui-shadow-color: rgba(0, 0, 0, 0.3);
+  --weilin-prompt-ui-scrollbar-track: #dfdfdf;
+  --weilin-prompt-ui-scrollbar-thumb: #404040;
+  --weilin-prompt-ui-scrollbar-thumb-hover: #505050;
+  --weilin-prompt-ui-tag-hover: #111d2c;
+  
+  /* 暗色主题下的主题色 */
+  --weilin-prompt-ui-primary-color: #40a9ff;
+  
+  /* 暗色主题下的颜色选择器变量 */
+  --weilin-prompt-ui-checkerboard-color: #404040;
+  --weilin-prompt-ui-danger-color: #ff7875;
+  --weilin-prompt-ui-danger-color-hover: #ffa39e;
+  --weilin-prompt-ui-success-color: #73d13d;
+  --weilin-prompt-ui-warning-color: #ffc53d;
+  
+  /* lora_detail 暗色主题变量 */
+  --weilin-prompt-ui-button-bg: #2d2d2d;
+  --weilin-prompt-ui-button-text: #e0e0e0;
+  --weilin-prompt-ui-button-hover: #404040;
+  --weilin-prompt-ui-input-text: #e0e0e0;
+  --weilin-prompt-ui-tag-bg: #2d2d2d;
+  --weilin-prompt-ui-tag-text: #e0e0e0;
+  --weilin-prompt-ui-header-bg: #2d2d2d;
+
+  --weilin-prompt-ui-primary-color-hover: #69b3ff;
+}
+
+/* 添加颜色选择器相关的全局样式 */
+#weilin_comfyui_tools_prompt_ui_div .color-picker {
+  background: var(--weilin-prompt-ui-color-picker-bg);
+  border: 1px solid var(--weilin-prompt-ui-color-picker-border);
+  border-radius: 4px;
+  padding: 12px;
+}
+
+#weilin_comfyui_tools_prompt_ui_div .color-preview {
+  width: var(--weilin-prompt-ui-color-preview-size);
+  height: var(--weilin-prompt-ui-color-preview-size);
+  border-radius: 4px;
+  border: 1px solid var(--weilin-prompt-ui-color-picker-border);
+  background-image: 
+    linear-gradient(45deg, var(--weilin-prompt-ui-checkerboard-color) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--weilin-prompt-ui-checkerboard-color) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--weilin-prompt-ui-checkerboard-color) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--weilin-prompt-ui-checkerboard-color) 75%);
+  background-size: var(--weilin-prompt-ui-checkerboard-size) var(--weilin-prompt-ui-checkerboard-size);
+  background-position: 0 0, 0 5px, 5px -5px, -5px 0px;
+}
+
+/* 滑块样式 */
+#weilin_comfyui_tools_prompt_ui_div input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: var(--weilin-prompt-ui-slider-height);
+  border-radius: calc(var(--weilin-prompt-ui-slider-height) / 2);
+  background: var(--weilin-prompt-ui-secondary-bg);
+  outline: none;
+  border: 1px solid var(--weilin-prompt-ui-border-color);
+}
+
+#weilin_comfyui_tools_prompt_ui_div input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: var(--weilin-prompt-ui-slider-thumb-size);
+  height: var(--weilin-prompt-ui-slider-thumb-size);
+  border-radius: 50%;
+  background: var(--weilin-prompt-ui-primary-color);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 0 2px var(--weilin-prompt-ui-shadow-color);
+}
+
+#weilin_comfyui_tools_prompt_ui_div input[type="range"]::-moz-range-thumb {
+  width: var(--weilin-prompt-ui-slider-thumb-size);
+  height: var(--weilin-prompt-ui-slider-thumb-size);
+  border-radius: 50%;
+  background: var(--weilin-prompt-ui-primary-color);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 0 2px var(--weilin-prompt-ui-shadow-color);
+}
+
+/* 颜色输入框样式 */
+#weilin_comfyui_tools_prompt_ui_div input[type="color"] {
+  -webkit-appearance: none;
+  border: none;
+  padding: 0;
+  width: 100%;
+  height: var(--weilin-prompt-ui-color-input-height);
+}
+
+#weilin_comfyui_tools_prompt_ui_div input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+#weilin_comfyui_tools_prompt_ui_div input[type="color"]::-webkit-color-swatch {
+  border: 1px solid var(--weilin-prompt-ui-border-color);
+  border-radius: 4px;
+}
+
+/* 添加按钮样式 */
+#weilin_comfyui_tools_prompt_ui_div .add-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid var(--weilin-prompt-ui-border-color);
+  border-radius: 4px;
+  background-color: var(--weilin-prompt-ui-primary-bg);
+  color: var(--weilin-prompt-ui-primary-text);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#weilin_comfyui_tools_prompt_ui_div .add-btn:hover {
+  background-color: var(--weilin-prompt-ui-hover-bg-color);
+}
+
+#weilin_comfyui_tools_prompt_ui_div .add-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--weilin-prompt-ui-secondary-bg);
+}
+
+#weilin_comfyui_tools_prompt_ui_div .add-btn .plus-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* 添加 tab 按钮样式 */
+#weilin_comfyui_tools_prompt_ui_div .add-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px dashed var(--weilin-prompt-ui-border-color);
+  border-radius: 4px;
+  background-color: var(--weilin-prompt-ui-primary-bg);
+  color: var(--weilin-prompt-ui-primary-text);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#weilin_comfyui_tools_prompt_ui_div .add-tab:hover {
+  border-color: var(--weilin-prompt-ui-primary-color);
+  color: var(--weilin-prompt-ui-primary-color);
+}
+
+#weilin_comfyui_tools_prompt_ui_div .add-tab .plus-icon {
+  font-size: 18px;
+  line-height: 1;
+} 
