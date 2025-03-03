@@ -18,8 +18,10 @@ retrun_name_text = ""
 retrun_type_text = ""
 node_name_text = ""
 node_model_text = ""
+placeholder_node_text = ""
 if localLan == "zh_CN":
     placeholder_text = "输入提示词"
+    placeholder_node_text = "输入节点命名"
     retrun_name_text = "条件"
     retrun_type_text = "条件"
     node_name_text = "WeiLin-Tools-节点工具"
@@ -30,6 +32,7 @@ else:
     retrun_type_text = "CONDITIONING"
     node_name_text = "WeiLin Node Tools"
     node_model_text = "MODEL"
+    placeholder_node_text = "input node name"
 
 
 def is_json(myjson):
@@ -72,7 +75,7 @@ class WeiLinPromptUI:
             "optional": {
                 "opt_text": (ANY, {"default": ""}),
                 "opt_clip": ("CLIP", ),
-                "opt_model": ("MODEL",)
+                "opt_model": ("MODEL",),
             }
         }
 

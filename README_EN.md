@@ -21,14 +21,18 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 # Version update introduction
 
-> Last updated: 2025-02-22
+> Last updated: 2025-03-03
 
-> 0.0.17 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.18 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
 >
-> 1.Fix the bug where adding weights would delete other types of parentheses.
+>1. Add a new node list (opened in the floating ball), which can quickly open all the nodes of this node without the need to enlarge the nodes to find them
 
 <details>
 <summary>Click here for more updates from the past</summary>
+
+> 0.0.17 Public Beta Version 2025-02-22
+>
+> 1.Fix the bug where adding weights would delete other types of parentheses.
 
 > 0.0.16 2025-02-14 Public beta version introduction If you want to use this plugin, please be sure to join our official QQ group (1018231382)!
 >
