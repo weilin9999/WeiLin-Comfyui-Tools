@@ -290,7 +290,7 @@ const selectSetting = (setting) => {
 
 const confirmTranslator = () => {
   // 处理确认翻译器的逻辑
-  console.log(`选择的翻译器: ${selectedTranslator.value}`)
+  // console.log(`选择的翻译器: ${selectedTranslator.value}`)
   translatorApi
     .setTranslatorSetting({
 
@@ -305,7 +305,7 @@ const confirmTranslator = () => {
 
 const translate = () => {
   // 处理翻译逻辑
-  console.log(`翻译内容: ${translationText.value}`)
+  // console.log(`翻译内容: ${translationText.value}`)
   translatorApi
     .translatorText({
 

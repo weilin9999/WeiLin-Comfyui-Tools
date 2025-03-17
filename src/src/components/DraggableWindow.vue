@@ -19,13 +19,14 @@
       </div>
 
       <!-- 调整大小的手柄 -->
-      <div class="weilin_prompt_ui_resize-handle" @mousedown.stop="startResize"></div>
+      <div class="weilin_prompt_ui_resize-handle" :title="t('common.windowSize')" @mousedown.stop="startResize"></div>
     </div>
   </Teleport>
 </template>
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
   title: {
@@ -49,6 +50,8 @@ const props = defineProps({
     default: "default_window_name"
   }
 })
+
+const { t } = useI18n()
 
 const emit = defineEmits(['update:position', 'update:size', 'active', 'close'])
 
@@ -236,7 +239,7 @@ const handleHeaderMouseDown = (event) => {
 .weilin_prompt_ui_resize-handle::after {
   content: '';
   position: absolute;
-  right: 4px;
+  right: 7px;
   bottom: 4px;
   width: 8px;
   height: 8px;

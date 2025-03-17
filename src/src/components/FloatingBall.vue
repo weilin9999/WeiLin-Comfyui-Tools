@@ -16,6 +16,8 @@
                 t('floatingBall.loraManager') }}</div>
             <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item4')">{{
                 t('floatingBall.aiWindow') }}</div>
+            <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item6')">{{
+            t('floatingBall.openNodeListWindow') }}</div>
             <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item5')">{{
                 t('floatingBall.restoreWindow') }}</div>
         </div>
@@ -125,6 +127,9 @@ const handleMenuItemClick = (item) => {
         case 'item5':
             window.parent.postMessage({ type: 'weilin_prompt_ui_restore_window' }, '*')
             break;
+        case 'item6':
+            window.parent.postMessage({ type: 'weilin_prompt_ui_open_node_list_window' }, '*')
+            break;
     }
 };
 
@@ -218,10 +223,10 @@ onUnmounted(() => {
 
 .weilin_prompt_ui_menu-container {
     position: absolute;
-    top: -190px;
+    top: -230px;
     /* 目录在悬浮球上方 */
     left: 50%;
-    max-height: 220px;
+    max-height: 260px;
     width: 120px;
     transform: translateX(-50%);
     background-color: var(--p-menubar-submenu-background);

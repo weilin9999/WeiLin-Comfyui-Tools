@@ -1,11 +1,12 @@
+import { version } from "../../utils/version.js"
 export default {
     promptBox: {
         placeholder: 'Please enter text...',
         delete: 'Delete',
         newline: 'New Line',
         tab: 'Tab',
-        windowTitle: "WeiLin Prompt UI Window v0.0.17",
-        windowTitleGlobal: "WeiLin Global Prompt UI Window",
+        windowTitle: "WeiLin Prompt UI Window "+ version,
+        windowTitleGlobal: "WeiLin Global Prompt UI Window "+ version,
         translate: 'Translate',
         translatePlaceholder: 'Please enter the text to be translated',
         weight: 'Weight',
@@ -117,7 +118,12 @@ export default {
         "refresh": "Refresh",
         "copy": "Copy",
         "copySuccess": "Copied successfully",
-        "copyFailed": "Copy failed"
+        "copyFailed": "Copy failed",
+        "windowSize":"Adjust window size"
+    },
+    nodeListWindow:{
+        "windowTitle": "Node List",
+        "openPromptUI": "Open Prompt UI",
     },
     tagManager: {
         "deletePrimaryCategoryConfirm": "Are you sure you want to delete category {name}?",
@@ -210,6 +216,7 @@ export default {
         all: "All",
         refresh: "Refresh",
         cacheAll: "Cache all Lora information",
+        searchPlaceholder: "Search Lora...",
     },
     "message": {
         "copySuccess": "Copy successful",
@@ -286,7 +293,8 @@ export default {
         "tagManager": "open Tag Manager",
         "loraManager": "open Lora Manager",
         "aiWindow": "open AI Chat",
-        "restoreWindow": "reset all windows"
+        "restoreWindow": "reset all windows",
+        "openNodeListWindow": "open Node List",
     },
     aiWindow: {
         "windowTitle": "AI Chat Window",

@@ -1,11 +1,12 @@
+import { version } from "../../utils/version.js"
 export default {
     promptBox: {
         placeholder: '请输入文本...',
         delete: '删除',
         newline: '换行',
         tab: '制表符',
-        windowTitle: "WeiLin提示词UI窗口",
-        windowTitleGlobal: "WeiLin全局提示词UI窗口 v0.0.17",
+        windowTitle: "WeiLin提示词UI窗口 "+version,
+        windowTitleGlobal: "WeiLin全局提示词UI窗口 "+version,
         translate: '翻译',
         translatePlaceholder: '请输入要翻译的文本',
         weight: '权重',
@@ -89,7 +90,12 @@ export default {
         "refresh": "刷新",
         "copy": "复制",
         "copySuccess": "复制成功",
-        "copyFailed": "复制失败"
+        "copyFailed": "复制失败",
+        "windowSize":"调节窗口大小"
+    },
+    nodeListWindow:{
+        "windowTitle": "节点列表",
+        "openPromptUI": "打开提示词编辑器",
     },
     lora: {
         "title": "Lora 信息",
@@ -207,6 +213,7 @@ export default {
         all: "全部",
         refresh: "刷新",
         cacheAll: "缓存全部Lora信息",
+        searchPlaceholder: "搜索Lora...",
     },
     "message": {
         "copySuccess": "复制成功",
@@ -284,7 +291,8 @@ export default {
         "tagManager": "打开标签管理",
         "loraManager": "打开Lora管理",
         "aiWindow": "打开AI对话",
-        "restoreWindow": "重置所有窗口"
+        "restoreWindow": "重置所有窗口",
+        "openNodeListWindow": "打开节点列表",
     },
     aiWindow: {
         "windowTitle": "AI对话窗口",

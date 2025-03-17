@@ -1298,7 +1298,7 @@ const handleMessage = (event) => {
   } else if (event.data.type === 'weilin_prompt_ui_translate_setting') {
     initTranslate()
   } else if (event.data.type === 'weilin_prompt_ui_selectLora') {
-    console.log(event.data.lora)
+    // console.log(event.data.lora)
     if (event.data.lora.loraWorks != undefined && event.data.lora.loraWorks.length > 0) {
       // 在输入框末尾添加标签文本
       const currentText = inputText.value

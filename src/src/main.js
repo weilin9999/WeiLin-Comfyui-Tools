@@ -5,6 +5,7 @@ import '@/styles/theme.css'
 import VueClipboard from 'vue-clipboard3'
 import { createPinia } from 'pinia'; // 导入 Pinia
 import i18n, { initI18n } from './i18n'
+import { version } from "./utils/version.js"
 
 const {toClipboard} = VueClipboard()
 
@@ -20,4 +21,5 @@ initI18n()
 app.config.globalProperties.$copyText  = toClipboard
 app.mount(div)
 
-console.log("WeiLin Prompt UI is running")
+console.log("WeiLin Prompt UI is running - version "+version)
+console.log("WeiLin 节点插件已运行 - 版本 "+version)

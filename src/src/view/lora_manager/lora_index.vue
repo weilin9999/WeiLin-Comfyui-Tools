@@ -1,6 +1,12 @@
 <template>
   <div :class="`${prefix}lora-manager`">
     <div class="lora-manager-top-bar">
+      <!-- 添加搜索框 -->
+      <input 
+        v-model="searchQuery"
+        :class="`${prefix}search-input`"
+        :placeholder="t('loraManager.searchPlaceholder')"
+      />
       <button :class="`${prefix}refresh-btn`" @click="refreshList" :title="t('loraManager.refresh')">
         <svg :class="[`${prefix}refresh-icon`, { 'is-rotating': isRefreshing }]" viewBox="0 0 24 24" width="20"
           height="20">
@@ -52,7 +58,7 @@
             </div>
           </div>
           <div :class="`${prefix}lora-info`">
-            <h4 :class="`${prefix}lora-name`" :title="lora.model_name">{{ lora.model_name }}</h4>
+            <h4 :class="`${prefix}lora-name`" :title="retLoraName(lora)">{{ retLoraName(lora) }}</h4>
             <p :class="`${prefix}lora-path`" :title="lora.file_path">{{ lora.file_path }}</p>
             <p :class="`${prefix}lora-path`" :title="t('loraManager.loraWorks')">{{ lora.loraWorks }}</p>
           </div>
@@ -76,6 +82,7 @@ const isRefreshing = ref(false)
 const currentCategory = ref('all')
 const currentSubCategory = ref('')
 const intervalId = ref(null)
+const searchQuery = ref('')
 
 const props = defineProps({
   loraManager: {
@@ -91,6 +98,14 @@ const loraData = ref({
   categorizedLoras: {},   // 按分类存储的lora文件
   subCategories: {}       // 存储子分类信息
 })
+
+const retLoraName = (lora)=>{
+  if(lora.local_info.name && lora.local_info.name !== '' && lora.local_info.name.length > 0){
+    return lora.local_info.name
+  }else{
+    return lora.name
+  }
+}
 
 const loraDetailRef = ref()
 
@@ -206,18 +221,36 @@ const subCategories = computed(() => {
 
 // 根据当前分类和子分类获取显示的文件列表
 const filteredLoraList = computed(() => {
+  let list = []
+  
+  // 先根据分类获取基础列表
   if (currentCategory.value === 'all') {
-    return loraData.value.allLoras
+    list = loraData.value.allLoras
+  } else {
+    const categoryData = loraData.value.categorizedLoras[currentCategory.value]
+    if (!categoryData) return []
+    
+    if (currentCategory.value === 'root' || !currentSubCategory.value) {
+      list = categoryData[''] || []
+    } else {
+      list = categoryData[currentSubCategory.value] || []
+    }
   }
 
-  const categoryData = loraData.value.categorizedLoras[currentCategory.value]
-  if (!categoryData) return []
-
-  if (currentCategory.value === 'root' || !currentSubCategory.value) {
-    return categoryData[''] || []
+  // 如果有搜索词，进行过滤
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    return list.filter(lora => {
+      // 优先匹配 local_info.name
+      if (lora.local_info?.name) {
+        return lora.local_info.name.toLowerCase().includes(query)
+      }
+      // 如果没有 local_info.name，则匹配 name
+      return lora.name.toLowerCase().includes(query)
+    })
   }
 
-  return categoryData[currentSubCategory.value] || []
+  return list
 })
 
 // 选择分类时重置子分类
@@ -394,7 +427,6 @@ const selectLora = (lora) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 8px;
 }
 
 .weilin_prompt_ui_refresh-btn:hover {
@@ -464,6 +496,24 @@ const selectLora = (lora) => {
 .lora-manager-top-bar {
   display: flex;
   align-items: center;
-  margin-bottom: 5px;
+  margin-bottom: 10px;
+}
+
+/* 添加搜索框样式 */
+.weilin_prompt_ui_search-input {
+  flex: 1;
+  margin-right: 10px;
+  padding: 6px 12px;
+  border: 1px solid var(--weilin-prompt-ui-border-color);
+  border-radius: 4px;
+  background: var(--weilin-prompt-ui-primary-bg);
+  color: var(--weilin-prompt-ui-primary-text);
+  transition: all 0.3s ease;
+}
+
+.weilin_prompt_ui_search-input:focus {
+  outline: none;
+  border-color: var(--weilin-prompt-ui-primary-color);
+  box-shadow: 0 0 0 2px rgba(var(--weilin-prompt-ui-primary-color), 0.2);
 }
 </style>

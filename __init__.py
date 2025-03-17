@@ -19,8 +19,10 @@ retrun_type_text = ""
 node_name_text = ""
 node_model_text = ""
 placeholder_node_text = ""
+placeholder_lora_text = ""
 if localLan == "zh_CN":
     placeholder_text = "输入提示词"
+    placeholder_lora_text = "Lora信息框"
     placeholder_node_text = "输入节点命名"
     retrun_name_text = "条件"
     retrun_type_text = "条件"
@@ -28,6 +30,7 @@ if localLan == "zh_CN":
     node_model_text = "模型"
 else:
     placeholder_text = "input prompt words"
+    placeholder_lora_text = "Lora info box"
     retrun_name_text = "CONDITIONING"
     retrun_type_text = "CONDITIONING"
     node_name_text = "WeiLin Node Tools"
@@ -73,6 +76,11 @@ class WeiLinPromptUI:
                 }),
             },
             "optional": {
+                "lora_str": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "placeholder": placeholder_lora_text,
+                }),
                 "opt_text": (ANY, {"default": ""}),
                 "opt_clip": ("CLIP", ),
                 "opt_model": ("MODEL",),
@@ -92,7 +100,7 @@ class WeiLinPromptUI:
     CATEGORY = node_name_text
 
     # 加载Lora
-    def load_lora_ing(self, positive, opt_text="", opt_clip=None, opt_model=None):
+    def load_lora_ing(self, positive="",lora_str="", opt_text="", opt_clip=None, opt_model=None):
         model_lora_secondA = opt_model
         clip_lora_secondA = opt_clip
 
@@ -111,6 +119,9 @@ class WeiLinPromptUI:
                 text_dec = opt_text +", "+positive
             else:
                 text_dec = positive
+        if len(lora_str) > 0:
+            json_object = json.loads(lora_str)
+            lora_list = json_object
 
         # 当模型不为空时
         if opt_model != None and lora_list != None:

@@ -40,6 +40,18 @@
       <AiWindow />
     </DraggableWindow>
 
+    <!-- 节点列表快捷窗口 -->
+    <DraggableWindow name="nodeListWindow" v-if="windows.node_list_window.visible" 
+    :title="t('nodeListWindow.windowTitle')"
+      :position="windows.node_list_window.position" :size="windows.node_list_window.size"
+      :z-index="windowManager.getZIndex('node_list_window')"
+      @update:position="updatePosition('node_list_window', $event)"
+      @update:size="updateSize('node_list_window', $event)"
+      @active="windowManager.setActiveWindow('node_list_window')"
+      @close="closeWindow('node_list_window')">
+      <NodeListWindow />
+    </DraggableWindow>
+
     <!-- 悬浮球 -->
     <FloatingBall v-if="isFloatingBallEnabled">WeiLin</FloatingBall>
 
@@ -60,6 +72,7 @@ import { useTagStore } from '@/stores/tagStore';
 import { autocompleteApi } from '@/api/autocomplete'
 import { languageApi } from '@/api/language'
 import AiWindow from '@/view/ai_window/ai_window.vue'
+import NodeListWindow from '@/view/node_list/index.vue'
 
 const tagStore = useTagStore();
 
@@ -108,6 +121,11 @@ const DEFAULT_WINDOWS = {
     visible: false,
     position: { x: 400, y: 400 },
     size: { width: 800, height: 600 }
+  },
+  node_list_window: {
+    visible: false,
+    position: { x: 100, y: 100 },
+    size: { width: 300, height: 600 }
   }
 }
 
@@ -245,6 +263,11 @@ const restoreWindowsToDefault = () => {
       visible: false,
       position: { x: 400, y: 400 },
       size: { width: 800, height: 600 }
+    },
+    node_list_window: {
+      visible: false,
+      position: { x: 100, y: 100 },
+      size: { width: 400, height: 800 }
     }
   }
 
@@ -286,9 +309,13 @@ const handleMessage = (event) => {
   } else if (event.data.type === 'weilin_prompt_ui_openHistoryManager') {
     windows.value.history.visible = true
     windowManager.setActiveWindow('history')
-  } else if (event.data.type === 'weilin_prompt_ui_openAiWindow') {
+  } else if (event.data.type === 'weilin_prompt_ui_openAiWindow') { 
     windows.value.ai_window.visible = true
     windowManager.setActiveWindow('ai_window')
+  } else if (event.data.type === 'weilin_prompt_ui_open_node_list_window') { 
+    windows.value.node_list_window.visible = true
+    windowManager.setActiveWindow('node_list_window')
+
   } else if (event.data.type === 'weilin_prompt_ui_prompt_finish_prompt') {
     window.postMessage({
       type: 'weilin_prompt_ui_prompt_update_prompt_' + thisEditPromptId.value,
