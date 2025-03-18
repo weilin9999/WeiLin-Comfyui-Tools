@@ -192,13 +192,18 @@ app.registerExtension({
           if (event.data.type === 'weilin_prompt_ui_prompt_update_prompt_' + randomID) {
             const jsonReponse = JSON.parse(event.data.data)
             nodeTextAreaList[0].value = jsonReponse.prompt;
-            nodeTextAreaList[1].value = JSON.stringify(jsonReponse.lora);
+            if (jsonReponse.lora.length > 0 && jsonReponse.lora != ""){
+              nodeTextAreaList[1].value = JSON.stringify(jsonReponse.lora);
+            }
             // console.log(nodeTextAreaList)
             updateNodeTextBySeed(thisNodeSeed, event.data.data);
             window.parent.postMessage({ type: 'weilin_prompt_ui_update_node_list_info', nodeList: globalNodeList }, '*')
+          
           }else if (event.data.type === 'weilin_prompt_ui_prompt_get_node_list_info') {
+
             updateNodeTextBySeed(thisNodeSeed, nodeTextAreaList[0].value);
             window.parent.postMessage({ type: 'weilin_prompt_ui_update_node_list_info', nodeList: globalNodeList }, '*')
+          
           }else if( event.data.type === "weilin_prompt_ui_prompt_open_node_wit_seed" && event.data.seed === thisNodeSeed){
             randomID = generateUUID();
             // console.log("register====>",randomID)
