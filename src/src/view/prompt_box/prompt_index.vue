@@ -683,42 +683,62 @@ const processInput = () => {
       const char = str[i];
 
       // 处理开括号
-      if ('([{<'.includes(char)) {
-        if (bracketStack.length === 0 && buffer.trim()) {
-          // 如果这是第一层括号且缓冲区不为空，按逗号分割并添加
-          segments.push(...buffer.split(/[,，]/).filter(Boolean).map(s => s.trim()));
-          buffer = '';
-        }
-        bracketStack.push(char);
-        buffer += char;
-      }
-      // 处理闭括号
-      else if (')]}>'.includes(char)) {
-        const lastBracket = bracketStack[bracketStack.length - 1];
-        if (('(' === lastBracket && ')' === char) ||
-          ('[' === lastBracket && ']' === char) ||
-          ('{' === lastBracket && '}' === char) ||
-          ('<' === lastBracket && '>' === char)) {
-          bracketStack.pop();
-          buffer += char;
+      // if ('([{<'.includes(char)) {
+      //   // 检测前一个字符是否是逗号或空格，或者是否是字符串开头
+      //   const prevChar = i > 0 ? str[i - 1] : '';
+      //   const isValidStart = prevChar === '' || prevChar === ',' || prevChar === ' ';
+        
+      //   if (isValidStart) {
+      //     if (bracketStack.length === 0 && buffer.trim()) {
+      //       // 如果这是第一层括号且缓冲区不为空，按逗号分割并添加
+      //       segments.push(...buffer.split(',').filter(Boolean).map(s => s.trim()));
+      //       buffer = '';
+      //     }
+      //     bracketStack.push(char);
+      //     buffer += char;
+      //   } else {
+      //     // 如果不是有效开始，按普通字符处理
+      //     buffer += char;
+      //   }
+      // }
+      // // 处理闭括号
+      // else if (')]}>'.includes(char)) {
+      //   const lastBracket = bracketStack[bracketStack.length - 1];
+      //   if (('(' === lastBracket && ')' === char) ||
+      //     ('[' === lastBracket && ']' === char) ||
+      //     ('{' === lastBracket && '}' === char) ||
+      //     ('<' === lastBracket && '>' === char)) {
+          
+      //     // 只有在存在对应的开括号时才进行后续检测
+      //     if (bracketStack.length > 0) {
+      //       // 检测后一个字符是否是逗号或空格，或者是否是字符串结尾
+      //       const nextChar = i < str.length - 1 ? str[i + 1] : '';
+      //       const isValidEnd = nextChar === '' || nextChar === ',' || nextChar === ' ';
+            
+      //       if (isValidEnd) {
+      //         bracketStack.pop();
+      //         buffer += char;
 
-          // 如果括号全部匹配完成，添加整个括号内容
-          if (bracketStack.length === 0) {
-            segments.push(buffer.trim());
-            buffer = '';
-          }
+      //         // 如果括号全部匹配完成，添加整个括号内容
+      //         if (bracketStack.length === 0) {
+      //           segments.push(buffer.trim());
+      //           buffer = '';
+      //         }
+      //       } else {
+      //         // 如果不是有效结束，按普通字符处理
+      //         buffer += char;
+      //       }
+      //     }
+      //   }
+      // }
+      // 处理普通字符   
+      if (bracketStack.length === 0 && char === ',') {
+        if (buffer.trim()) {
+          segments.push(buffer.trim());
         }
-      }
-      // 处理普通字符
-      else {
-        if (bracketStack.length === 0 && (char === ',' || char === '，')) {
-          if (buffer.trim()) {
-            segments.push(buffer.trim());
-          }
-          buffer = '';
-        } else {
-          buffer += char;
-        }
+        buffer = '';
+      } else {
+        buffer += char;
       }
       i++;
     }
@@ -726,7 +746,7 @@ const processInput = () => {
     // 处理剩余的缓冲区内容
     if (buffer.trim()) {
       if (bracketStack.length === 0) {
-        segments.push(...buffer.split(/[,，]/).filter(Boolean).map(s => s.trim()));
+        segments.push(...buffer.split(',').filter(Boolean).map(s => s.trim()));
       } else {
         segments.push(buffer.trim());
       }
@@ -792,116 +812,6 @@ const processInput = () => {
   postMessageToWindowsPrompt();
 };
 
-// 输入内容
-const processInputEd = () => {
-  const text = inputText.value;
-
-  // 修改正则表达式，只匹配独立的括号内容
-  const bracketRegex = /(^|\s)(\([^()]*\)|\[[^\[\]]*\]|\{[^{}]*\}|<[^<>]*>)(\s|$)/g;
-
-
-  // 先提取所有括号内的内容
-  const bracketContents = [];
-  let match;
-  while ((match = bracketRegex.exec(text)) !== null) {
-    bracketContents.push(match[0]);
-  }
-
-  // 将括号内容替换为占位符
-  let tempText = text;
-  bracketContents.forEach((content, index) => {
-    tempText = tempText.replace(content, `__BRACKET_${index}__`);
-  });
-
-  // 按中英文逗号和回车符分割，同时保留分隔符
-  const segments = tempText.split(/([，,\n])/).filter(Boolean);
-  const result = [];
-
-  // 创建现有 tokens 的映射
-  const existingTokensMap = new Map();
-  tokens.value.forEach(token => {
-    existingTokensMap.set(token.text, token);
-  });
-
-  segments.forEach(segment => {
-    // 处理回车符
-    if (segment === '\n' || segment === '\r\n' || segment === '\r') {
-      result.push({
-        text: '\n',
-        isPunctuation: true,
-        isEditing: false,
-        isHidden: false,
-        color: ''
-      });
-      return;
-    }
-
-    // 处理中英文逗号
-    if (segment === '，' || segment === ',') {
-      return;
-    }
-
-    if (segment.trim() === '') return;
-
-    // 还原占位符为原始内容
-    let trimmedSegment = segment.trim();
-    const bracketMatch = trimmedSegment.match(/__BRACKET_(\d+)__/);
-    if (bracketMatch) {
-      // 检查原始内容是否独立
-      const originalContent = bracketContents[parseInt(bracketMatch[1])];
-      if (trimmedSegment === `__BRACKET_${bracketMatch[1]}__`) {
-        // 如果是独立内容，按权重处理
-        trimmedSegment = originalContent;
-      } else {
-        // 如果不是独立内容，按普通字符串处理
-        trimmedSegment = trimmedSegment.replace(`__BRACKET_${bracketMatch[1]}__`, originalContent);
-      }
-    }
-
-    // 如果 token 已存在，使用原有 token
-    if (existingTokensMap.has(trimmedSegment)) {
-      result.push(existingTokensMap.get(trimmedSegment));
-    } else {
-      // 否则创建新 token
-      result.push({
-        text: trimmedSegment,
-        translate: '',
-        isPunctuation: false,
-        isEditing: false,
-        isHidden: false,
-        color: ''
-      });
-    }
-  });
-
-  tokens.value = result;
-  inputText.value = tokens.value.map(token => token.text).join(', ');
-
-  // 只对新 token 进行翻译
-  for (let i = 0; i < tokens.value.length; i++) {
-    if (tokens.value[i].text.length > 0 && !tokens.value[i].translate) {
-      let cleanedTrSegment = tokens.value[i].text.replace(/[\[\](){}]/g, '').trim();
-      const text = extractText(cleanedTrSegment);
-      translatorApi.getTranslateLocal(text).then(res => {
-        const translate = res;
-        tokens.value[i].translate = translate.translated.translate;
-        tokens.value[i].color = translate.translated.color;
-      });
-    }
-  }
-
-  // 设置定时器，5秒后执行 finishPromptPutItHistory
-  if (historyTimer.value) {
-    clearTimeout(historyTimer.value);
-  }
-  historyTimer.value = setTimeout(() => {
-    finishPromptPutItHistory();
-  }, 5000);
-
-  postMessageToWindowsPrompt();
-};
-
-
 const oneClickTranslatePrompt = () => {
   tokens.value.forEach((token, index) => {
     // 检查translate是否包含英文字符
@@ -966,9 +876,14 @@ const postMessageToWindowsPrompt = () => {
   } else {
     if (tempInputText.value != inputText.value) {
       tempInputText.value = inputText.value
+      const putJson = {
+        prompt: inputText.value,
+        lora: "",
+      }
+      const jsonStr = JSON.stringify(putJson)
       window.postMessage({
         type: 'weilin_prompt_ui_prompt_finish_prompt',
-        data: inputText.value
+        data: jsonStr
       }, '*')
     }
   }
