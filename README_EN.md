@@ -21,14 +21,30 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 # Version update introduction
 
-> Last updated: 2025-03-18
+> Last updated: 2025-03-24
 
-> 0.0.20 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.21 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
 >
->1. Fix bug.
+> 1. The translation library function has been added in the UI settings. You can replace the third-party translation with the translation library function. To use it, simply install the translation library by clicking "Install". It is convenient to use and has a complete translation function. >
+>
+> 2. New node: Do not load LoRa. Since this node does not have LoRa, the information box for LoRa can be removed to reduce the size of the node. >
+>
+> 3. Fixed the issue where the history record was not being saved and the problem where the name of the favorites was not displayed. >
+>
+> 4. Fix the issue where the last item in the Lora stack is not deleted. >
+>
+> 5. Optimize the issue of translation timeout or local data acquisition timeout caused by too many tags. >
+>
+> 6. Fixed the issue where the floating ball would jump. >
+>
+> 7. Adjustment: The minimum size for floating is 6, the upper limit of size is 999,999, and the maximum number of floating balls is adjusted to 100.
 
 <details>
 <summary>Click here for more updates from the past</summary>
+
+> 0.0.20 2025-03-18 Public Beta Version
+>
+>1. Fix bug.
 
 > 0.0.19 2025-03-17 Public Beta Version
 >

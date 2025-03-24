@@ -1,14 +1,13 @@
 import { app } from '../../scripts/app.js'
-
 // 提示词 Node
 
 // localStorage.setItem("weilin_prompt_ui_onfirst", 0);
 
 function generateUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      var r = Math.random() * 16 | 0,
-          v = c == 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    var r = Math.random() * 16 | 0,
+      v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
   });
 }
 
@@ -53,6 +52,15 @@ function updateNodeTextBySeed(seed, newText) {
     targetNode.text = newText;
   }
 }
+
+// 根据seed删除元素
+function removeNodeBySeed(seed) {
+  const index = globalNodeList.findIndex(node => node.seed === seed);
+  if (index !== -1) {
+    globalNodeList.splice(index, 1);
+  }
+}
+
 app.registerExtension({
   name: "weilin.prompt_ui_node",
 
@@ -76,11 +84,11 @@ app.registerExtension({
   },
   async setup() { },
 
-
   async beforeRegisterNodeDef(nodeType, nodeData, app) {
     // console.log(app)
     if (
-      nodeData.name === "WeiLinPromptUI"
+      nodeData.name === "WeiLinPromptUI" || 
+      nodeData.name === "WeiLinPromptUIWithoutLora"
     ) {
       // console.log(nodeData)
       // Create node
@@ -94,19 +102,39 @@ app.registerExtension({
 
         for (let index = 0; index < this.widgets.length; index++) {
           const widgetItem = this.widgets[index];
-          if (widgetItem.name == "positive"){
+          if (widgetItem.name == "positive") {
             let thisInputElement = widgetItem.element
             // thisInputElement.readOnly = true
             nodeTextAreaList[0] = thisInputElement
-          }else if (widgetItem.name == "lora_str"){
+            
+            // 添加MutationObserver监听元素移除
+            const observer = new MutationObserver((mutationsList) => {
+              for (const mutation of mutationsList) {
+                if (mutation.type === 'childList') {
+                  for (const node of mutation.removedNodes) {
+                    if (node === thisInputElement) {
+                      // console.log('Element removed!');
+                      // 元素被销毁 事件发送更新元素
+                      removeNodeBySeed(thisNodeSeed);
+                      window.parent.postMessage({ type: 'weilin_prompt_ui_update_node_list_info', nodeList: globalNodeList }, '*')
+                      // 停止监听
+                      observer.disconnect();
+                    }
+                  }
+                }
+              }
+            });
+            observer.observe(thisInputElement.parentNode, { childList: true });
+
+          } else if (widgetItem.name == "lora_str" && nodeData.name === "WeiLinPromptUI") {
             let thisInputElement = widgetItem.element
-            // thisInputElement.readOnly = true
+            thisInputElement.readOnly = true
             nodeTextAreaList[1] = thisInputElement
           }
         }
         // console.log(this)
 
-        globalNodeList.push({ seed: thisNodeSeed, text: nodeTextAreaList[0].value,id: this.id })
+        globalNodeList.push({ seed: thisNodeSeed, text: nodeTextAreaList[0].value, id: this.id })
 
         const textarea = nodeTextAreaList[0];
 
@@ -120,15 +148,15 @@ app.registerExtension({
         // 监听节点ID
         let currentThisId = this.id
         Object.defineProperty(this, 'id', {
-            get() {
-                return currentThisId;
-            },
-            set(newValue) {
-              currentThisId = newValue;
-              onTisIdChange(newValue);
-            },
-            enumerable: true,
-            configurable: true
+          get() {
+            return currentThisId;
+          },
+          set(newValue) {
+            currentThisId = newValue;
+            onTisIdChange(newValue);
+          },
+          enumerable: true,
+          configurable: true
         });
 
         function onTisIdChange(newId) {
@@ -140,17 +168,17 @@ app.registerExtension({
         // 监听 this.title 的变化
         let currentTitle = this.title; // 缓存当前值
         Object.defineProperty(this, 'title', {
-            get() {
-                return currentTitle;
-            },
-            set(newValue) {
-              // console.log(`this.title changed from ${currentTitle} to ${newValue}`);
-              currentTitle = newValue;
-              // 触发回调，返回新的 this.title 数据
-              onTitleChange(newValue);
-            },
-            enumerable: true,
-            configurable: true
+          get() {
+            return currentTitle;
+          },
+          set(newValue) {
+            // console.log(`this.title changed from ${currentTitle} to ${newValue}`);
+            currentTitle = newValue;
+            // 触发回调，返回新的 this.title 数据
+            onTitleChange(newValue);
+          },
+          enumerable: true,
+          configurable: true
         });
 
         // 监听 this.title 变化的回调函数
@@ -167,7 +195,7 @@ app.registerExtension({
         //console.log(globalNodeList)
 
         let randomID = ""
-        
+
         randomID = generateUUID();
 
         this.addWidget("button", localLanguage, '', ($e) => {
@@ -180,42 +208,48 @@ app.registerExtension({
             prompt: nodeTextAreaList[0].value,
             lora: [],
           }
-          if (nodeTextAreaList[1].value.length > 0){
+          if (nodeData.name === "WeiLinPromptUI" && nodeTextAreaList[1].value.length > 0) {
             jsonData.lora = JSON.parse(nodeTextAreaList[1].value);
           }
           const data = JSON.stringify(jsonData)
-          window.parent.postMessage({ type: 'weilin_prompt_ui_openPromptBox', id: randomID, prompt: data }, '*')
+          window.parent.postMessage({ type: 'weilin_prompt_ui_openPromptBox', id: randomID, prompt: data, node: nodeData.name}, '*')
         });
 
         window.addEventListener('message', event => {
           // console.log(e)
           if (event.data.type === 'weilin_prompt_ui_prompt_update_prompt_' + randomID) {
             const jsonReponse = JSON.parse(event.data.data)
+            // console.log(jsonReponse)
             nodeTextAreaList[0].value = jsonReponse.prompt;
-            if (jsonReponse.lora.length > 0 && jsonReponse.lora != ""){
-              nodeTextAreaList[1].value = JSON.stringify(jsonReponse.lora);
+            if (nodeData.name === "WeiLinPromptUI"){
+              if (jsonReponse.lora.length > 0 && jsonReponse.lora != "") {
+                nodeTextAreaList[1].value = JSON.stringify(jsonReponse.lora);
+              } else {
+                nodeTextAreaList[1].value = "";
+              }
             }
+
             // console.log(nodeTextAreaList)
             updateNodeTextBySeed(thisNodeSeed, event.data.data);
             window.parent.postMessage({ type: 'weilin_prompt_ui_update_node_list_info', nodeList: globalNodeList }, '*')
-          
-          }else if (event.data.type === 'weilin_prompt_ui_prompt_get_node_list_info') {
+
+          } else if (event.data.type === 'weilin_prompt_ui_prompt_get_node_list_info') {
 
             updateNodeTextBySeed(thisNodeSeed, nodeTextAreaList[0].value);
             window.parent.postMessage({ type: 'weilin_prompt_ui_update_node_list_info', nodeList: globalNodeList }, '*')
-          
-          }else if( event.data.type === "weilin_prompt_ui_prompt_open_node_wit_seed" && event.data.seed === thisNodeSeed){
+
+          } else if (event.data.type === "weilin_prompt_ui_prompt_open_node_wit_seed" && event.data.seed === thisNodeSeed) {
             randomID = generateUUID();
             // console.log("register====>",randomID)
             let jsonData = {
               prompt: nodeTextAreaList[0].value,
               lora: [],
             }
-            if (nodeTextAreaList[1].value.length > 0){
+            if (nodeData.name === "WeiLinPromptUI" && nodeTextAreaList[1].value.length > 0) {
               jsonData.lora = JSON.parse(nodeTextAreaList[1].value);
             }
             const data = JSON.stringify(jsonData)
-            window.parent.postMessage({ type: 'weilin_prompt_ui_openPromptBox', id: randomID, prompt: data }, '*')
+            window.parent.postMessage({ type: 'weilin_prompt_ui_openPromptBox', id: randomID, prompt: data, node: nodeData.name }, '*')
           }
         }, false);
 

@@ -203,19 +203,63 @@ def copy_folder(source_folder, destination_folder):
         else:
             shutil.copy2(source, destination)
 
-# # 检测Tag组是否存在，不存在则复制模板
-# dir = os.path.join(os.path.dirname(__file__),'./tags_userdatas/')
-# filenames=os.listdir(dir)
-# if len(filenames) <= 1:
-#     if filenames[0] == ".gitignore":
-#         dirDes = os.path.join(os.path.dirname(__file__),'./tags_templete/')
-#         copy_folder(dirDes, dir)
+
+
+# 提示词UI - 不加载Lora
+class WeiLinPromptUIWithoutLora:
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "positive": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "placeholder": placeholder_text,
+                }),
+            },
+            "optional": {
+                "opt_text": (ANY, {"default": ""}),
+                "opt_clip": ("CLIP", ),
+            }
+        }
+
+    RETURN_TYPES = ("STRING", "CONDITIONING", "CLIP", )
+    RETURN_NAMES = ("STRING", "CONDITIONING", "CLIP", )
+
+    FUNCTION = "encode"
+
+    CATEGORY = node_name_text
+
+    def encode(self, positive="", opt_text="", opt_clip=None):
+        text_dec = ""
+        if is_json(positive):
+            json_object = json.loads(positive)
+            if len(opt_text) > 0:
+                text_dec = opt_text +", "+ json_object.get("prompt", "")
+            else:
+                text_dec = json_object.get("prompt", "")
+        else:
+            if len(opt_text) > 0:
+                text_dec = opt_text +", "+positive
+            else:
+                text_dec = positive
+        
+        if opt_clip is not None:
+            tokens = opt_clip.tokenize(text_dec)
+            return (text_dec, opt_clip.encode_from_tokens_scheduled(tokens), opt_clip)
+        
+        return (text_dec, opt_clip, opt_clip)
 
 
 # A dictionary that contains all nodes you want to export with their names
 # NOTE: names should be globally unique
 NODE_CLASS_MAPPINGS = {
     "WeiLinPromptUI": WeiLinPromptUI,
+    "WeiLinPromptUIWithoutLora": WeiLinPromptUIWithoutLora,
 }
 
 # A dictionary that contains the friendly/humanly readable titles for the nodes
@@ -224,10 +268,12 @@ NODE_DISPLAY_NAME_MAPPINGS = {}
 if localLan == "zh_CN":
     NODE_DISPLAY_NAME_MAPPINGS = {
         "WeiLinPromptUI": "WeiLin 提示词UI",
+        "WeiLinPromptUIWithoutLora": "WeiLin 提示词UI - 不加载Lora",
     }
 else:
     NODE_DISPLAY_NAME_MAPPINGS = {
         "WeiLinPromptUI": "WeiLin Prompt UI",
+        "WeiLinPromptUIWithoutLora": "WeiLin Prompt UI - Do Not Load Lora",
     }
 
 WEB_DIRECTORY = "./js_node"

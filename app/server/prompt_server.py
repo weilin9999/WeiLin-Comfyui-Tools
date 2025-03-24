@@ -7,8 +7,9 @@ from .prompt_api.tags_manager import *
 from .history.history_contl import *
 from .history.collect_history_contl import *
 from .fast_autocomplete.autocomplete import fuzzy_search
-from .user_init.user_init import read_init_file, set_user_lang
+from .user_init.user_init import read_init_file, set_user_lang, get_translate_setting,update_translate_setting,get_translate_settings,update_translate_settings
 from .translate.local_translate import translate_phrase
+from .translate.api_translate import installTranslateApi,applyTranslateApi,translateText
 from .ai_translator.ai_translator import (
     initialize_config,
     update_openai_settings,
@@ -160,7 +161,7 @@ async def _get_group_tags(request):
 
 
 @PromptServer.instance.routes.post(baseUrl+"prompt/add_new_f_group")
-async def _add_new_s_group(request):
+async def _add_new_f_group(request):
     data = await request.json()
     resp = {"code":202}
     try:
@@ -542,6 +543,93 @@ async def _start_panel(request):
     except Exception as e:
         print(f"Error starting panel: {e}")
         return web.json_response({"status": "error", "message": str(e)}, status=500)
+# =====================================================================================================
+
+# =================================== 翻译API库 =============================================
+@PromptServer.instance.routes.post(baseUrl+"translate/get/packages/state")
+async def _checkHasInstallTranslateApi(request):
+    apply = applyTranslateApi()
+    if  apply == False :
+        return web.json_response({"info": 'fail'})
+    return web.json_response({"info": 'ok'})
+
+@PromptServer.instance.routes.post(baseUrl+"translate/get/setting")
+async def _getTranslaterSettingData(request):
+    try:
+        data = get_translate_setting()
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+    return web.json_response({"data": data})
+
+@PromptServer.instance.routes.post(baseUrl+"translate/apply_setting")
+async def _apply_translater_setting(request):
+    data = await request.json()
+    if data['setting'] == "translater":
+        apply = applyTranslateApi()
+        if  apply == False :
+            return web.json_response({"info": 'fail'})
+    
+    try:
+        update_translate_setting(data['setting'])
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+    return web.json_response({"info": 'ok'})
+
+@PromptServer.instance.routes.post(baseUrl+"translate/install/translaterpackage")
+async def _apply_translater_install_package(request):
+    try:
+        installTranslateApi()
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+    return web.json_response({"info": 'ok'})
+
+@PromptServer.instance.routes.post(baseUrl+"translate/get/tran_setting")
+async def _get_tanslater_tsetting(request):
+    try:
+        data = get_translate_settings()
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+    return web.json_response({"data": data})
+
+@PromptServer.instance.routes.post(baseUrl+"translate/save_tran/setting")
+async def _save_translater_setting(request):
+    data = await request.json()
+    try:
+        update_translate_settings(data['service'],data['source_lang'],data['target_lang'])
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+    return web.json_response({"info": 'ok'})
+
+# 翻译文本
+@PromptServer.instance.routes.post(baseUrl+"translate/tran/text")
+async def _tanslater_text(request):
+    data = await request.json()
+    try:
+       data_setting = get_translate_settings()
+       result = translateText(data['text'],data_setting['translate_service'],data_setting['translate_source_lang'],data_setting['translate_target_lang'])
+       return web.json_response({"text": result})
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+# 翻译输入的文本
+@PromptServer.instance.routes.post(baseUrl+"translate/tran/input")
+async def _tanslater_input_text(request):
+    data = await request.json()
+    try:
+       data_setting = get_translate_settings()
+       result = translateText(data['text'],data_setting['translate_service'],data_setting['translate_target_lang'],data_setting['translate_source_lang'])
+       return web.json_response({"text": result})
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
 # =====================================================================================================
 
 

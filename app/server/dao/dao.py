@@ -2,6 +2,7 @@ import os
 import sqlite3
 import locale
 import shutil
+from ..user_init.user_init import read_init_file
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 db_prefix = 'userdatas_'
@@ -138,9 +139,16 @@ def set_language(lang):
 def get_db_path():
     return db_path
 
-# 根据系统语言设置数据库文件
-system_lang = locale.getdefaultlocale()[0]
-if system_lang.startswith('zh'):
-    set_language('zh_CN')
-else:
-    set_language('en_US')
+
+# 读取配置文件中的语言设置来决定加载什么数据库文件
+userSetting = read_init_file() or {}
+# print(userSetting)
+if userSetting == {}:
+    # 根据系统语言设置数据库文件
+    system_lang = locale.getdefaultlocale()[0]
+    if system_lang.startswith('zh'):
+        set_language('zh_CN')
+    else:
+        set_language('en_US')
+else :
+    set_language(userSetting['user_lang'])

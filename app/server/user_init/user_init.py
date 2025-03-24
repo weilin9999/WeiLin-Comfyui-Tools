@@ -1,13 +1,18 @@
 import os
 import json
-from ..dao.dao import set_language
+import locale
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 init_file_path = os.path.join(current_dir, '../../../init.json')
 
+# 检测系统语言
+localLan = locale.getdefaultlocale()[0]
+localLan = "zh_CN"
+if localLan != "zh_CN":
+    localLan = "en_US"
 
 default_settings = {
-    "user_lang": "zh_CN",
+    "user_lang": localLan,
     "select_openai": 0,
     "openai_settings": [
         {
@@ -40,7 +45,11 @@ default_settings = {
             "base_url": "https://api.deepseek.com/v1",
             "model": "deepseek-chat"
         }
-    ]
+    ],
+    "translate_setting": "network",
+    "translate_service": "alibaba",
+    "translate_source_lang": "en",
+    "translate_target_lang": "zh",
 }
 
 def read_init_file():
@@ -55,6 +64,8 @@ def read_init_file():
         return data
 
 def set_user_lang(lang):
+    from ..dao.dao import set_language
+
     """修改 init.json 文件中的 user_lang 设置"""
     data = read_init_file() or {}
     
@@ -65,3 +76,62 @@ def set_user_lang(lang):
     
     # 修改 DAO 中的语言设置
     set_language(lang)
+
+    
+def get_translate_setting():
+    """获取translate_setting参数，如果不存在则添加默认值"""
+    data = read_init_file() or {}
+    
+    # 如果不存在translate_setting参数，则添加默认值
+    if 'translate_setting' not in data:
+        data['translate_setting'] = 'network'
+        with open(init_file_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+    
+    return data['translate_setting']
+
+def update_translate_setting(new_setting):
+    """更新translate_setting参数"""
+    data = read_init_file() or {}
+    data['translate_setting'] = new_setting
+    with open(init_file_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+    return True
+
+def get_translate_settings():
+    """获取翻译相关参数，如果不存在则添加默认值"""
+    data = read_init_file() or {}
+    
+    # 如果不存在相关参数，则添加默认值
+    if 'translate_service' not in data:
+        data['translate_service'] = 'alibaba'
+    if 'translate_source_lang' not in data:
+        data['translate_source_lang'] = 'en'
+    if 'translate_target_lang' not in data:
+        data['translate_target_lang'] = 'zh'
+        
+    # 如果有新增参数，则保存到文件
+    if any(key not in data for key in ['translate_service', 'translate_source_lang', 'translate_target_lang']):
+        with open(init_file_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+    
+    return {
+        'translate_service': data['translate_service'],
+        'translate_source_lang': data['translate_source_lang'],
+        'translate_target_lang': data['translate_target_lang']
+    }
+
+def update_translate_settings(service=None, source_lang=None, target_lang=None):
+    """更新翻译相关参数"""
+    data = read_init_file() or {}
+    
+    if service is not None:
+        data['translate_service'] = service
+    if source_lang is not None:
+        data['translate_source_lang'] = source_lang
+    if target_lang is not None:
+        data['translate_target_lang'] = target_lang
+        
+    with open(init_file_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+    return True
