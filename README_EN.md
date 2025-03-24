@@ -23,7 +23,7 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 > Last updated: 2025-03-24
 
-> 0.0.22 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.23 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
 >
 > 1. The translation library function has been added in the UI settings. You can replace the third-party translation with the translation library function. To use it, simply install the translation library by clicking "Install". It is convenient to use and has a complete translation function. >
 >
