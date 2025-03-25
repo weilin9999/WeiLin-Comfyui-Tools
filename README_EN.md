@@ -21,23 +21,25 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 # Version update introduction
 
-> Last updated: 2025-03-24
+> Last updated: 2025-03-25
 
-> 0.0.23 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.24 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
 >
-> 1. The translation library function has been added in the UI settings. You can replace the third-party translation with the translation library function. To use it, simply install the translation library by clicking "Install". It is convenient to use and has a complete translation function. >
+> 1. The translation library function has been added in the UI settings. You can replace the third-party translation with the translation library function. To use it, simply install the translation library by clicking "Install". It is convenient to use and has a complete translation function. -- v0.0.23 2025-03-24 
 >
-> 2. New node: Do not load LoRa. Since this node does not have LoRa, the information box for LoRa can be removed to reduce the size of the node. >
+> 2. New Node: Lora is not loaded. The absence of the Lora information box for this node can reduce the node size -- v0.0.23 2025-03-24 
 >
-> 3. Fixed the issue where the history record was not being saved and the problem where the name of the favorites was not displayed. >
+> 3. Fixed the issue where history records were not being saved and the problem of the names of favorites not being displayed -- v0.0.23 2025-03-24 
 >
-> 4. Fix the issue where the last item in the Lora stack is not deleted. >
+> 4. Fixed the issue where the last item in the Lora stack was not being deleted -- v0.0.23 2025-03-24 
 >
-> 5. Optimize the issue of translation timeout or local data acquisition timeout caused by too many tags. >
+> 5. Optimized the issue of translation timeout or local data acquisition timeout caused by too many tags -- v0.0.23 2025-03-24 
 >
-> 6. Fixed the issue where the floating ball would jump. >
+> 6. Fixed the issue where the floating ball would jump -- v0.0.23 2025-03-24 
 >
-> 7. Adjustment: The minimum size for floating is 6, the upper limit of size is 999,999, and the maximum number of floating balls is adjusted to 100.
+> 7. Adjustment: The minimum size of the floating ball is set to 6, the upper limit of the size is 999999, and the maximum number of floating balls is adjusted to 100 -- v0.0.23 2025-03-24 
+>
+>8. Fixed the issue where the plugin was not functioning properly in Comfyui version v0.3.27 -- v0.0.24 2025-03-25
 
 <details>
 <summary>Click here for more updates from the past</summary>

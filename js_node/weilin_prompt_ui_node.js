@@ -106,13 +106,13 @@ app.registerExtension({
             let thisInputElement = widgetItem.element
             // thisInputElement.readOnly = true
             nodeTextAreaList[0] = thisInputElement
-            
-            // 添加MutationObserver监听元素移除
+
+            // 创建全局MutationObserver监听元素移除
             const observer = new MutationObserver((mutationsList) => {
               for (const mutation of mutationsList) {
                 if (mutation.type === 'childList') {
                   for (const node of mutation.removedNodes) {
-                    if (node === thisInputElement) {
+                    if (node === thisInputElement || node.contains(thisInputElement)) {
                       // console.log('Element removed!');
                       // 元素被销毁 事件发送更新元素
                       removeNodeBySeed(thisNodeSeed);
@@ -124,7 +124,9 @@ app.registerExtension({
                 }
               }
             });
-            observer.observe(thisInputElement.parentNode, { childList: true });
+
+            // 使用document作为观察目标
+            observer.observe(document, { childList: true, subtree: true });
 
           } else if (widgetItem.name == "lora_str" && nodeData.name === "WeiLinPromptUI") {
             let thisInputElement = widgetItem.element
