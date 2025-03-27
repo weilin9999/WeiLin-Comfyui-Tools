@@ -5,7 +5,7 @@
       :position="windows.prompt.position" :size="windows.prompt.size" :z-index="windowManager.getZIndex('prompt')"
       @update:position="updatePosition('prompt', $event)" @update:size="updateSize('prompt', $event)"
       @active="windowManager.setActiveWindow('prompt')" @close="closeWindow('prompt')">
-      <PromptBox :promptManager="promptManager" ref="promptBoxRef" />
+      <PromptBox :promptManager="promptManager" :hasPromptLoraStack="hasPromptLoraStack" ref="promptBoxRef" />
     </DraggableWindow>
 
     <!-- Tag管理窗口 -->
@@ -73,6 +73,7 @@ import { autocompleteApi } from '@/api/autocomplete'
 import { languageApi } from '@/api/language'
 import AiWindow from '@/view/ai_window/ai_window.vue'
 import NodeListWindow from '@/view/node_list/index.vue'
+import { translatorApi } from '@/api/translator'
 
 const tagStore = useTagStore();
 
@@ -89,6 +90,7 @@ const STORAGE_PREFIX = 'weilin_tools_'
 const loraManager = ref('look')
 const tagManager = ref('manager')
 const promptManager = ref('prompt_global')
+const hasPromptLoraStack = ref(false)
 const THEME_KEY = `${STORAGE_PREFIX}theme`
 // 获取主题设置
 const isDark = ref(localStorage.getItem(THEME_KEY) === 'dark')
@@ -278,6 +280,17 @@ const restoreWindowsToDefault = () => {
   windows.value = getInitialWindowState()
 };
 
+const getTranslaterSetting = () => {
+  translatorApi.getTranslateSetting().then(res => {
+    // console.log(res)
+    localStorage.setItem('weilin_prompt_ui_translater_setting', res.data);
+  }).catch(err => {
+    message({ type: "warn", str: 'message.getTranslaterFail' });
+  })
+};
+
+getTranslaterSetting()
+
 const promptBoxRef = ref()
 
 // 处理消息
@@ -294,6 +307,10 @@ const handleMessage = (event) => {
     thisEditPromptId.value = event.data.id
     promptManager.value = 'prompt'
     windows.value.prompt.visible = true
+    hasPromptLoraStack.value = false
+    if(event.data.node === "WeiLinPromptUI"){
+      hasPromptLoraStack.value = true
+    }
     nextTick(() => {  
       promptBoxRef.value.setPromptText(event.data.prompt)
     })
@@ -325,6 +342,7 @@ const handleMessage = (event) => {
     promptManager.value = 'prompt_global'
     thisEditPromptId.value = "global"
     windows.value.prompt.visible = true
+    hasPromptLoraStack.value = false
     nextTick(() => {  
       promptBoxRef.value.setPromptText(globalPrompt.value)
     })

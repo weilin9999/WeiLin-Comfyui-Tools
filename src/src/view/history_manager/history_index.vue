@@ -95,11 +95,10 @@
                 
                 <input type="checkbox" v-if="isDeleteBatch" v-model="selectAllTags" :value="1" class="tag-checkbox"
                     @change="selectAllTagsChange" />
-                <button class="add-btn" @click="showAddTagDialog" :title="t('history.add_new')">
-                    <svg viewBox="0 0 1024 1024" width="16" height="16" class="add-icon">
-                        <path
-                            d="M472 472V104c0-22.091 17.909-40 40-40s40 17.909 40 40v368h368c22.091 0 40 17.909 40 40s-17.909 40-40 40H552v368c0 22.091-17.909 40-40 40s-40-17.909-40-40V552H104c-22.091 0-40-17.909-40-40s17.909-40 40-40h368z">
-                        </path>
+                
+                <button class="add-his-btn" @click="showAddTagDialog" :title="t('history.add_new')">
+                    <svg viewBox="0 0 24 24" width="16" height="16" class="add-icon">
+                        <path d="M19 11h-6V5c0-.55-.45-1-1-1s-1 .45-1 1v6H5c-.55 0-1 .45-1 1s.45 1 1 1h6v6c0 .55.45 1 1 1s1-.45 1-1v-6h6c.55 0 1-.45 1-1s-.45-1-1-1z"/>
                     </svg>
                 </button>
                 <button v-if="!isDeleteBatch" class="bulk-delete-btn" @click="bulkDelete"
@@ -132,6 +131,9 @@
             </div>
             <ul class="history-list">
                 <li v-for="item in filteredFavorites" :key="item.id_index" class="history-item">
+                    <div class="favor-name-box" :style="{ backgroundColor: item.color || 'transparent' }" >
+                        <span class="favor-name"v-if="item.name.length > 0" >{{ item.name }}</span>
+                    </div>
                     <span>{{ item.tag }}</span>
                     <div class="action-buttons">
                         <button @click="editTag(item)" class="delete-favorite-btn" :title="t('history.edit_favorite')">
@@ -316,6 +318,12 @@ const editTag = (tag) => {
 }
 
 
+// 更新颜色（统一处理分类和标签）
+const updateColor = () => {
+  const color = hexToRgba(colorPickerState.value.hex, colorPickerState.value.alpha)
+  currentTag.value.color = color
+}
+
 
 // 关闭标签对话框
 const closeTagDialog = () => {
@@ -450,6 +458,14 @@ const selectAllTagsChange = (event) => {
     }
 }
 
+// 改进的 RGBA 转换函数
+const hexToRgba = (hex, alpha) => {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r}, ${g}, ${b}, ${alpha / 100})`
+}
+
 // 关闭删除对话框
 const closeDeleteDialog = () => {
     showDeleteDialog.value = false
@@ -565,7 +581,7 @@ const addToFavorites = (item) => {
                 fetchFavorites()
                 message({ type: "success", str: 'message.addFavoriteSuccess' });
             } else {
-                message({ type: "warn", str: 'message.addFavoriteIsExist' });
+                message({ type: "success", str: 'message.addFavoriteIsExist' });
             }
         })
         .catch((err) => {
@@ -743,7 +759,7 @@ h1 {
     /* 复选框与标签文本之间的间距 */
 }
 
-.add-btn,
+.add-his-btn,
 .bulk-delete-btn {
     display: flex;
     align-items: center;
@@ -759,7 +775,7 @@ h1 {
     margin-left: 10px;
 }
 
-.add-btn:hover,
+.add-his-btn:hover,
 .bulk-delete-btn:hover {
     background: var(--weilin-prompt-ui-hover-bg);
     border-color: var(--weilin-prompt-ui-primary-color);
@@ -1064,5 +1080,29 @@ h1 {
     min-width: 48px;
     text-align: right;
     color: var(--weilin-prompt-ui-secondary-text);
+}
+
+.favor-name-box {
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin-right: 8px;
+    display: inline-flex;
+    align-items: center;
+    min-width: 40px;
+    height: 24px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.favor-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: #fff;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
 }
 </style>

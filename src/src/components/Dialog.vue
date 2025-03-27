@@ -72,14 +72,34 @@ const handleOverlayClick = () => {
   background: var(--weilin-prompt-ui-primary-bg);
   border-radius: 12px;
   box-shadow: 0 4px 24px var(--weilin-prompt-ui-shadow-color);
-  min-width: 320px;
-  max-width: 90vw;
-  max-height: 90vh;
+  width: 50vh;
+  height: 80vh;
   width: fit-content;
   margin: 20px;
   position: relative;
   overflow: hidden;
   border: 1px solid var(--weilin-prompt-ui-border-color);
+  display: flex;
+  flex-direction: column;
+}
+
+.weilin_prompt_ui_dialog-content {
+  padding: 20px;
+  color: var(--weilin-prompt-ui-primary-text);
+  overflow-y: auto;
+  max-height: calc(90vh - 140px);
+  line-height: 1.6;
+  flex: 1;
+}
+
+.weilin_prompt_ui_dialog-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--weilin-prompt-ui-border-color);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  background: var(--weilin-prompt-ui-secondary-bg);
+  margin-top: auto;
 }
 
 .weilin_prompt_ui_dialog-header {
@@ -220,4 +240,4 @@ const handleOverlayClick = () => {
   border-color: #40a9ff;
   color: white;
 }
-</style> 
+</style>

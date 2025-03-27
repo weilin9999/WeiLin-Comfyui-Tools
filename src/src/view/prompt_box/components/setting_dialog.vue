@@ -4,51 +4,142 @@
       <div class="settings-sidebar">
         <ul>
           <li :class="{ active: selectedSetting === 'translator' }" @click="selectSetting('translator')">{{
-            t('promptBox.settings.translator') }}</li>
+    t('promptBox.settings.translator') }}</li>
           <li :class="{ active: selectedSetting === 'setting_floating_ball' }"
             @click="selectSetting('setting_floating_ball')">{{
-              t('promptBox.settings.setting_floating_ball') }}</li>
+    t('promptBox.settings.setting_floating_ball') }}</li>
           <li :class="{ active: selectedSetting === 'setting_prompt_box' }"
             @click="selectSetting('setting_prompt_box')">{{
-              t('promptBox.settings.setting_prompt_box') }}</li>
+    t('promptBox.settings.setting_prompt_box') }}</li>
           <li :class="{ active: selectedSetting === 'setting_openai_box' }"
             @click="selectSetting('setting_openai_box')">{{
-              t('promptBox.settings.setting_openai_box') }}</li>
+    t('promptBox.settings.setting_openai_box') }}</li>
           <!-- <li :class="{ active: selectedSetting === 'setting_start_panel' }"
             @click="selectSetting('setting_start_panel')">{{
               t('promptBox.settings.setting_start_panel') }}</li> -->
           <li :class="{ active: selectedSetting === 'setting_sponsor_me' }"
             @click="selectSetting('setting_sponsor_me')">{{
-              t('promptBox.settings.setting_sponsor_me') }}</li>
+    t('promptBox.settings.setting_sponsor_me') }}</li>
         </ul>
       </div>
       <div class="settings-main">
         <div v-if="selectedSetting === 'translator'">
           <h3>{{ t('promptBox.settings.translator') }}</h3>
-          <div class="translator-settings">
-            <!-- 选择源语言 -->
-            <div class="setting-item">
-              <label>{{ t('promptBox.settings.sourceLanguage') }}</label>
-              <select v-model="savedSourceLanguage">
-                <option value="auto">{{ t('promptBox.settings.auto_detect') }}</option>
-                <option value="chinese_simplified">{{ t('promptBox.settings.chinese_simplified') }}</option>
-                <option value="english">{{ t('promptBox.settings.english') }}</option>
-              </select>
-            </div>
 
-            <!-- 选择目标语言 -->
-            <div class="setting-item">
-              <label>{{ t('promptBox.settings.targetLanguage') }}</label>
-              <select v-model="savedTargetLanguage">
-                <option value="chinese_simplified">{{ t('promptBox.settings.chinese_simplified') }}</option>
-                <option value="english">{{ t('promptBox.settings.english') }}</option>
-              </select>
-            </div>
-
-            <!-- 保存按钮 -->
-            <button class="save-button" @click="saveTranslatorSettings">
-              {{ t('promptBox.settings.save') }}
+          <div class="setting-select">
+            <label> {{ t('promptBox.settings.selectTranslater') }}</label>
+            <select style="margin-left: 10px;" v-model="settingTranslater">
+              <option value="network"> {{ t('promptBox.settings.selectOptionNetworkTranslater') }}</option>
+              <option value="translater">{{ t('promptBox.settings.selectOptionPythonTranslater') }}</option>
+            </select>
+            <button class="install-button" @click="applyTranslaterSetting">
+              {{ t('promptBox.settings.apply') }}
             </button>
+          </div>
+
+          <div class="translator-settings">
+            <div class="group-box" v-if="settingTranslater == 'network'">
+              <div class="group-title">{{ t('promptBox.settings.selectOptionNetworkTranslaterTitle') }}</div>
+              <div class="note-top">{{ t('promptBox.settings.selectOptionNetworkTranslaterInfo')
+                }}：https://github.com/xnx3/translate</div>
+              <!-- 选择源语言 -->
+              <div class="setting-item">
+                <label>{{ t('promptBox.settings.sourceLanguage') }}</label>
+                <select v-model="savedSourceLanguage">
+                  <option value="auto">{{ t('promptBox.settings.auto_detect') }}</option>
+                  <option value="chinese_simplified">{{ t('promptBox.settings.chinese_simplified') }}</option>
+                  <option value="english">{{ t('promptBox.settings.english') }}</option>
+                </select>
+              </div>
+
+              <!-- 选择目标语言 -->
+              <div class="setting-item">
+                <label>{{ t('promptBox.settings.targetLanguage') }}</label>
+                <select v-model="savedTargetLanguage" class="common-select">
+                  <option value="chinese_simplified">{{ t('promptBox.settings.chinese_simplified') }}</option>
+                  <option value="english">{{ t('promptBox.settings.english') }}</option>
+                </select>
+              </div>
+
+              <!-- 保存按钮 -->
+              <button class="save-button" @click="saveTranslatorSettings">
+                {{ t('promptBox.settings.save') }}
+              </button>
+            </div>
+            <div class="group-box" v-if="settingTranslater == 'translater'">
+              <div class="group-title">{{ t('promptBox.settings.selectOptionPythonTranslaterTitle') }}</div>
+              <div class="note-top">{{ t('promptBox.settings.selectOptionPythonTranslaterInfo')
+                }}：https://github.com/UlionTse/translators</div>
+
+              <!-- 三方库安装状态 -->
+              <div class="translater-innstall-status">
+                <div class="translater-install-label">
+                  {{ t('promptBox.settings.nowTranlaterPackageState') }} {{ hasTranslaterPackage ?
+    t('promptBox.settings.tranlaterPackageStateTrue') : t('promptBox.settings.tranlaterPackageStateFlase')
+                  }}
+                </div>
+                <div class="translater-install-label" v-if="installTranslater">
+                  {{ t('promptBox.settings.installTranslaterPackageInfo') }}
+                </div>
+                <div class="translater-install-control" v-if="!hasTranslaterPackage">
+                  <button :disabled="installTranslater" class="install-button" @click="installTranslaterPackage">
+                    {{ installTranslater ? t('promptBox.settings.installed') : t('promptBox.settings.install') }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="translater-setting-box" v-if="hasTranslaterPackage">
+                <div class="setting-small-titile">{{ t('promptBox.settings.translaterSetting')}}</div>
+                
+                <!-- 选择翻译服务 -->
+                <div class="setting-item">
+                  <label>{{ t('promptBox.settings.chooseTranslaterSetting')}}</label>
+                  <select v-model="selectedTranslatorService">
+                    <option v-for="(item,index) in translaterSerives" :index="index" :key="'tran-item_'+index"
+                       :value="item">{{ t('translaterService.'+item) }}</option>
+                  </select>
+                </div>
+
+                <!-- 翻译语言和目标语言 -->
+                <div class="language-selectors">
+                  <div class="setting-item">
+                    <label>{{ t('promptBox.settings.translaterLangSourceSetting')}}</label>
+                    <select v-model="sourceLanguage">
+                      <option v-for="(item,index) in language" :index="index" :key="'lan-item_'+index"
+                       :value="item.translator">{{ t('translaterLanguage.'+item.language) }}</option>
+                    </select>
+                  </div>
+                  <div class="setting-item">
+                    <label>{{ t('promptBox.settings.translaterLangTargeSetting')}}</label> 
+                    <select v-model="targetLanguage">
+                      <option v-for="(item,index) in language" :index="index" :key="'lan-mu-item_'+index"
+                       :value="item.translator">{{ t('translaterLanguage.'+item.language) }}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <button class="install-button" @click="saveTranslaterSetting">
+                  {{ t('promptBox.settings.saveTranslaterSetting')}}
+                </button>
+              </div>
+
+              <div class="tranlater-text-box" v-if="hasTranslaterPackage">
+                <div class="setting-small-titile">{{ t('promptBox.settings.testTranslaterTitle')}}</div>
+                <div class="setting-item">
+                  <label>{{ t('promptBox.settings.inputTestTranslater') }}</label>
+                  <input type="text" v-model="testTranslaterInputText" :placeholder="t('promptBox.settings.inputTestTranslaterPlaceholder')" />
+                </div>
+                <div class="setting-item">
+                  <label>{{ t('promptBox.settings.outPutTestTranslater')}}</label>
+                  <input type="text" v-model="testTranslaterOutputText" readonly :placeholder="t('promptBox.settings.outPutTestTranslaterPlaceholder')" />
+                </div>
+                <button class="install-button" @click="translaterTextTest">
+                  {{ t('promptBox.settings.testingTranslater')}}
+                </button>
+              </div>
+
+            </div>
+
           </div>
         </div>
         <div v-if="selectedSetting === 'setting_floating_ball'">
@@ -65,14 +156,14 @@
             <!-- 悬浮球数量 -->
             <div class="setting-item">
               <label>{{ t('promptBox.settings.floatingBallCount') }}</label>
-              <input type="number" v-model.number="savedFloatingBallCount" min="1" max="20" style="width: 100px;"
+              <input type="number" v-model.number="savedFloatingBallCount" min="1" max="100" style="width: 100px;"
                 :placeholder="t('promptBox.settings.floatingBallCountPlaceholder')" />
             </div>
 
             <!-- 悬浮球大小 -->
             <div class="setting-item">
               <label>{{ t('promptBox.settings.floatingBallSize') }}</label>
-              <input type="number" v-model.number="savedFloatingBallSize" min="66" max="500" style="width: 100px;"
+              <input type="number" v-model.number="savedFloatingBallSize" min="5" max="999999" style="width: 100px;"
                 :placeholder="t('promptBox.settings.floatingBallSizePlaceholder')" />
             </div>
 
@@ -180,7 +271,7 @@
                 <!-- 配置详情 -->
                 <div class="config-details" v-else>
                   <div>{{ t('promptBox.settings.openai_api_key') }}: {{ config.api_key ? '******' :
-                    t('promptBox.settings.not_set') }}</div>
+    t('promptBox.settings.not_set') }}</div>
                   <div>{{ t('promptBox.settings.openai_base_url') }}: {{ config.base_url }}</div>
                 </div>
               </div>
@@ -244,12 +335,13 @@
 
 <script setup>
 import Dialog from '@/components/Dialog.vue'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { translatorApi } from '@/api/translator'
 import message from '@/utils/message'
 import { languageApi } from '@/api/language'
 import { openaiApi } from '@/api/openai'
+import { translaterSerives,language } from "./translater"
 
 const { t } = useI18n()
 
@@ -262,7 +354,7 @@ const savedSourceLanguage = ref(localStorage.getItem('weilin_prompt_ui_sourceLan
 const savedTargetLanguage = ref(localStorage.getItem('weilin_prompt_ui_targetLanguage') || 'chinese_simplified');
 // 新增悬浮球设置相关状态
 const savedFloatingBallCount = ref(localStorage.getItem('weilin_prompt_ui_floatingBallCount') || 1);
-const savedFloatingBallSize = ref(localStorage.getItem('weilin_prompt_ui_floatingBallSize') || 66);
+const savedFloatingBallSize = ref(localStorage.getItem('weilin_prompt_ui_floatingBallSize') || 5);
 const isFloatingBallEnabled = ref(localStorage.getItem('weilin_prompt_ui_floatingBallEnabled') === 'true');
 // 提示词设置
 const isCommaConversionEnabled = ref(localStorage.getItem('weilin_prompt_ui_comma_conversion') === 'true');
@@ -270,6 +362,11 @@ const isPeriodConversionEnabled = ref(localStorage.getItem('weilin_prompt_ui_per
 const isBracketConversionEnabled = ref(localStorage.getItem('weilin_prompt_ui_bracket_conversion') === 'true');
 const isAngleBracketConversionEnabled = ref(localStorage.getItem('weilin_prompt_ui_angle_bracket_conversion') === 'true');
 const isUnderscoreToBracketEnabled = ref(localStorage.getItem('weilin_prompt_ui_underscore_to_bracket') === 'true');
+
+// 翻译库设置
+const selectedTranslatorService = ref('');
+const sourceLanguage = ref('');
+const targetLanguage = ref('');
 
 // OpenAI 设置相关状态
 const selectedOpenaiIndex = ref(0);
@@ -282,7 +379,12 @@ const currentConfig = ref({
 });
 const isEditing = ref(false);
 const editingIndex = ref(-1);
+const settingTranslater = ref('');
 
+const installTranslater = ref(false)
+const hasTranslaterPackage = ref(false)
+const testTranslaterInputText = ref('')
+const testTranslaterOutputText = ref('')
 
 const selectSetting = (setting) => {
   selectedSetting.value = setting
@@ -335,7 +437,7 @@ const saveTranslatorSettings = () => {
 
 // 保存悬浮球设置
 const saveFloatingBallSettings = () => {
-  if (savedFloatingBallCount.value < 1 || savedFloatingBallSize.value < 66) {
+  if (savedFloatingBallCount.value < 1 || savedFloatingBallSize.value < 5) {
     message({ type: "warn", str: 'message.error' });
     return;
   }
@@ -470,9 +572,137 @@ const startPanel = () => {
   })
 };
 
+
+const getTranskatePackagesState = () => {
+  translatorApi.getTranslatePackagesState().then(res => {
+    // console.log(res)
+    if (res.info == "ok") {
+      hasTranslaterPackage.value = true;
+    } else {
+      hasTranslaterPackage.value = false;
+    }
+  }).catch(err => {
+    message({ type: "warn", str: 'message.getTranslaterFail' });
+  })
+};
+
+const getTranskateSetting = () => {
+  translatorApi.getTranslateSetting().then(res => {
+    // console.log(res)
+    localStorage.setItem('weilin_prompt_ui_translater_setting', res.data);
+    settingTranslater.value = res.data;
+  }).catch(err => {
+    message({ type: "warn", str: 'message.getTranslaterFail' });
+  })
+};
+
+const applyTranslaterSetting = () => {
+  translatorApi.applyTranslateSetting(settingTranslater.value).then(res => {
+    // console.log(res)
+    if (res.info == "ok") {
+      localStorage.setItem('weilin_prompt_ui_translater_setting', settingTranslater.value);
+      message({ type: "success", str: 'message.applyTranslaterSuccess' });
+    } else {
+      message({ type: "warn", str: 'message.applyToTranslaterFail' });
+    }
+  }).catch(err => {
+    message({ type: "warn", str: 'message.applyTranslaterFail' });
+  })
+};
+
+const getTranskateBuktSetting = () => {
+  translatorApi.getTranslateBuktSetting().then(res => {
+    selectedTranslatorService.value = res.data.translate_service
+    sourceLanguage.value = res.data.translate_source_lang
+    targetLanguage.value = res.data.translate_target_lang
+  }).catch(err => {
+    message({ type: "warn", str: 'message.getTranslaterFail' });
+  })
+};
+
+const saveTranslaterSetting = () => {
+  translatorApi.saveTranslateSetting(selectedTranslatorService.value, 
+  sourceLanguage.value, 
+  targetLanguage.value).then(res => {
+    // console.log(res)
+    if (res.info == "ok") {
+      message({ type: "success", str: 'message.saveSuccess' });
+    } else {
+      message({ type: "warn", str: 'message.saveFailed' });
+    }
+  }).catch(err => {
+    message({ type: "warn", str: 'message.saveFailed' });
+  })
+};
+
+// 翻译文本
+const translaterTextTest = () => {
+  translatorApi.translaterText(testTranslaterInputText.value).then(res => {
+    // console.log(res)
+    testTranslaterOutputText.value = res.text;
+  }).catch(err => {
+    message({ type: "warn", str: 'message.translaterTestFail' });
+  })
+};
+
+const installCheckInterval = ref(null);
+
+const installTranslaterPackage = () => {
+  installTranslater.value = true;
+  translatorApi.installTranslatePackage().then(res => {
+    installTranslater.value = false;
+    hasTranslaterPackage.value = true;
+    // console.log(res)
+    message({ type: "success", str: 'message.tranlaterPackageInstallSuccess' });
+  }).catch(err => {
+    installTranslater.value = false;
+    message({ type: "warn", str: 'message.tranlaterPackageInstallFail' });
+  })
+  // 开始定时检查
+  // installTranslater.value = true;
+  //   installCheckInterval.value = setInterval(() => {
+  //     checkTranskatePackagesState();
+  // }, 1000);
+};
+
+const checkTranskatePackagesState = () => {
+  translatorApi.getTranslatePackagesState().then(res => {
+    // console.log(res)
+    if (res.info == "ok") {
+      hasTranslaterPackage.value = true;
+      // 停止定时器
+      if (installCheckInterval.value) {
+        clearInterval(installCheckInterval.value);
+        installCheckInterval.value = null;
+      }
+      message({ type: "success", str: 'message.tranlaterPackageInstallSuccess' });
+    } else {
+      hasTranslaterPackage.value = false;
+    }
+  }).catch(err => {
+    installTranslater.value = false;
+    // 出错时也停止定时器
+    if (installCheckInterval.value) {
+      clearInterval(installCheckInterval.value);
+      installCheckInterval.value = null;
+    }
+    message({ type: "warn", str: 'message.getTranslaterFail' });
+  })
+};
+
 // 初始化时加载设置
 onMounted(() => {
+  getTranskateBuktSetting();
+  getTranskatePackagesState();
+  getTranskateSetting();
   loadOpenaiSettings();
+});
+
+// 在组件卸载时清理定时器
+onUnmounted(() => {
+  if (installCheckInterval.value) {
+    clearInterval(installCheckInterval.value);
+  }
 });
 
 
@@ -486,7 +716,7 @@ defineExpose({
     savedTargetLanguage.value = localStorage.getItem('weilin_prompt_ui_targetLanguage') || 'chinese_simplified';
     // 新增悬浮球设置相关状态
     savedFloatingBallCount.value = localStorage.getItem('weilin_prompt_ui_floatingBallCount') || 1;
-    savedFloatingBallSize.value = localStorage.getItem('weilin_prompt_ui_floatingBallSize') || 66;
+    savedFloatingBallSize.value = localStorage.getItem('weilin_prompt_ui_floatingBallSize') || 5;
     isFloatingBallEnabled.value = localStorage.getItem('weilin_prompt_ui_floatingBallEnabled') === 'true';
     // 提示词设置
     isCommaConversionEnabled.value = localStorage.getItem('weilin_prompt_ui_comma_conversion') === 'true';
@@ -711,7 +941,206 @@ defineExpose({
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.setting-select {
+  margin-bottom: 20px;
+}
+
+.setting-select-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.setting-select-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+.setting-select-input:focus {
+  border-color: #409eff;
+  outline: none;
+}
+
+.setting-item {
+  margin-bottom: 16px;
+}
+
+.setting-item-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #666;
+}
+
+.setting-item-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: #fff;
+  transition: border-color 0.3s ease;
+}
+
+.setting-item-select:focus {
+  border-color: #409eff;
+  outline: none;
+}
+
+.setting-save-btn {
+  margin-top: 20px;
+  padding: 8px 20px;
+  background-color: #409eff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.setting-save-btn:hover {
+  background-color: #66b1ff;
+}
+
+.group-box {
+  padding: 20px;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+.group-title {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  color: var(--weilin-prompt-ui-primary-text);
+}
+
+.note-top {
+  margin: 10px 0;
+  padding: 8px 12px;
+  background-color: #e8f4ff;
+  border: 1px solid #b3d8ff;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #004085;
+  word-break: break-all;
+}
+
+
+.tranlater-text-box {
+  margin-top: 20px;
+  padding: 16px;
+  background-color: var(--weilin-prompt-ui-secondary-bg);
+  border-radius: 8px;
+  border: 1px solid var(--weilin-prompt-ui-border-color);
+}
+
+
+.tranlater-text-box .setting-item {
+  margin-bottom: 12px;
+}
+
+.tranlater-text-box .setting-item label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+  color: var(--weilin-prompt-ui-primary-text);
+}
+
+.tranlater-text-box .setting-item input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--weilin-prompt-ui-border-color);
+  border-radius: 6px;
+  background-color: var(--weilin-prompt-ui-primary-bg);
+  color: var(--weilin-prompt-ui-primary-text);
+  transition: border-color 0.2s ease;
+}
+
+.tranlater-text-box .setting-item input:focus {
+  outline: none;
+  border-color: var(--weilin-prompt-ui-primary-color);
+}
+
+.tranlater-text-box .install-button {
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px 16px;
+  background-color: var(--weilin-prompt-ui-primary-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.tranlater-text-box .install-button:hover {
+  background-color: var(--weilin-prompt-ui-primary-color-hover);
+}
+
+.translater-setting-box{
+  margin-top: 20px;
+  padding: 16px;
+  background-color: var(--weilin-prompt-ui-secondary-bg);
+  border-radius: 8px;
+  border: 1px solid var(--weilin-prompt-ui-border-color);
+}
+
+.translater-setting-box .language-selectors {
+  display: flex;
+  gap: 16px;
+  margin: 12px 0;
+}
+
+.translater-setting-box .language-selectors .setting-item {
+  flex: 1;
+}
+
+.translater-setting-box .setting-item select {
+  width: 100%;
+  padding: 6px 12px;
+  border: 1px solid var(--weilin-prompt-ui-border-color);
+  border-radius: 4px;
+  background-color: var(--weilin-prompt-ui-primary-bg);
+  color: var(--weilin-prompt-ui-primary-text);
+}
+
+.setting-small-titile {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--weilin-prompt-ui-primary-text);
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--weilin-prompt-ui-border-color);
+}
+
+.common-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--weilin-prompt-ui-border-color);
+  border-radius: 6px;
+  background-color: var(--weilin-prompt-ui-primary-bg);
+  color: var(--weilin-prompt-ui-primary-text);
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.common-select:focus {
+  outline: none;
+  border-color: var(--weilin-prompt-ui-primary-color);
 }
 </style>

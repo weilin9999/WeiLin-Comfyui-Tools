@@ -1,26 +1,24 @@
 <template>
     <!-- 悬浮球 -->
-    <div class="weilin_prompt_ui_floating-ball" :style="ballStyle[i - 1]" @mouseenter="handleMouseEnter(i - 1)"
-        @mouseleave="handleMouseLeave(i - 1)" @mousedown="startDrag($event, i - 1)" @mouseup="stopDrag($event, i - 1)"
-        v-for="i in savedFloatingBallCount" :key="'floating-ball-' + i">
-        <div class="weilin_prompt_ui_ball-content" @click="handleClick">
-            <slot></slot>
-        </div>
-        <!-- 目录 -->
-        <div v-if="showMenu[i - 1]" class="weilin_prompt_ui_menu-container">
-            <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item1')">{{ t('floatingBall.promptBox')
-                }}</div>
-            <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item2')">{{
-                t('floatingBall.tagManager') }}</div>
-            <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item3')">{{
-                t('floatingBall.loraManager') }}</div>
-            <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item4')">{{
-                t('floatingBall.aiWindow') }}</div>
-            <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item6')">{{
-            t('floatingBall.openNodeListWindow') }}</div>
-            <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item5')">{{
-                t('floatingBall.restoreWindow') }}</div>
-        </div>
+    <div class="weilin_prompt_ui_floating-ball" :style="ballStyle[i - 1]" 
+         @mouseenter="handleMouseEnter(i - 1)" 
+         @mouseleave="handleMouseLeave(i - 1)"
+         @mousedown="startDrag($event, i - 1)" 
+         @mouseup="stopDrag($event, i - 1)" 
+         v-for="i in savedFloatingBallCount" 
+         :key="'floating-ball-' + i">
+      <div class="weilin_prompt_ui_ball-content" @click="handleClick">
+        <slot></slot>
+      </div>
+      <!-- 目录 -->
+      <div v-if="showMenu[i - 1]" class="weilin_prompt_ui_menu-container" @mousedown.stop>
+        <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item1')">{{ t('floatingBall.promptBox') }}</div>
+        <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item2')">{{ t('floatingBall.tagManager') }}</div>
+        <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item3')">{{ t('floatingBall.loraManager') }}</div>
+        <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item4')">{{ t('floatingBall.aiWindow') }}</div>
+        <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item6')">{{ t('floatingBall.openNodeListWindow') }}</div>
+        <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item5')">{{ t('floatingBall.restoreWindow') }}</div>
+      </div>
     </div>
 </template>
 
@@ -72,23 +70,27 @@ for (let i = 0; i < savedFloatingBallCount.value; i++) {
 
 // 开始拖拽
 const startDrag = (event, i) => {
+  // 判断点击是否在悬浮球本体或其直接子元素上
+  const target = event.target;
+  if (target.closest('.weilin_prompt_ui_floating-ball')) {
     isDragging.value[i] = true;
     document.addEventListener('mousemove', (e) => onDrag(e, i));
     document.addEventListener('mouseup', (e) => stopDrag(e, i));
+  }
 };
 
 // 拖拽中
 const onDrag = (event, i) => {
-    if (isDragging.value[i]) {
-        ballPosition.value[i].x = event.clientX - savedFloatingBallSize.value / 2; // 减去球半径
-        ballPosition.value[i].y = event.clientY - savedFloatingBallSize.value / 2; // 减去球半径
-        ballStyle.value[i] = {
-            left: `${ballPosition.value[i].x}px`,
-            top: `${ballPosition.value[i].y}px`,
-            width: `${savedFloatingBallSize.value}px`,
-            height: `${savedFloatingBallSize.value}px`,
-        };
-    }
+  if (isDragging.value[i]) {
+    ballPosition.value[i].x = event.clientX - savedFloatingBallSize.value / 2;
+    ballPosition.value[i].y = event.clientY - savedFloatingBallSize.value / 2;
+    ballStyle.value[i] = {
+      left: `${ballPosition.value[i].x}px`,
+      top: `${ballPosition.value[i].y}px`,
+      width: `${savedFloatingBallSize.value}px`,
+      height: `${savedFloatingBallSize.value}px`,
+    };
+  }
 };
 
 // 停止拖拽
@@ -223,7 +225,7 @@ onUnmounted(() => {
 
 .weilin_prompt_ui_menu-container {
     position: absolute;
-    top: -230px;
+    top: -240px;
     /* 目录在悬浮球上方 */
     left: 50%;
     max-height: 260px;

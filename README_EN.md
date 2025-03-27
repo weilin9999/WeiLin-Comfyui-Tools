@@ -21,9 +21,18 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 # Version update introduction
 
-> Last updated: 2025-03-25
+> Last updated: 2025-03-27
 
-> 0.0.24 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.25 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+>
+> 1. Modified the default prompt words to automatically add commas
+>
+> 2. Modify the test translation error prompt to avoid misleading
+
+<details>
+<summary>Click here for more updates from the past</summary>
+
+> 0.0.24 2025-03-25 Public Beta Version
 >
 > 1. The translation library function has been added in the UI settings. You can replace the third-party translation with the translation library function. To use it, simply install the translation library by clicking "Install". It is convenient to use and has a complete translation function. -- v0.0.23 2025-03-24 
 >
@@ -39,10 +48,7 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 >
 > 7. Adjustment: The minimum size of the floating ball is set to 6, the upper limit of the size is 999999, and the maximum number of floating balls is adjusted to 100 -- v0.0.23 2025-03-24 
 >
->8. Fixed the issue where the plugin was not functioning properly in Comfyui version v0.3.27 -- v0.0.24 2025-03-25
-
-<details>
-<summary>Click here for more updates from the past</summary>
+> 8. Fixed the issue where the plugin was not functioning properly in Comfyui version v0.3.27 -- v0.0.24 2025-03-25
 
 > 0.0.20 2025-03-18 Public Beta Version
 >

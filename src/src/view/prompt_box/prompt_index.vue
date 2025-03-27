@@ -49,7 +49,7 @@
           </button>
         </div>
 
-        <div class="action-item" v-if="props.promptManager === 'prompt'">
+        <div class="action-item" v-if="props.hasPromptLoraStack">
           <button class="tag-manager-btn" @click="toggleLora" :title="t('controls.loraStack')">
             <svg sxmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" class="tag-icon" width="24" height="24">
               <path
@@ -102,7 +102,8 @@
         <div class="action-item">
           <button class="tag-manager-btn" @click="openGitHub" :title="t('controls.github')">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tag-icon" width="24" height="24">
-              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+              <path
+                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
             </svg>
             <span class="action-text">{{ t('controls.github') }}</span>
           </button>
@@ -162,10 +163,10 @@
           <!-- 普通词组 -->
           <div v-else-if="token.text" class="token-item" @mouseenter="showControls(index, $event)"
             @mouseleave="handleMouseLeave(index)" :class="{
-              'punctuation': token.isPunctuation
-            }">
+      'punctuation': token.isPunctuation
+    }">
             <span v-if="!token.isEditing || token.isPunctuation" @click="!token.isPunctuation && startEditing(index)">{{
-              token.text }}</span>
+      token.text }}</span>
             <input v-else-if="!token.isPunctuation" :value="token.text" @input="handleTokenEdit(index, $event)"
               @blur="finishEditing(index)" @keyup.enter="finishEditing(index)"
               :ref="el => { if (el) tokenInputRefs[index] = el }">
@@ -309,7 +310,11 @@ const props = defineProps({
   promptManager: {
     type: String,
     default: 'prompt_global'
-  }
+  },
+  hasPromptLoraStack: {
+    type: Boolean,
+    default: false
+  },
 })
 
 const inputText = ref('')
@@ -370,15 +375,15 @@ const applyWeight = () => {
 
   // 辅助函数：检查是否只有一层圆括号
   const hasOnlySingleParentheses = (text) => {
-    return text.startsWith('(') && text.endsWith(')') && 
-           !text.slice(1, -1).includes('(') && 
-           !text.slice(1, -1).includes(')') &&
-           !text.slice(1, -1).includes('[') && 
-           !text.slice(1, -1).includes(']') &&
-           !text.slice(1, -1).includes('{') && 
-           !text.slice(1, -1).includes('}') &&
-           !text.slice(1, -1).includes('<') && 
-           !text.slice(1, -1).includes('>');
+    return text.startsWith('(') && text.endsWith(')') &&
+      !text.slice(1, -1).includes('(') &&
+      !text.slice(1, -1).includes(')') &&
+      !text.slice(1, -1).includes('[') &&
+      !text.slice(1, -1).includes(']') &&
+      !text.slice(1, -1).includes('{') &&
+      !text.slice(1, -1).includes('}') &&
+      !text.slice(1, -1).includes('<') &&
+      !text.slice(1, -1).includes('>');
   };
 
   // 辅助函数：查找最内层内容并更新权重
@@ -420,7 +425,7 @@ const applyWeight = () => {
     } else {
       newText = `(${baseText}:${weightValue.value})`;
     }
-  } 
+  }
   // 处理只有一层圆括号的情况
   else if (weightValue.value === 1 && hasOnlySingleParentheses(text)) {
     // 移除括号和权重
@@ -461,7 +466,7 @@ const removeLayer = (bracketType) => {
   if (activeControls.value === null) return;
   const token = tokens.value[activeControls.value];
   let text = token.text;
-  
+
   // 移除最外层对应类型的括号
   const bracketPair = {
     '(': ')',
@@ -469,7 +474,7 @@ const removeLayer = (bracketType) => {
     '{': '}',
     '<': '>'
   };
-  
+
   if (text.startsWith(bracketType) && text.endsWith(bracketPair[bracketType])) {
     text = text.slice(1, -1);
     tokens.value[activeControls.value].text = text;
@@ -668,7 +673,7 @@ const handleInput = (event) => {
   postMessageToWindowsPrompt()
 };
 
-const processInput = () => {
+const processInput = async () => {
   const text = inputText.value;
   let segments = [];
 
@@ -687,7 +692,7 @@ const processInput = () => {
       //   // 检测前一个字符是否是逗号或空格，或者是否是字符串开头
       //   const prevChar = i > 0 ? str[i - 1] : '';
       //   const isValidStart = prevChar === '' || prevChar === ',' || prevChar === ' ';
-        
+
       //   if (isValidStart) {
       //     if (bracketStack.length === 0 && buffer.trim()) {
       //       // 如果这是第一层括号且缓冲区不为空，按逗号分割并添加
@@ -708,13 +713,13 @@ const processInput = () => {
       //     ('[' === lastBracket && ']' === char) ||
       //     ('{' === lastBracket && '}' === char) ||
       //     ('<' === lastBracket && '>' === char)) {
-          
+
       //     // 只有在存在对应的开括号时才进行后续检测
       //     if (bracketStack.length > 0) {
       //       // 检测后一个字符是否是逗号或空格，或者是否是字符串结尾
       //       const nextChar = i < str.length - 1 ? str[i + 1] : '';
       //       const isValidEnd = nextChar === '' || nextChar === ',' || nextChar === ' ';
-            
+
       //       if (isValidEnd) {
       //         bracketStack.pop();
       //         buffer += char;
@@ -786,20 +791,9 @@ const processInput = () => {
   tokens.value = result;
 
   // 更新输入文本，保持原有格式
-  inputText.value = tokens.value.map(token => token.text).join(', ');
+  inputText.value = tokens.value.length > 0 
+  ? tokens.value.map(token => token.text).join(', ') + ',': '';
 
-  // 处理翻译
-  for (let i = 0; i < tokens.value.length; i++) {
-    if (tokens.value[i].text.length > 0 && !tokens.value[i].translate) {
-      let cleanedTrSegment = tokens.value[i].text;
-      const text = extractText(cleanedTrSegment.trim());
-      translatorApi.getTranslateLocal(text).then(res => {
-        const translate = res;
-        tokens.value[i].translate = translate.translated.translate;
-        tokens.value[i].color = translate.translated.color;
-      });
-    }
-  }
 
   // 处理历史记录
   if (historyTimer.value) {
@@ -810,26 +804,92 @@ const processInput = () => {
   }, 5000);
 
   postMessageToWindowsPrompt();
-};
 
-const oneClickTranslatePrompt = () => {
-  tokens.value.forEach((token, index) => {
-    // 检查translate是否包含英文字符
-    if (token.translate && /[a-zA-Z]/.test(token.translate)) {
-      // 提取需要翻译的文本
-      const textToTranslate = token.text;
-      translate.request.translateText(textToTranslate, function (data) {
-        if (data.result > 0) {
-          const translatedText = data.text.map(item => item.replace(/[\[\]“”]/g, '')).join(', ');
-          tokens.value[index].translate = translatedText;
-        }
-        //打印翻译结果
-        // console.log(data);
-      });
+  // 处理翻译
+  const batchSize = 20; // 每批处理的数量
+  let currentIndex = 0;
+
+  while (currentIndex < tokens.value.length) {
+    const endIndex = Math.min(currentIndex + batchSize, tokens.value.length);
+    const promises = [];
+
+    for (let i = currentIndex; i < endIndex; i++) {
+      if (tokens.value[i].text.length > 0 && !tokens.value[i].translate) {
+        let cleanedTrSegment = tokens.value[i].text;
+        const text = extractText(cleanedTrSegment.trim());
+        promises.push(
+          translatorApi.getTranslateLocal(text).then(res => {
+            const translate = res;
+            tokens.value[i].translate = translate.translated.translate;
+            tokens.value[i].color = translate.translated.color;
+          })
+        );
+      }
     }
-  });
+
+    await Promise.all(promises);
+    currentIndex = endIndex;
+  }
+
+  // 处理翻译
+  // for (let i = 0; i < tokens.value.length; i++) {
+  //   if (tokens.value[i].text.length > 0 && !tokens.value[i].translate) {
+  //     let cleanedTrSegment = tokens.value[i].text;
+  //     const text = extractText(cleanedTrSegment.trim());
+  //     translatorApi.getTranslateLocal(text).then(res => {
+  //       const translate = res;
+  //       tokens.value[i].translate = translate.translated.translate;
+  //       tokens.value[i].color = translate.translated.color;
+  //     });
+  //   }
+  // }
+
 };
 
+const oneClickTranslatePrompt = async () => {
+  const batchSize = 20; // 每批处理的数量
+  let currentIndex = 0;
+
+  while (currentIndex < tokens.value.length) {
+    const endIndex = Math.min(currentIndex + batchSize, tokens.value.length);
+    const promises = [];
+
+    for (let i = currentIndex; i < endIndex; i++) {
+      const token = tokens.value[i];
+      // 检查translate是否包含英文字符
+      if (token.translate && /[a-zA-Z]/.test(token.translate)) {
+        // 提取需要翻译的文本
+        const textToTranslate = token.text;
+        const promise = new Promise((resolve) => {
+
+          if (localStorage.getItem('weilin_prompt_ui_translater_setting') == 'network') {
+            translate.request.translateText(textToTranslate, function (data) {
+              if (data.result > 0) {
+                const translatedText = data.text.map(item => item.replace(/[\[\]“”]/g, '')).join(', ');
+                tokens.value[i].translate = translatedText;
+              }
+              resolve();
+            });
+          } else {
+            translatorApi.translaterText(textToTranslate).then(res => {
+              // console.log(res)
+              if (res.text.length > 0) {
+                tokens.value[i].translate = res.text;
+              }
+              resolve();
+            })
+          }
+
+        });
+        promises.push(promise);
+      }
+    }
+
+    // 等待当前批次完成
+    await Promise.all(promises);
+    currentIndex = endIndex;
+  }
+};
 
 
 const tempInputText = ref('')
@@ -874,18 +934,16 @@ const postMessageToWindowsPrompt = () => {
       data: jsonStr
     }, '*')
   } else {
-    if (tempInputText.value != inputText.value) {
-      tempInputText.value = inputText.value
-      const putJson = {
-        prompt: inputText.value,
-        lora: "",
-      }
-      const jsonStr = JSON.stringify(putJson)
-      window.postMessage({
-        type: 'weilin_prompt_ui_prompt_finish_prompt',
-        data: jsonStr
-      }, '*')
+    tempInputText.value = inputText.value
+    const putJson = {
+      prompt: inputText.value,
+      lora: "",
     }
+    const jsonStr = JSON.stringify(putJson)
+    window.postMessage({
+      type: 'weilin_prompt_ui_prompt_finish_prompt',
+      data: jsonStr
+    }, '*')
   }
 }
 
@@ -1011,7 +1069,8 @@ const deleteToken = (index) => {
   }
 
   tokens.value.splice(index, 1)
-  inputText.value = tokens.value.map(token => token.text).join(', ');
+  inputText.value = tokens.value.length > 0 
+  ? tokens.value.map(token => token.text).join(', ') + ',': '';
 
   postMessageToWindowsPrompt()
 }
@@ -1108,6 +1167,7 @@ watch(selectedLoras, (newLoras) => {
   // console.log(newLoras)
   // finishPromptPutItHistory()
   postMessageToWindowsPrompt()
+  finishPromptPutItHistory()
 }, { deep: true })
 
 // 切换语言选择器
@@ -1196,9 +1256,9 @@ const handleMessage = (event) => {
     if (currentText === '') {
       inputText.value = tagText
     } else if (currentText.endsWith(' ')) {
-      inputText.value = currentText + ', ' + tagText
+      inputText.value = currentText + ', ' + tagText+ ',';
     } else {
-      inputText.value = currentText + ', ' + tagText
+      inputText.value = currentText + ', ' + tagText + ',';
     }
 
     lastInputValue.value = inputText.value; // 更新上一次的输入内容
@@ -1223,9 +1283,9 @@ const handleMessage = (event) => {
       if (currentText === '') {
         inputText.value = tagText
       } else if (currentText.endsWith(' ')) {
-        inputText.value = currentText + ', ' + tagText
+        inputText.value = currentText + ', ' + tagText + ',' ;
       } else {
-        inputText.value = currentText + ', ' + tagText
+        inputText.value = currentText + ', ' + tagText + ',' ;
       }
 
       lastInputValue.value = inputText.value; // 更新上一次的输入内容
@@ -1253,40 +1313,70 @@ const initTranslate = async () => {
 }
 
 const translateFunction = (texts, token) => {
-  translate.request.translateText(texts, function (data) {
-    if (data.result > 0) {
-      const translatedText = data.text.map(item => item.replace(/[\[\]“”]/g, '')).join(', ');
-      token.translate = translatedText
-    }
-    //打印翻译结果
-    // console.log(data);
-  });
+  if (localStorage.getItem('weilin_prompt_ui_translater_setting') == 'network') {
+    translate.request.translateText(texts, function (data) {
+      if (data.result > 0) {
+        const translatedText = data.text.map(item => item.replace(/[\[\]“”]/g, '')).join(', ');
+        token.translate = translatedText
+      }
+      //打印翻译结果
+      // console.log(data);
+    });
+  } else {
+    translatorApi.translaterText(texts).then(res => {
+      // console.log(res)
+      if (res.text.length > 0) {
+        token.translate = res.text;
+      }
+    })
+  }
 }
 
 const finishTranslateEnter = () => {
-  const restran = translate.language.recognition(translateText.value)
-  var obj = {
-    from: restran.languageName,
-    to: 'english',
-    texts: [translateText.value]
-  }
-  translate.request.translateText(obj, function (data) {
-    if (data.result > 0) {
-      const translatedText = data.text.map(item => item.replace(/[\[\]“”]/g, '')).join(', ');
-      tokens.value.push({
-        text: translatedText,
-        translate: translateText.value,
-        isPunctuation: false,
-        isEditing: false,
-        isHidden: false,
-        color: ''
-      });
-      translateText.value = ''
-      updateInputText()
+
+  if (localStorage.getItem('weilin_prompt_ui_translater_setting') == 'network') {
+    const restran = translate.language.recognition(translateText.value)
+    var obj = {
+      from: restran.languageName,
+      to: 'english',
+      texts: [translateText.value]
     }
-    //打印翻译结果
-    // console.log(data);
-  });
+
+    translate.request.translateText(obj, function (data) {
+      if (data.result > 0) {
+        const translatedText = data.text.map(item => item.replace(/[\[\]“”]/g, '')).join(', ');
+        tokens.value.push({
+          text: translatedText,
+          translate: translateText.value,
+          isPunctuation: false,
+          isEditing: false,
+          isHidden: false,
+          color: ''
+        });
+        translateText.value = ''
+        updateInputText()
+      }
+      //打印翻译结果
+      // console.log(data);
+    });
+  } else {
+    translatorApi.translaterInputText(translateText.value).then(res => {
+      // console.log(res)
+      if (res.text.length > 0) {
+        tokens.value.push({
+          text: res.text,
+          translate: translateText.value,
+          isPunctuation: false,
+          isEditing: false,
+          isHidden: false,
+          color: ''
+        });
+        translateText.value = ''
+        updateInputText()
+      }
+    })
+  }
+
 }
 
 
@@ -1426,10 +1516,10 @@ const selectAutocomplete = (index) => {
     // 替换当前正在输入的部分
     if (lastSeparatorIndex === -1) {
       // 如果没有分隔符，直接替换整个输入
-      inputText.value = tagText;
+      inputText.value = tagText + ',';
     } else {
       // 保留前面的内容，替换后面的部分
-      inputText.value = currentText.slice(0, lastSeparatorIndex + 1) + tagText;
+      inputText.value = currentText.slice(0, lastSeparatorIndex + 1) + tagText + ',';
     }
 
     // 更新上一次的输入内容
@@ -1489,7 +1579,8 @@ const handleDrop = (index, event) => {
 };
 
 const updateInputText = () => {
-  inputText.value = tokens.value.map(token => token.text).join(', ');
+  inputText.value = tokens.value.length > 0 
+  ? tokens.value.map(token => token.text).join(', ') + ',': '';
   postMessageToWindowsPrompt()
 };
 
