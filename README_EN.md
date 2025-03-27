@@ -23,11 +23,13 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 > Last updated: 2025-03-27
 
-> 0.0.25 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.26 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
 >
 > 1. Modified the default prompt words to automatically add commas
 >
 > 2. Modify the test translation error prompt to avoid misleading
+>
+> 3. Hide the Lora box to make the node cleaner
 
 <details>
 <summary>Click here for more updates from the past</summary>
