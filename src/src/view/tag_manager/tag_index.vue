@@ -2,6 +2,7 @@
   <div class="tag-manager">
     <!-- 顶部工具栏 -->
     <div class="toolbar">
+     <div class="toolbar-top">
       <button class="refresh-btn" @click="refreshTags">
         <svg viewBox="0 0 24 24" width="16" height="16" class="refresh-icon">
           <path
@@ -30,6 +31,20 @@
           </div>
         </div>
       </div>
+     </div>
+
+      <!-- 高级设置 -->
+      <div class="group-edit-mode">
+        <label>
+          <input 
+            type="checkbox" 
+            v-model="isAutoAddSearchTag" 
+            :true-value="1" 
+            :false-value="0"
+          />
+          {{ t('tagManager.autoAddSearchTag') }}
+        </label>
+      </div>
     </div>
 
     <!-- 分类导航区域 -->
@@ -37,13 +52,15 @@
       <!-- 一级分类 tabs -->
       <div class="tabs-wrapper primary-tabs">
         <div class="tabs-scroll">
-          <div v-for="category in categories" :key="category.name" class="tab-item"
+          <div v-for="(category,index) in categories" :key="'Tabss-'+index" class="tab-item"
             :class="{ active: selectedCategory?.name === category.name }" :style="{
               backgroundColor: selectedCategory?.name === category.name ? 'var(--primary-color)' : category.color,
               color: selectedCategory?.name === category.name ? '#ffffff' : getContrastColor(category.color)
-            }" @click="selectCategory(category)">
+            }" @click="selectCategory(category)"
+            @mouseenter="showTabActions(index)"
+            @mouseleave="hideTabActions(index)">
             <span class="tab-text">{{ category.name }}</span>
-            <div class="tab-actions">
+            <div class="tab-actions" v-if="hoverTabsActionFrist=='TabID-'+index">
               <button class="action-btn edit" @click.stop="editCategory(category)">
                 <svg viewBox="0 0 24 24" class="action-icon">
                   <path
@@ -61,19 +78,34 @@
             <span class="plus-icon">+</span>
             {{ t('tagManager.addPrimaryCategory') }}
           </button>
+
+          <div class="group-edit-mode">
+            <label>
+              <input 
+                type="checkbox" 
+                v-model="editGroupCategroy" 
+                :true-value="1" 
+                :false-value="0"
+              />
+              {{ editGroupCategroy == 1 ? t('tagManager.exitEditMode'): t('tagManager.editGroupMode') }}
+            </label>
+          </div>
+
         </div>
       </div>
 
       <!-- 分组 tabs -->
       <div class="tabs-wrapper group-tabs" v-if="selectedCategory">
         <div class="tabs-scroll">
-          <div v-for="group in selectedCategory.groups" :key="group.name" class="tab-item"
+          <div v-for="(group,index) in selectedCategory.groups" :key="'TabsSw-'+index" class="tab-item"
             :class="{ active: selectedGroup?.name === group.name }" :style="{
               backgroundColor: selectedGroup?.name === group.name ? 'var(--primary-color)' : group.color,
               color: selectedGroup?.name === group.name ? '#ffffff' : getContrastColor(group.color)
-            }" @click="selectGroup(group)">
+            }" @click="selectGroup(group)"
+             @mouseenter="showTabActionsGroup(index)"
+             @mouseleave="hideTabActionsGroup(index)">
             <span class="tab-text">{{ group.name }}</span>
-            <div class="tab-actions">
+            <div class="tab-actions" v-if="hoverTabsActionSecond == 'TabID-'+index">
               <button class="action-btn edit" @click.stop="editGroup(group)">
                 <svg viewBox="0 0 24 24" class="action-icon">
                   <path
@@ -91,6 +123,17 @@
             <span class="plus-icon">+</span>
             {{ t('tagManager.addGroup') }}
           </button>
+          <div class="group-edit-mode">
+            <label>
+              <input 
+                type="checkbox" 
+                v-model="editGroupTabs" 
+                :true-value="1" 
+                :false-value="0"
+              />
+              {{ editGroupTabs == 1 ? t('tagManager.exitEditMode'): t('tagManager.editGroupMode') }}
+            </label>
+          </div>
         </div>
       </div>
     </div>
@@ -118,7 +161,7 @@
       </div>
 
       <div class="tags-grid" v-if="selectedGroup">
-        <div v-for="tag in currentTags" :key="tag.id" class="tag-wrapper">
+        <div v-for="tag in currentTags" :key="'tag-grid-'+tag.id_index" :class="highlightedTagId === tag.id_index ? 'tag-wrapper highlight':'tag-wrapper'">
           <div class="tag-content" @click="handleTagClick(tag)">
             <div class="tag-main" :style="{ backgroundColor: tag.color || 'transparent' }">
               {{ tag.desc }}
@@ -308,6 +351,14 @@ const isEditingTag = ref(false)
 const categoryType = ref('primary') // 'primary' 或 'group'
 const selectedTags = ref([]); // 用于存储选中的标签ID
 const isDeleteTagAction = ref(false)
+
+const hoverTabsActionFrist = ref('None');
+const hoverTabsActionSecond = ref('None');
+const editGroupTabs = ref(0); // 添加编辑模式状态
+const editGroupCategroy = ref(0); // 添加编辑模式状态
+
+const highlightedTagId = ref(null); // 添加高亮状态
+const isAutoAddSearchTag = ref(0); // 添加高亮状态
 
 // 新增状态变量
 const showMoveDialog = ref(false);
@@ -846,6 +897,23 @@ const navigateToResult = (result) => {
       if (group) {
         selectCategory(category)
         selectGroup(group)
+
+        if (isAutoAddSearchTag.value == 1){
+          // 发送消息通知
+          window.postMessage({
+            type: 'weilin_prompt_ui_insertTag',
+            tagText: result.item.text
+          }, '*')
+        }
+
+        // 设置高亮标签
+        highlightedTagId.value = result.item.id_index;
+
+        // 5秒后取消高亮
+        setTimeout(() => {
+          highlightedTagId.value = null;
+        }, 5000);
+
       }
     }
   }
@@ -1130,6 +1198,26 @@ const handleKeydown = (event) => {
   }
 }
 
+const showTabActions = (index) => {
+  if (editGroupCategroy.value == 1){
+    hoverTabsActionFrist.value = 'TabID-'+index;
+  }
+};
+
+const hideTabActions = (index) => {
+  hoverTabsActionFrist.value = 'None';
+};
+
+const showTabActionsGroup = (index) => {
+  if (editGroupTabs.value == 1){
+    hoverTabsActionSecond.value = 'TabID-'+index;
+  }
+};
+
+const hideTabActionsGroup = (index) => {
+  hoverTabsActionSecond.value = 'None';
+};
+
 </script>
 
 <style scoped>
@@ -1190,7 +1278,7 @@ const handleKeydown = (event) => {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 2px 6px;
+  padding: 2px 15px;
   border-radius: 4px 4px 0 0;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -1215,14 +1303,14 @@ const handleKeydown = (event) => {
   display: flex;
   gap: 2px;
   align-items: center;
-  opacity: 0;
   transition: opacity 0.3s;
-  position: relative;
+  position: absolute;
   margin-left: 0;
-}
-
-.tab-item:hover .tab-actions {
-  opacity: 1;
+  top: -25px;
+  padding: 5px;
+  background-color: #00000080;
+  border-radius: 4px;
+  z-index: 1000;
 }
 
 .action-btn {
@@ -1748,7 +1836,6 @@ const handleKeydown = (event) => {
 /* 搜索区域样式 */
 .search-container {
   position: relative;
-  margin: 16px;
   z-index: 100;
 }
 
@@ -1839,10 +1926,15 @@ const handleKeydown = (event) => {
 }
 
 .toolbar {
+  flex-direction: column;
+  padding: 12px 16px;
+}
+
+.toolbar .toolbar-top {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
+  margin-bottom: 10px;
 }
 
 .refresh-btn {
@@ -1889,5 +1981,38 @@ const handleKeydown = (event) => {
   width: 16px !important;
   height: 16px !important;
   margin-top: 3px;
+}
+
+.group-edit-mode {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 12px;
+  background: none;
+  border: 1px dashed var(--weilin-prompt-ui-border-color);
+  border-radius: 4px 4px 0 0;
+  color: var(--weilin-prompt-ui-secondary-text);
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+  font-size: 13px;
+  height: 28px;
+  width: fit-content;
+  cursor: pointer;
+}
+
+.group-edit-mode:hover {
+  color: var(--weilin-prompt-ui-primary-color);
+  border-color: var(--weilin-prompt-ui-primary-color);
+  background: var(--weilin-prompt-ui-secondary-bg);
+}
+
+
+.highlight {
+  border: 2px solid var(--weilin-prompt-ui-primary-color);
+  box-shadow: 0 0 8px rgba(255, 123, 2, 0.6);
+  transform: scale(1.05);
+  transition: all 0.3s ease;
 }
 </style>

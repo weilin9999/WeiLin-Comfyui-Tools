@@ -144,7 +144,9 @@ export default {
         "copy": "Copy",
         "copySuccess": "Copied successfully",
         "copyFailed": "Copy failed",
-        "windowSize":"Adjust window size"
+        "windowSize":"Adjust window size",
+        "showMore": "show more",
+        "showLess": "show less",
     },
     nodeListWindow:{
         "windowTitle": "Node List",
@@ -232,7 +234,10 @@ export default {
         "moveBefore": "Move Before",
         "moveAfter": "Move After",
         "editTag": "Edit Tag",
-        "deleteTag": "Delete Tag"
+        "deleteTag": "Delete Tag",
+        "editGroupMode": "Edit Group Mode",
+        "exitEditMode": "Exit Edit Mode",
+        "autoAddSearchTag": "Auto Add Search Tag With Prompt",
     },
     loraManager: {
         windowTitle: "Lora Manager",

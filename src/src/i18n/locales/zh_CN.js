@@ -116,7 +116,9 @@ export default {
         "copy": "复制",
         "copySuccess": "复制成功",
         "copyFailed": "复制失败",
-        "windowSize":"调节窗口大小"
+        "windowSize":"调节窗口大小",
+        "showMore": "显示更多",
+        "showLess": "收起"
     },
     nodeListWindow:{
         "windowTitle": "节点列表",
@@ -229,7 +231,10 @@ export default {
         "moveBefore": "移动到目标标签之前",
         "moveAfter": "移动到目标标签之后",
         "editTag": "编辑标签",
-        "deleteTag": "删除标签"
+        "deleteTag": "删除标签",
+        "editGroupMode": "编辑模式",
+        "exitEditMode": "退出编辑模式",
+        "autoAddSearchTag": "搜索的Tag自动添加到提示词中",
     },
     loraManager: {
         windowTitle: "Lora管理",

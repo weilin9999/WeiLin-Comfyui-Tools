@@ -637,7 +637,7 @@ const saveTranslaterSetting = () => {
 
 // 翻译文本
 const translaterTextTest = () => {
-  translatorApi.translaterText(testTranslaterInputText.value).then(res => {
+  translatorApi.translaterInputText(testTranslaterInputText.value).then(res => {
     // console.log(res)
     testTranslaterOutputText.value = res.text;
   }).catch(err => {

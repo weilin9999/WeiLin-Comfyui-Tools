@@ -21,18 +21,26 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 # Version update introduction
 
-> Last updated: 2025-03-27
+> Last updated: 2025-03-30
 
-> 0.0.26 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.27 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+>
+> 1. The search Tag is highlighted, and you can choose to automatically add the search Tag to the prompt words
+>
+> 2. Modify the prompt words in Lora detail page to add the function of hiding and expanding
+>
+> 3. Modify the Tag editing operation nowhere method and add an edit mode selection
+
+<details>
+<summary>Click here for more updates from the past</summary>
+
+> 0.0.26 Public Beta Version 2025-03-27
 >
 > 1. Modified the default prompt words to automatically add commas
 >
 > 2. Modify the test translation error prompt to avoid misleading
 >
 > 3. Hide the Lora box to make the node cleaner
-
-<details>
-<summary>Click here for more updates from the past</summary>
 
 > 0.0.24 2025-03-25 Public Beta Version
 >

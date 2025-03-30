@@ -154,8 +154,9 @@
                                     </td>
                                     <td colspan="2">
                                         <ul class="word-list">
-                                            <li v-for="word in trainedWords" :key="word.word" class="word-item"
-                                                :class="{ 'is-selected': isWordSelected(word.word) }"
+                                            <li v-for="(word, index) in isCollapsed ? trainedWords.slice(0, 10) : trainedWords" 
+                                                 :key="'words-'+index" class="word-item"
+                                                :class="{ 'is-selected': isWordSelected(word.word) ,'is-hidden': isCollapsed && index >= 10}"
                                                 @click="toggleWordSelection(word.word)">
                                                 <span>{{ word.word }}</span>
                                                 <svg v-if="word.civitai" viewBox="0 0 24 24" width="16" height="16"
@@ -164,6 +165,9 @@
                                                         d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-4H8l4-7v4h3l-4 7z" />
                                                 </svg>
                                                 <small v-if="word.count != null">{{ word.count }}</small>
+                                            </li>
+                                            <li v-if="trainedWords.length > 10" class="toggle-btn" @click="toggleCollapse">
+                                                {{ isCollapsed ? t('common.showMore') : t('common.showLess') }}
                                             </li>
                                         </ul>
                                     </td>
@@ -637,6 +641,13 @@ const statusText = computed(() => {
     return t('common.ready')
 })
 
+
+const isCollapsed = ref(true); // 添加展开/收起状态
+
+const toggleCollapse = () => {
+  isCollapsed.value = !isCollapsed.value;
+}
+
 </script>
 
 <style scoped>
@@ -951,5 +962,21 @@ input:focus {
     .image-info {
         padding: 12px;
     }
+}
+
+.word-item .is-hidden {
+  display: none;
+}
+
+.toggle-btn {
+  cursor: pointer;
+  color: var(--primary-color);
+  text-align: center;
+  padding: 4px;
+  margin-top: 8px;
+}
+
+.toggle-btn:hover {
+  text-decoration: underline;
 }
 </style>
