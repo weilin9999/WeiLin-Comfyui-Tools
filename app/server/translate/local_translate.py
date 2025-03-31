@@ -3,7 +3,7 @@ from ..dao.dao import fetch_one
 def get_translation_from_tag_tags(word):
     """从 tag_tags 表中获取单词的翻译"""
     query = 'SELECT desc, color FROM tag_tags WHERE text = ?'
-    result = fetch_one(query, (word,))
+    result = fetch_one('tags',query, (word,))
     if result:
         return {"translate": result[0], "color": result[1], "color_id": -1}
     return None
@@ -11,7 +11,7 @@ def get_translation_from_tag_tags(word):
 def get_translation_from_danbooru_tag(word):
     """从 danbooru_tag 表中获取单词的翻译"""
     query = 'SELECT translate, color_id FROM danbooru_tag WHERE tag = ?'
-    result = fetch_one(query, (word,))
+    result = fetch_one('danbooru',query, (word,))
     if result:
         return {"translate": result[0], "color": None, "color_id": result[1]}
     return None

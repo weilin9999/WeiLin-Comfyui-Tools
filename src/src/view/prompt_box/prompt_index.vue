@@ -114,15 +114,16 @@
       </div>
 
       <!-- 输入框区域 -->
-      <textarea v-model="inputText" class="input-area" @input="handleInput" @change="finishPromptPutItHistory"
+       <!-- 移除事件 @change="finishPromptPutItHistory" -->
+      <textarea v-model="inputText" class="input-area" @input="handleInput"
         :placeholder="t('promptBox.placeholder')" @keydown="handleKeydown" @blur="onBlur" rows="6"
         ref="inputAreaRef"></textarea>
 
       <!-- 自动补全窗口 -->
       <div v-if="showAutocomplete" class="autocomplete-container" ref="autocompleteContainerRef">
-        <button class="close-autocomplete-btn" @click="closeAutocomplete">×</button>
+        <button class="close-autocomplete-btn" @click.stop="closeAutocomplete">×</button>
         <div v-for="(item, index) in autocompleteResults" :key="index" class="autocomplete-item"
-          :class="{ selected: index === selectedAutocompleteIndex }" @click="selectAutocomplete(index)">
+          :class="{ selected: index === selectedAutocompleteIndex }" @click.stop="selectAutocomplete(index,$event)">
           <span class="tag">{{ item.text }}</span>
           <span class="desc">{{ item.desc }}</span>
         </div>
@@ -1383,8 +1384,13 @@ const finishTranslateEnter = () => {
 // 自动补全功能
 
 const onBlur = () => {
-  lastInputValue.value = inputText.value; // 更新上一次的输入内容
-  processInput()
+  // 添加延迟处理，避免与自动补全点击冲突
+  setTimeout(() => {
+    if (!showAutocomplete.value) {
+      lastInputValue.value = inputText.value; // 更新上一次的输入内容
+      processInput();
+    }
+  }, 100);
 }
 
 // 提取补全逻辑到单独的函数
@@ -1445,7 +1451,12 @@ const handleKeydown = (event) => {
 };
 
 // 选择补全项
-const selectAutocomplete = (index) => {
+const selectAutocomplete = (index,event) => {
+  // 如果有event参数，阻止默认行为和事件冒泡
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
   if (autocompleteResults.value[index]) {
     showAutocomplete.value = false;
 

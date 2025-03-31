@@ -11,7 +11,7 @@ def fuzzy_search(query):
         WHERE text LIKE ? OR desc LIKE ?
         LIMIT 10
     '''
-    tag_tags_results = fetch_all(tag_tags_query, (f'%{query}%', f'%{query}%'))
+    tag_tags_results = fetch_all('tags',tag_tags_query, (f'%{query}%', f'%{query}%'))
     for result in tag_tags_results:
         results.append({
             "text": result[0],
@@ -29,7 +29,7 @@ def fuzzy_search(query):
             WHERE tag LIKE ? OR translate LIKE ?
             LIMIT ?
         '''
-        danbooru_tag_results = fetch_all(danbooru_tag_query, (f'%{query}%', f'%{query}%', remaining_limit))
+        danbooru_tag_results = fetch_all('danbooru',danbooru_tag_query, (f'%{query}%', f'%{query}%', remaining_limit))
         for result in danbooru_tag_results:
             results.append({
                 "text": result[0],

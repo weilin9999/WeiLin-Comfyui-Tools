@@ -1,5 +1,5 @@
 import time
-from ..dao.dao import execute_query, fetch_all, fetch_one, db_path
+from ..dao.dao import execute_query, fetch_all, fetch_one, tags_db_path
 import uuid
 import sqlite3
 
@@ -11,7 +11,7 @@ def add_group_tag(text, desc, subgroup_id, color):
         INSERT INTO tag_tags (subgroup_id, text, desc, color, create_time)
         VALUES (?, ?, ?, ?, ?)
     '''
-    execute_query(query, (subgroup_id, text, desc, color, generate_unique_timestamp()))
+    execute_query('tags',query, (subgroup_id, text, desc, color, generate_unique_timestamp()))
 
 def edit_group_tag(text, desc, id_index, color):
     query = '''
@@ -19,11 +19,11 @@ def edit_group_tag(text, desc, id_index, color):
         SET text = ?, desc = ?, color = ?
         WHERE id_index = ?
     '''
-    execute_query(query, (text, desc, color, id_index))
+    execute_query('tags',query, (text, desc, color, id_index))
 
 def move_tag(id_index, reference_id_index, position='before'):
     query = 'SELECT create_time FROM tag_tags WHERE id_index = ?'
-    reference_tag = fetch_one(query, (reference_id_index,))
+    reference_tag = fetch_one('tags',query, (reference_id_index,))
     if not reference_tag:
         return {"info": "Reference tag not found"}
 
@@ -41,23 +41,23 @@ def move_tag(id_index, reference_id_index, position='before'):
         SET create_time = ?
         WHERE id_index = ?
     '''
-    execute_query(query, (new_create_time, id_index))
+    execute_query('tags',query, (new_create_time, id_index))
 
     return {"info": "Tag moved"}
 
 def delete_group_tag(id_index):
     query = 'DELETE FROM tag_tags WHERE id_index = ?'
-    execute_query(query, (id_index,))
+    execute_query('tags',query, (id_index,))
 
 def batch_delete_group_tags(id_indices):
     query = "DELETE FROM tag_tags WHERE id_index IN ({seq})".format(
         seq=','.join(['?']*len(id_indices)))
-    execute_query(query, id_indices)
+    execute_query('tags',query, id_indices)
 
 def add_new_node_group(key, color):
     # 检查 name 是否已经存在
     query = 'SELECT COUNT(*) FROM tag_groups WHERE name = ?'
-    result = fetch_one(query, (key,))
+    result = fetch_one('tags',query, (key,))
     if result[0] > 0:
         return {"code": 201}
 
@@ -65,13 +65,13 @@ def add_new_node_group(key, color):
         INSERT INTO tag_groups (name, color, create_time)
         VALUES (?, ?, ?)
     '''
-    execute_query(query, (key, color, generate_unique_timestamp()))
+    execute_query('tags',query, (key, color, generate_unique_timestamp()))
     return {"code": 200}
 
 def add_new_group(key, group_key, color):
     # 检查 name 是否已经存在
     query = 'SELECT COUNT(*) FROM tag_subgroups WHERE name = ?'
-    result = fetch_one(query, (group_key,))
+    result = fetch_one('tags',query, (group_key,))
     if result[0] > 0:
         return {"code": 201}
 
@@ -79,13 +79,13 @@ def add_new_group(key, group_key, color):
         INSERT INTO tag_subgroups (group_id, name, color, create_time)
         VALUES (?, ?, ?, ?)
     '''
-    execute_query(query, (key, group_key, color, generate_unique_timestamp()))
+    execute_query('tags',query, (key, group_key, color, generate_unique_timestamp()))
     return {"code": 200}
 
 def edit_node_group(id_index, new_key, new_color):
     # 检查 name 是否已经存在
     query = 'SELECT COUNT(*) FROM tag_groups WHERE name = ? AND id_index != ?'
-    result = fetch_one(query, (new_key, id_index))
+    result = fetch_one('tags',query, (new_key, id_index))
     if result[0] > 0:
         return {"code": 201}
 
@@ -94,13 +94,13 @@ def edit_node_group(id_index, new_key, new_color):
         SET name = ?, color = ?
         WHERE id_index = ?
     '''
-    execute_query(query, (new_key, new_color, id_index))
+    execute_query('tags',query, (new_key, new_color, id_index))
     return {"code": 200}
 
 def edit_child_node_group(id_index, new_key, new_color):
     # 检查 name 是否已经存在
     query = 'SELECT COUNT(*) FROM tag_subgroups WHERE name = ? AND id_index != ?'
-    result = fetch_one(query, (new_key, id_index))
+    result = fetch_one('tags',query, (new_key, id_index))
     if result[0] > 0:
         return {"code": 201}
 
@@ -109,11 +109,11 @@ def edit_child_node_group(id_index, new_key, new_color):
         SET name = ?, color = ?
         WHERE id_index = ?
     '''
-    execute_query(query, (new_key, new_color, id_index))
+    execute_query('tags',query, (new_key, new_color, id_index))
     return {"code": 200}
 
 def delete_node_group(id_index):
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(tags_db_path)
     cursor = conn.cursor()
     
     try:
@@ -146,7 +146,7 @@ def delete_node_group(id_index):
         conn.close()
 
 def delete_child_node_group(id_index):
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(tags_db_path)
     cursor = conn.cursor()
     
     try:
@@ -181,7 +181,7 @@ def get_group_tags():
         LEFT JOIN tag_tags t ON sg.id_index = t.subgroup_id
         ORDER BY g.create_time ASC, sg.create_time ASC, t.create_time DESC
     '''
-    data = fetch_all(query)
+    data = fetch_all('tags',query)
 
     result = []
     group_map = {}

@@ -16,26 +16,35 @@
 插件有专门的独立后台面板，可以把你的旧版的提示词转换成新版本插件的提示词以及便携式的离线修改Tag，项目入口 [WeiLin-Comfyui-Tools-panel
 ](https://github.com/weilin9999/WeiLin-Comfyui-Tools-panel)
 
+## 插件的云Tag和Danbooru数据库仓库
+仓库位置：[WeiLin-Comfyui-Tools-Prompt](https://github.com/weilin9999/WeiLin-Comfyui-Tools-Prompt)，如果你感兴趣可以查看一起协作
+
 # 作者声明
 
 由于个人时间有限，更新插件的频率并不会很高，偶尔有空或许会更新一次，每次更新尽量满足所提出的需求，一般没有大的 BUG 基本上更新频率不高，一个月 2~5 更，感谢你对本插件的使用与支持，有需求可以提交 Issue 或者你可以提交你的 Request 帮助本插件更新。
 
 # 版本更新介绍
 
-> 最新更新：2025-03-30
+> 最新更新：2025-03-31
 
-> 0.0.27 公测版本介绍 如果你要使用本插件请务必进我们的官方 QQ 群（1018231382）！
+> 0.0.28 公测版本介绍 如果你要使用本插件请务必进我们的官方 QQ 群（1018231382）！
+>
+> 1. 修改了全新的数据库拉取方式已经公开了仓库：[WeiLin-Comfyui-Tools-Prompt](https://github.com/weilin9999/WeiLin-Comfyui-Tools-Prompt)，有兴趣的伙伴可以查看怎么添加自己的tag或者danbooru
+>
+> 2. 优化了自动补全的功能
+
+
+<details>
+<summary>点击查看往期更多更新内容</summary>
+
+
+> 0.0.27 公测版本介绍 2025-03-30
 >
 > 1. 搜索Tag时有高亮，同时可以选择自动添加搜索的Tag到提示词中
 >
 > 2. 修改Lora详细页面中的提示词增加了隐藏和展开的功能
 >
 > 3. 修改Tag编辑的操作无处的方法，增加了一个编辑模式选择
-
-
-
-<details>
-<summary>点击查看往期更多更新内容</summary>
 
 > 0.0.26 公测版本介绍：2025-03-27
 >

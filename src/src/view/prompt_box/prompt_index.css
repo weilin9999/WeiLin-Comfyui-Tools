@@ -644,13 +644,13 @@
 /* 标签样式 */
 .tag {
     font-weight: 500;
-    color: var(--text-color);
+    color: var(--weilin-prompt-ui-primary-text);
     font-size: 14px;
 }
 
 /* 描述样式 */
 .desc {
-    color: var(--text-secondary-color);
+    color: var(--weilin-prompt-ui-primary-text);
     font-size: 12px;
     margin-top: 4px;
     padding: 10px;

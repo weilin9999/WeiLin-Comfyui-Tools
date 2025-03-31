@@ -15,24 +15,33 @@ This plugin is still in beta testing, please do not try it boldly! If you want t
 ## Companion Usage Instructions - Migrating Old Plugin Prompt Words to the New Plugin
 The plugin has a dedicated independent backend panel that can convert your old version prompt words to those of the new version plugin and allows for portable offline modification of Tags. Project entry: [WeiLin-Comfyui-Tools-panel](https://github.com/weilin9999/WeiLin-Comfyui-Tools-panel)
 
+## plugin for cloud Tag and Danbooru database repository
+Warehouse location: [WeiLin-Comfyui-Tools-Prompt](https://github.com/weilin9999/WeiLin-Comfyui-Tools-Prompt), if you are interested can look at the work together
+
 # Author Statement
 
 Due to limited personal time, the frequency of updating plug-ins will not be very high, occasionally free may update once, each update as far as possible to meet the proposed needs, generally no big BUG basically update frequency is not high, 2~5 a month, thank you for your use and support of this plug-in. You can submit an Issue or you can submit your Request to help update this plugin.
 
 # Version update introduction
 
-> Last updated: 2025-03-30
+> Last updated: 2025-03-31
 
-> 0.0.27 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.28 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+>
+> 1. Modified the new database pull method has been disclosed to the warehouse: [WeiLin-Comfyui-Tools-Prompt](https://github.com/weilin9999/WeiLin-Comfyui-Tools-Prompt), interested partners can check how to add your own tag or danbooru
+>
+> 2. Optimized the automatic completion function
+
+<details>
+<summary>Click here for more updates from the past</summary>
+
+> 0.0.27 Public Beta Version 2025-03-30
 >
 > 1. The search Tag is highlighted, and you can choose to automatically add the search Tag to the prompt words
 >
 > 2. Modify the prompt words in Lora detail page to add the function of hiding and expanding
 >
 > 3. Modify the Tag editing operation nowhere method and add an edit mode selection
-
-<details>
-<summary>Click here for more updates from the past</summary>
 
 > 0.0.26 Public Beta Version 2025-03-27
 >
