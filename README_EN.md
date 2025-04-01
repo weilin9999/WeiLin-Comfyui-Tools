@@ -26,7 +26,7 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 > Last updated: 2025-04-01
 
-> 0.0.29 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.30 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
 >
 > 1. Fix the Tag moving issue when editing
 >
