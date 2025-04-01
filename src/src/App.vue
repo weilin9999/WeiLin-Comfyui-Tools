@@ -52,6 +52,18 @@
       <NodeListWindow />
     </DraggableWindow>
 
+    <!-- 云仓库窗口 -->
+    <DraggableWindow name="cloudWindow" v-if="windows.cloud_window.visible" 
+    :title="t('cloudWindow.windowTitle')"
+      :position="windows.cloud_window.position" :size="windows.cloud_window.size"
+      :z-index="windowManager.getZIndex('cloud_window')"
+      @update:position="updatePosition('cloud_window', $event)"
+      @update:size="updateSize('cloud_window', $event)"
+      @active="windowManager.setActiveWindow('cloud_window')"
+      @close="closeWindow('cloud_window')">
+      <CloudWindow />
+    </DraggableWindow>
+
     <!-- 悬浮球 -->
     <FloatingBall v-if="isFloatingBallEnabled">WeiLin</FloatingBall>
 
@@ -69,11 +81,11 @@ import HistoryManager from './view/history_manager/history_index.vue'
 import { windowManager } from '@/utils/windowManager'
 import FloatingBall from '@/components/FloatingBall.vue';
 import { useTagStore } from '@/stores/tagStore';
-import { autocompleteApi } from '@/api/autocomplete'
-import { languageApi } from '@/api/language'
 import AiWindow from '@/view/ai_window/ai_window.vue'
 import NodeListWindow from '@/view/node_list/index.vue'
+import CloudWindow from '@/view/cloud/index.vue'
 import { translatorApi } from '@/api/translator'
+import { tagsApi } from '@/api/tags'
 
 const tagStore = useTagStore();
 
@@ -102,7 +114,7 @@ const DEFAULT_WINDOWS = {
   prompt: {
     visible: false,
     position: { x: 100, y: 100 },
-    size: { width: 600, height: 400 }
+    size: { width: 600, height: 500 }
   },
   tag: {
     visible: false,
@@ -128,6 +140,11 @@ const DEFAULT_WINDOWS = {
     visible: false,
     position: { x: 100, y: 100 },
     size: { width: 300, height: 600 }
+  },
+  cloud_window: {
+    visible: false,
+    position: { x: 100, y: 100 },
+    size: { width: 800, height: 600 }
   }
 }
 
@@ -178,6 +195,8 @@ onMounted(() => {
   initTheme()
   // 添加消息监听
   window.addEventListener('message', handleMessage)
+
+  getTagsData();
 })
 
 // 初始化主题
@@ -270,6 +289,11 @@ const restoreWindowsToDefault = () => {
       visible: false,
       position: { x: 100, y: 100 },
       size: { width: 400, height: 800 }
+    },
+    cloud_window: {
+      visible: false,
+      position: { x: 100, y: 100 },
+      size: { width: 800, height: 600 }
     }
   }
 
@@ -361,6 +385,19 @@ const handleMessage = (event) => {
     isFloatingBallEnabled.value = localStorage.getItem('weilin_prompt_ui_floatingBallEnabled') === 'true';
   }else if (event.data.type === 'weilin_prompt_ui_restore_window') {
     restoreWindowsToDefault();
+  }else if (event.data.type === 'weilin_prompt_ui_open_cloud_window') {
+    windows.value.cloud_window.visible = true
+    windowManager.setActiveWindow('cloud_window')
+  }
+}
+
+
+const getTagsData = async () => {
+  try {
+    const res = await tagsApi.getTagsList()
+    tagStore.setCategories(res.data);
+  } catch (error) {
+    console.error('获取标签列表失败:', error)
   }
 }
 

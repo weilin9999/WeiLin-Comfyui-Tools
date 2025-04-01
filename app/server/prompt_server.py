@@ -10,6 +10,9 @@ from .fast_autocomplete.autocomplete import fuzzy_search
 from .user_init.user_init import read_init_file, set_user_lang, get_translate_setting,update_translate_setting,get_translate_settings,update_translate_settings
 from .translate.local_translate import translate_phrase
 from .translate.api_translate import installTranslateApi,applyTranslateApi,translateText
+from .cloud_warehouse.warehouse import get_main_warehouse,get_warehouse_tree
+from .dao.dao import install_cloud_file_db
+from .cloud_warehouse.save_history import get_package_paths
 from .ai_translator.ai_translator import (
     initialize_config,
     update_openai_settings,
@@ -157,7 +160,12 @@ async def _upload_image(request):
 
 @PromptServer.instance.routes.get(baseUrl+"prompt/get_group_tags")
 async def _get_group_tags(request):
-    return web.json_response({"data": get_group_tags()})
+    try:
+        data = await get_group_tags()  # 添加await
+        return web.json_response({"data": data})
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
 
 
 @PromptServer.instance.routes.post(baseUrl+"prompt/add_new_f_group")
@@ -165,7 +173,7 @@ async def _add_new_f_group(request):
     data = await request.json()
     resp = {"code":202}
     try:
-       resp = add_new_node_group(data['name'], data['color'])
+       resp = await add_new_node_group(data['name'], data['color'])
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
@@ -178,7 +186,7 @@ async def _edit_s_group(request):
     data = await request.json()
     resp = {"code":202}
     try:
-        resp = edit_node_group(data['id_index'], data['name'], data['color'])
+        resp = await edit_node_group(data['id_index'], data['name'], data['color'])
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
@@ -190,7 +198,7 @@ async def _edit_s_group(request):
 async def _delete_s_group(request):
     data = await request.json()
     try:
-        delete_node_group(data['id_index'])
+        delete_node_group(data['p_uuid'])
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
@@ -203,7 +211,7 @@ async def _add_new_s_group(request):
     data = await request.json()
     resp = {"code":202}
     try:
-        resp = add_new_group(data['key'], data['name'], data['color'])
+        resp = await add_new_group(data['key'], data['name'], data['color'], data['p_uuid'])
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
@@ -216,7 +224,7 @@ async def _edit_new_s_group(request):
     data = await request.json()
     resp = {"code":202}
     try:
-        resp = edit_child_node_group(data['id_index'], data['name'], data['color'])
+        resp = await edit_child_node_group(data['id_index'], data['name'], data['color'])
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
@@ -228,7 +236,7 @@ async def _edit_new_s_group(request):
 async def _delete_new_s_group(request):
     data = await request.json()
     try:
-        delete_child_node_group(data['id_index'])
+        delete_child_node_group(data['g_uuid'])
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
@@ -240,8 +248,7 @@ async def _delete_new_s_group(request):
 async def _new_tags(request):
     data = await request.json()
     try:
-        add_group_tag(data['text'], data['desc'],
-                      data['id_index'], data['color'])
+        await add_group_tag(data['text'], data['desc'],data['id_index'], data['color'], data['g_uuid'])
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
@@ -253,7 +260,7 @@ async def _new_tags(request):
 async def _edit_tags(request):
     data = await request.json()
     try:
-        edit_group_tag(data['text'], data['desc'],
+        await edit_group_tag(data['text'], data['desc'],
                        data['id_index'], data['color'])
     except Exception as e:
         print(f"Error: {e}")
@@ -266,7 +273,7 @@ async def _edit_tags(request):
 async def _delete_tags(request):
     data = await request.json()
     try:
-        delete_group_tag(data['id_index'])
+        await delete_group_tag(data['id_index'])
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
@@ -278,7 +285,7 @@ async def _delete_tags(request):
 async def _batch_delete_tags(request):
     data = await request.json()
     try:
-        batch_delete_group_tags(data['id_indexs'])
+        await batch_delete_group_tags(data['id_indexs'])
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
@@ -290,7 +297,7 @@ async def _batch_delete_tags(request):
 async def _move_tag(request):
     data = await request.json()
     try:
-        result = move_tag(data['id_index'],
+        result = await move_tag(data['id_index'],
                           data['reference_id_index'], data['position'])
     except Exception as e:
         print(f"Error: {e}")
@@ -306,7 +313,7 @@ async def _move_tag(request):
 @PromptServer.instance.routes.get(baseUrl+"prompt/history/get_history")
 async def _get_history(request):
     try:
-        data = read_history()
+        data = await read_history()
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
@@ -318,7 +325,7 @@ async def _get_history(request):
 async def _add_history(request):
     data = await request.json()
     try:
-        new_entry = add_history(data['tag'])
+        new_entry =  await add_history(data['tag'])
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
@@ -330,7 +337,7 @@ async def _add_history(request):
 async def _delete_history(request):
     data = await request.json()
     try:
-        delete_info = delete_history(data['id_index'])
+        delete_info = await delete_history(data['id_index'])
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
@@ -342,7 +349,7 @@ async def _delete_history(request):
 async def _batch_delete_history(request):
     data = await request.json()
     try:
-        delete_info = batch_delete_history(data['id_index'])
+        delete_info = await batch_delete_history(data['id_index'])
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
@@ -357,7 +364,7 @@ async def _batch_delete_history(request):
 @PromptServer.instance.routes.get(baseUrl+"prompt/collect_history/get_collect_history")
 async def _get_collect_history(request):
     try:
-        data = read_collect_history()
+        data = await read_collect_history()
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
@@ -406,7 +413,7 @@ async def _batch_delete_collect_history(request):
 async def _edit_collect_history(request):
     data = await request.json()
     try:
-        edit_info = edit_collect_history(data['id_index'], data.get(
+        edit_info = await edit_collect_history(data['id_index'], data.get(
             'name'), data.get('color'), data.get('tag'))
     except Exception as e:
         print(f"Error: {e}")
@@ -450,7 +457,7 @@ async def _translate_phrase(request):
     data = await request.json()
     phrase = data.get('phrase', '')
     try:
-        translated = translate_phrase(phrase)
+        translated = await translate_phrase(phrase)
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
@@ -466,7 +473,7 @@ async def _autocomplete(request):
     data = await request.json()
     query = data.get('query', '')
     try:
-        results = fuzzy_search(query)
+        results = await fuzzy_search(query)
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
@@ -548,7 +555,7 @@ async def _start_panel(request):
 # =================================== 翻译API库 =============================================
 @PromptServer.instance.routes.post(baseUrl+"translate/get/packages/state")
 async def _checkHasInstallTranslateApi(request):
-    apply = applyTranslateApi()
+    apply =  applyTranslateApi()
     if  apply == False :
         return web.json_response({"info": 'fail'})
     return web.json_response({"info": 'ok'})
@@ -632,6 +639,43 @@ async def _tanslater_input_text(request):
         return web.Response(status=500)
 # =====================================================================================================
 
+# =================================================== 云仓库获取 =======================================
+
+@PromptServer.instance.routes.post(baseUrl+"cloud/get/main")
+async def _cloud_get_main(request):
+    try:
+       return web.json_response({"data": get_main_warehouse()})
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+@PromptServer.instance.routes.post(baseUrl+"cloud/get/tree")
+async def _cloud_get_tree(request):
+    data = await request.json()
+    try:
+       return web.json_response({"data": get_warehouse_tree(data['path'])})
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+@PromptServer.instance.routes.post(baseUrl+"cloud/download/file")
+async def _cloud_get_download_file(request):
+    data = await request.json()
+    try:
+       return web.json_response({"data": install_cloud_file_db(data['path'],data['paths'])})
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+@PromptServer.instance.routes.post(baseUrl+"cloud/get/local/package")
+async def _cloud_get_local_package(request):
+    try:
+       return web.json_response({"data": get_package_paths()})
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+# =====================================================================================================
 
 print("======== WeiLin插件服务已启动 ========")
 print("======== WeiLin Server Init ========")

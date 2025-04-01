@@ -104,6 +104,7 @@ export default {
         lookOnLora: 'Look On Lora',
         aiChat: 'AI Chat',
         github: "Github Home",
+        shareCloudData: 'Share Cloud Data',
     },
     theme: {
         toggle: 'Switch Theme'
@@ -287,6 +288,19 @@ export default {
         tranlaterPackageInstallFail: 'Waiting for installation timeout, please check the background installation status. If the installation is successful, click install again to verify',
         tranlaterPackageInstallSuccess: 'Successfully installed translation package',
         translaterTestFail: "Translation failed, please try using another translation service",
+        "installPackageSuccess": "Successfully installed translation package",
+        "installPackageFail": "Failed to install translation package, please check the background installation status",
+    },
+    cloudWindow:{
+        "windowTitle": "Share Cloud Window",
+        back: 'Back',
+        currentPath: 'Current Path',
+        tagDatabase: 'Tag Database',
+        danbooruDatabase: 'Danbooru Database',
+        open: "Open Folder",
+        installed: 'Installed',
+        install: 'Install',
+         installing: 'Installing...'
     },
     history: {
         "title": "History",

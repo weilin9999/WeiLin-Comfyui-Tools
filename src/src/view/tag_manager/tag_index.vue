@@ -422,7 +422,7 @@ const refreshTagsGoThis = async () => {
     if (selectedGroup.value) {
       const group = categories.value
         .flatMap(category => category.groups) // 获取所有分组
-        .find(g => g.id_index === selectedGroup.value.id_index); // 根据 id_index 查找当前分组
+        .find(g => g.p_uuid === selectedGroup.value.p_uuid); // 根据 p_uuid 查找当前分组
 
       if (group) {
         selectedGroup.value = group; // 重新设置当前分组
@@ -433,7 +433,7 @@ const refreshTagsGoThis = async () => {
 
     // 如果当前分类存在，重新设置当前分类
     if (selectedCategory.value) {
-      const category = categories.value.find(c => c.id_index === selectedCategory.value.id_index); // 根据 id_index 查找当前分类
+      const category = categories.value.find(c => c.p_uuid === selectedCategory.value.p_uuid); // 根据 p_uuid 查找当前分类
 
       if (category) {
         selectedCategory.value = category; // 重新设置当前分类
@@ -455,9 +455,10 @@ onMounted(() => {
   window.addEventListener('resize', updateSearchResultsStyle)
   window.addEventListener('message', handleMessage)
   window.addEventListener('keydown', handleKeydown) // 监听键盘事件
-  nextTick(() => {
-    refreshTagsGoThis()
-  })
+  categories.value = tagStore.categories
+  if (categories.value.length <= 0 ){
+    getTagsList()
+  }
 })
 
 onBeforeUnmount(() => {
@@ -611,6 +612,7 @@ const saveCategory = () => {
           name: currentGroup.value.name,
           color: currentGroup.value.color,
           key: selectedCategory.value.id_index,
+          p_uuid: selectedCategory.value.p_uuid,
         })
         .then((res) => {
           if (res.code === 200) {
@@ -673,6 +675,7 @@ const showAddTagDialog = () => {
     text: '',
     desc: '',
     categoryId: selectedGroup.value.id,
+    g_uuid: selectedGroup.value.g_uuid,
     backgroundColor: currentGroup.value.color // 设置默认颜色
   }
   // 初始化颜色选择器
@@ -717,6 +720,7 @@ const saveTag = () => {
     tagsApi
       .addNewTags({
         id_index: selectedGroup.value.id_index,
+        g_uuid: selectedGroup.value.g_uuid,
         text: currentTag.value.text,
         desc: currentTag.value.desc,
         color: currentTag.value.color ? currentTag.value.color : 'rgba(255, 123, 2, .4)',
@@ -1011,7 +1015,7 @@ const confirmDelete = async () => {
       case 'category':
         tagsApi
           .deletePrimaryCategory({
-            id_index: itemToDelete.value.id_index,
+            p_uuid: itemToDelete.value.p_uuid,
           })
           .then((res) => {
             getTagsList()
@@ -1025,7 +1029,7 @@ const confirmDelete = async () => {
       case 'group':
         tagsApi
           .deleteSubCategory({
-            id_index: itemToDelete.value.id_index,
+            g_uuid: itemToDelete.value.g_uuid,
           })
           .then((res) => {
             getTagsList()

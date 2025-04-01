@@ -5,10 +5,10 @@ const STORAGE_PREFIX = 'weilin_tools_'
 export const tagsApi = {
 
     // 获取提示词列表
-    getTagsList: (params) => {
+    getTagsList: async (params) => {
         // 从 localStorage 获取保存的语言设置
         const savedLocale = localStorage.getItem(`${STORAGE_PREFIX}userLocale`) || 'zh_CN'
-        return request({
+        return await request({
             url: '/prompt/get_group_tags',
             method: 'get',
             params: {...params,lang:savedLocale}
@@ -16,10 +16,10 @@ export const tagsApi = {
     },
 
     // 添加主分类
-    addPrimaryCategory: (data) => {
+    addPrimaryCategory: async (data) => {
         // 从 localStorage 获取保存的语言设置
         const savedLocale = localStorage.getItem(`${STORAGE_PREFIX}userLocale`) || 'zh_CN'
-        return request({
+        return await request({
             url: `/prompt/add_new_f_group`,
             method: 'post',
             data: {...data,lang:savedLocale}
@@ -27,10 +27,10 @@ export const tagsApi = {
     },
 
     // 编辑主分类
-    editPrimaryCategory: (data) => {
+    editPrimaryCategory: async (data) => {
         // 从 localStorage 获取保存的语言设置
         const savedLocale = localStorage.getItem(`${STORAGE_PREFIX}userLocale`) || 'zh_CN'
-        return request({
+        return await request({
             url: `/prompt/edit_f_group`,
             method: 'post',
             data: {...data,lang:savedLocale}
@@ -38,10 +38,10 @@ export const tagsApi = {
     },
 
     // 删除主分类
-    deletePrimaryCategory: (data) => {
+    deletePrimaryCategory: async (data) => {
         // 从 localStorage 获取保存的语言设置
         const savedLocale = localStorage.getItem(`${STORAGE_PREFIX}userLocale`) || 'zh_CN'
-        return request({
+        return await request({
             url: `/prompt/delete_f_group`,
             method: 'post',
             data: {...data,lang:savedLocale}
@@ -49,10 +49,10 @@ export const tagsApi = {
     },
 
     // 添加子分类
-    addSubCategory: (data) => {
+    addSubCategory: async (data) => {
         // 从 localStorage 获取保存的语言设置
         const savedLocale = localStorage.getItem(`${STORAGE_PREFIX}userLocale`) || 'zh_CN'
-        return request({
+        return await request({
             url: `/prompt/add_new_s_group`,
             method: 'post',
             data: {...data,lang:savedLocale}
@@ -60,10 +60,10 @@ export const tagsApi = {
     },
 
     // 编辑子分类
-    editSubCategory: (data) => {
+    editSubCategory: async (data) => {
         // 从 localStorage 获取保存的语言设置
         const savedLocale = localStorage.getItem(`${STORAGE_PREFIX}userLocale`) || 'zh_CN'
-        return request({
+        return await request({
             url: `/prompt/edit_s_group`,
             method: 'post',
             data: {...data,lang:savedLocale}
@@ -71,10 +71,10 @@ export const tagsApi = {
     },
 
     // 删除子分类
-    deleteSubCategory: (data) => {
+    deleteSubCategory: async (data) => {
         // 从 localStorage 获取保存的语言设置
         const savedLocale = localStorage.getItem(`${STORAGE_PREFIX}userLocale`) || 'zh_CN'
-        return request({
+        return await request({
             url: `/prompt/delete_s_group`,
             method: 'post',
             data: {...data,lang:savedLocale}
@@ -82,10 +82,10 @@ export const tagsApi = {
     },
 
     // 添加提示词
-    addNewTags: (data) => {
+    addNewTags: async (data) => {
         // 从 localStorage 获取保存的语言设置
         const savedLocale = localStorage.getItem(`${STORAGE_PREFIX}userLocale`) || 'zh_CN'
-        return request({
+        return await request({
             url: '/prompt/new_tags',
             method: 'post',
             data: {...data,lang:savedLocale}
@@ -93,10 +93,10 @@ export const tagsApi = {
     },
 
     // 编辑提示词
-    editTags: (data) => {
+    editTags: async (data) => {
         // 从 localStorage 获取保存的语言设置
         const savedLocale = localStorage.getItem(`${STORAGE_PREFIX}userLocale`) || 'zh_CN'
-        return request({
+        return await request({
             url: '/prompt/edit_tags',
             method: 'post',
             data: {...data,lang:savedLocale}
@@ -104,10 +104,10 @@ export const tagsApi = {
     },
 
     // 删除提示词
-    deleteTags: (data) => {
+    deleteTags: async (data) => {
         // 从 localStorage 获取保存的语言设置
         const savedLocale = localStorage.getItem(`${STORAGE_PREFIX}userLocale`) || 'zh_CN'
-            return request({
+        return await request({
             url: '/prompt/delete_tags',
             method: 'post',
             data: {...data,lang:savedLocale}
@@ -115,10 +115,10 @@ export const tagsApi = {
     },
 
     // 批量删除提示词
-    batchDeleteTags: (data) => {
+    batchDeleteTags: async (data) => {
         // 从 localStorage 获取保存的语言设置
         const savedLocale = localStorage.getItem(`${STORAGE_PREFIX}userLocale`) || 'zh_CN'
-            return request({
+            return await request({
             url: '/prompt/batch_delete_tags',
             method: 'post',
             data: {...data,lang:savedLocale}
@@ -126,10 +126,10 @@ export const tagsApi = {
     },
 
     // 移动标签
-    moveTag: (data) => {
+    moveTag: async (data) => {
         // 从 localStorage 获取保存的语言设置
         const savedLocale = localStorage.getItem(`${STORAGE_PREFIX}userLocale`) || 'zh_CN'
-        return request({
+        return await request({
             url: '/prompt/move_tag',
             method: 'post',
             data: {...data,lang:savedLocale}

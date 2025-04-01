@@ -1,6 +1,6 @@
 from ..dao.dao import fetch_all
 
-def fuzzy_search(query):
+async def fuzzy_search(query):
     """模糊查询，先查询 tag_tags 表，然后查询 danbooru_tag 表"""
     results = []
 
@@ -11,7 +11,7 @@ def fuzzy_search(query):
         WHERE text LIKE ? OR desc LIKE ?
         LIMIT 10
     '''
-    tag_tags_results = fetch_all('tags',tag_tags_query, (f'%{query}%', f'%{query}%'))
+    tag_tags_results = await fetch_all('tags',tag_tags_query, (f'%{query}%', f'%{query}%'))
     for result in tag_tags_results:
         results.append({
             "text": result[0],
@@ -29,7 +29,7 @@ def fuzzy_search(query):
             WHERE tag LIKE ? OR translate LIKE ?
             LIMIT ?
         '''
-        danbooru_tag_results = fetch_all('danbooru',danbooru_tag_query, (f'%{query}%', f'%{query}%', remaining_limit))
+        danbooru_tag_results = await fetch_all('danbooru',danbooru_tag_query, (f'%{query}%', f'%{query}%', remaining_limit))
         for result in danbooru_tag_results:
             results.append({
                 "text": result[0],

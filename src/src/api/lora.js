@@ -3,8 +3,8 @@ import request from './request'
 // Lora相关接口
 export const loraApi = {
   // 获取Lora列表
-  getLoraList: (params) => {
-    return request({
+  getLoraList: async (params) => {
+    return await request({
       url: '/get_lora_list',
       method: 'get',
       params
@@ -12,8 +12,8 @@ export const loraApi = {
   },
 
   // 获取Lora全部列表
-  getAllLoraList: (params) => {
-    return request({
+  getAllLoraList: async (params) => {
+    return await request({
       url: '/get_lora_load_all',
       method: 'get',
       params
@@ -21,8 +21,8 @@ export const loraApi = {
   },
 
   // 获取执行进度
-  getAllLoraStatus: (params) => {
-    return request({
+  getAllLoraStatus: async (params) => {
+    return await request({
       url: '/get_lora_load_status',
       method: 'get',
       params
@@ -30,8 +30,8 @@ export const loraApi = {
   },
 
   // 获取Lora详情
-  getLoraDetail: (params) => {
-    return request({
+  getLoraDetail: async (params) => {
+    return await request({
       url: '/lorainfo/api/loras/info',
       method: 'get',
       params
@@ -39,8 +39,8 @@ export const loraApi = {
   },
 
   // 获取Lora信息C站获取
-  getLoraRefresh: (params) => {
-    return request({
+  getLoraRefresh: async (params) => {
+    return await request({
       url: '/lorainfo/api/loras/info/refresh',
       method: 'get',
       params
@@ -48,12 +48,12 @@ export const loraApi = {
   },
 
   // 上传Lora图片
-  postUplaodImg: (image,path,fileName) => {
+  postUplaodImg: async (image,path,fileName) => {
     const body = new FormData();
     body.append("image", image);
     body.append("path", path);
     body.append("fileName", fileName);
-    return request({
+    return await request({
         url: "/lorainfo/api/loras/set/img",
         method: 'post',
         data: body,
@@ -62,10 +62,10 @@ export const loraApi = {
   },
 
   // 保存Lora信息
-  postLoraSave: (file,json) => {
+  postLoraSave: async (file,json) => {
     const body = new FormData();
     body.append("json", JSON.stringify(json));
-    return request({
+    return await request({
         url: "/lorainfo/api/loras/info?file="+file,
         method: 'post',
         data: body,

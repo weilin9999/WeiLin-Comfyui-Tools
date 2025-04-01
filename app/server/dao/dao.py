@@ -6,6 +6,16 @@ import shutil
 import requests
 from ..user_init.user_init import read_init_file
 
+import aiosqlite
+import asyncio
+from typing import Optional, List, Tuple, Any
+from ..cloud_warehouse.save_history import save_package_path
+
+# 修改连接池为异步版本
+_connection_pool = {}
+_connection_lock = asyncio.Lock()
+
+
 current_dir = os.path.dirname(os.path.abspath(__file__))
 db_prefix = 'userdatas_'
 db_suffix = 'default'
@@ -34,6 +44,30 @@ history_db_path = os.path.join(current_dir, f'../../../user_data/{db_prefix}{db_
 danbooru_db_path = os.path.join(current_dir, f'../../../user_data/{db_prefix}{db_suffix}_danbooru.db')
 old_db_path = os.path.join(current_dir, f'../../../user_data_old/')
 
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+    'Accept': 'application/json'
+}
+
+
+async def _get_connection(db_type: str) -> aiosqlite.Connection:
+    """从连接池获取数据库连接"""
+    async with _connection_lock:
+        if db_type not in _connection_pool:
+            db_map = {
+                'tags': tags_db_path,
+                'history': history_db_path,
+                'danbooru': danbooru_db_path
+            }
+            conn = await aiosqlite.connect(db_map[db_type])
+            # 设置连接池参数
+            await conn.execute("PRAGMA journal_mode=WAL")
+            await conn.execute("PRAGMA synchronous=NORMAL")
+            await conn.execute("PRAGMA cache_size=-2000")
+            _connection_pool[db_type] = conn
+        return _connection_pool[db_type]
+
+
 def create_tables():
     try:
         # 创建tags数据库表
@@ -44,7 +78,8 @@ def create_tables():
                 id_index INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT,
                 color TEXT,
-                create_time INTEGER
+                create_time INTEGER,
+                p_uuid TEXT(128)
             )
         ''')
         cursor.execute('''
@@ -54,6 +89,8 @@ def create_tables():
                 name TEXT,
                 color TEXT,
                 create_time INTEGER,
+                p_uuid TEXT(128),
+                g_uuid TEXT(128),
                 FOREIGN KEY (group_id) REFERENCES tag_groups (id_index)
             )
         ''')
@@ -65,6 +102,8 @@ def create_tables():
                 desc TEXT,
                 color TEXT,
                 create_time INTEGER,
+                t_uuid TEXT(128),
+                g_uuid TEXT(128),
                 FOREIGN KEY (subgroup_id) REFERENCES tag_subgroups (id_index)
             )
         ''')
@@ -127,7 +166,9 @@ def create_tables():
                 id_index INTEGER PRIMARY KEY AUTOINCREMENT,
                 tag TEXT,
                 color_id INTEGER,
-                translate TEXT
+                translate TEXT,
+                hot INTEGER DEFAULT 0,
+                aliases INTEGER DEFAULT 0
             )
         ''')
         # 添加update_info表
@@ -199,6 +240,30 @@ def migrate_db():
         update_version('tags', 1)
         conn.commit()
         conn.close()
+    
+    # 添加版本2的迁移
+    if current_version < 2:
+        conn = sqlite3.connect(tags_db_path)
+        cursor = conn.cursor()
+
+        # 检查并添加新字段
+        def add_column_if_not_exists(table, column, column_type):
+            cursor.execute(f"PRAGMA table_info({table})")
+            columns = [info[1] for info in cursor.fetchall()]
+            if column not in columns:
+                cursor.execute(f"ALTER TABLE {table} ADD COLUMN {column} {column_type}")
+        
+        add_column_if_not_exists('tag_groups', 'p_uuid', 'TEXT(128)')
+        add_column_if_not_exists('tag_subgroups', 'p_uuid', 'TEXT(128)')
+        add_column_if_not_exists('tag_subgroups', 'g_uuid', 'TEXT(128)')
+        add_column_if_not_exists('tag_tags', 't_uuid', 'TEXT(128)')
+        add_column_if_not_exists('tag_tags', 'g_uuid', 'TEXT(128)')
+
+        # 更新所有UUID字段
+        update_uuids(conn)
+        update_version('tags', 2)
+        conn.commit()
+        conn.close()
 
     # history数据库迁移
     current_version = get_current_version('history')
@@ -227,7 +292,48 @@ def migrate_db():
         update_version('danbooru', 1)
         conn.commit()
         conn.close()
+    
+    # 添加版本2的迁移
+    if current_version < 2:
+        conn = sqlite3.connect(danbooru_db_path)
+        cursor = conn.cursor()
+        # 检查hot列是否存在
+        cursor.execute("PRAGMA table_info(danbooru_tag)")
+        columns = [info[1] for info in cursor.fetchall()]
+        if 'hot' not in columns:
+            # 添加hot字段
+            cursor.execute('''
+                ALTER TABLE danbooru_tag ADD COLUMN hot INTEGER DEFAULT 0
+            ''')
+        if 'aliases' not in columns:
+            # 添加hot字段
+            cursor.execute('''
+                ALTER TABLE danbooru_tag ADD COLUMN aliases INTEGER DEFAULT 0
+            ''')
+        update_version('danbooru', 2)
+        conn.commit()
+        conn.close()
 
+def update_uuids(conn):
+    """根据SQL文件中的固定UUID更新所有表的UUID字段"""
+    cursor = conn.cursor()
+    print("开始更新Tag数据...")
+    try:
+        # 从Gitee获取SQL文件内容
+        sql_url = "https://api.gitcode.com/api/v5/repos/qq_27627297/WeiLin-Comfyui-Tools-Prompt/raw/tags/2025_03_31/tags_2025_03_31.sql?access_token=y7S27_wDHXy1xaSQjupJk-Wy"
+        response = requests.get(sql_url, headers=headers)
+        response.raise_for_status()
+        sql_content = response.text
+
+        # 直接执行整个SQL文件
+        cursor.executescript(sql_content)
+        conn.commit()
+        save_package_path("tags/2025_03_31/tags_2025_03_31.sql")
+        print("Tag数据更新完成。")
+    except Exception as e:
+        print(f"更新UUID时出错: {e}")
+        conn.rollback()
+        raise
 
 def migrate_old_db():
     if os.path.exists(db_path):
@@ -293,27 +399,13 @@ def migrate_old_db():
                 history_conn.commit()
                 history_conn.close()
 
-            # 迁移danbooru表
-            old_cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='danbooru_tag'")
-            if old_cursor.fetchone():
-                if not os.path.exists(danbooru_db_path):
-                    open(danbooru_db_path, 'a').close()
-                
-                danbooru_conn = sqlite3.connect(danbooru_db_path)
-                danbooru_cursor = danbooru_conn.cursor()
-                
-                # 迁移danbooru_tag
-                old_cursor.execute("SELECT * FROM danbooru_tag")
-                danbooru_cursor.executemany("INSERT INTO danbooru_tag (tag, color_id, translate) VALUES (?, ?, ?)", 
-                                          [(row[1], row[2], row[3]) for row in old_cursor.fetchall()])
-                
-                danbooru_conn.commit()
-                danbooru_conn.close()
-
+            # danbooru表不迁移
+            
             old_conn.close()
 
             # 迁移完成后将旧数据库移动到old_db_path
             # 获取绝对路径
+            os.makedirs(old_db_path, exist_ok=True)
             abs_db_path = os.path.abspath(db_path)
             abs_old_db_path = os.path.abspath(old_db_path)
             
@@ -328,6 +420,7 @@ def migrate_old_db():
                 print(f"数据迁移完成，旧数据库文件已移动到: {new_db_path}")
             else:
                 print(f"警告：源文件 {abs_db_path} 不存在，无法移动")
+            
         except sqlite3.Error as e:
             print(f"数据库迁移出错: {e}")
             raise
@@ -335,16 +428,16 @@ def migrate_old_db():
             print(f"文件移动出错: {e}")
             raise
 
-# 拉去远程数据库
+# 拉去远程数据库 y7S27_wDHXy1xaSQjupJk-Wy
 def check_and_initialize_db(db_type):
     db_map = {
         'tags': {
             'path': tags_db_path,
-            'url': 'https://github.com/weilin9999/WeiLin-Comfyui-Tools-Prompt/tree/master/tags/2025_03_031'
+            'url': 'https://api.gitcode.com/api/v5/repos/qq_27627297/WeiLin-Comfyui-Tools-Prompt/contents/tags/2025_03_31?access_token=y7S27_wDHXy1xaSQjupJk-Wy'
         },
         'danbooru': {
             'path': danbooru_db_path,
-            'url': 'https://github.com/weilin9999/WeiLin-Comfyui-Tools-Prompt/tree/master/danbooru/2025_03_31'
+            'url': 'https://api.gitcode.com/api/v5/repos/qq_27627297/WeiLin-Comfyui-Tools-Prompt/contents/danbooru/2025_04_01?access_token=y7S27_wDHXy1xaSQjupJk-Wy'
         }
     }
     
@@ -365,68 +458,111 @@ def check_and_initialize_db(db_type):
             print("大文件处理速度可能会需要点时间，请耐心等待...")
             
             # 获取目录下的所有SQL文件
-            api_url = db_info['url'].replace('https://github.com', 'https://api.github.com/repos').replace('/tree/master/', '/contents/')
-            print(api_url)
-            response = requests.get(api_url)
+            response = requests.get(db_info['url'], headers=headers)
             response.raise_for_status()
             
             files = response.json()
             print(f"获取到 {len(files)} 个文件")
+            print("只获取前3个Danbooru文件，如果需要完整版请进入插件UI内获取完整版")
+            i=0
             for file in files:
                 if file['name'].endswith('.sql'):
-                    file_url = file['download_url']
+                    i=i+1
+                    if i>3:
+                        break
                     print(f"正在处理文件: {file['name']}")
-                    file_response = requests.get(file_url)
-                    file_response.raise_for_status()
-                    sql_content = file_response.text
+
+                    # 从GitCode获取SQL文件内容
+                    sql_url = "https://api.gitcode.com/api/v5/repos/qq_27627297/WeiLin-Comfyui-Tools-Prompt/raw/"+file['path']+"?access_token=y7S27_wDHXy1xaSQjupJk-Wy"
+                    response = requests.get(sql_url, headers=headers)
+                    response.raise_for_status()
+                    sql_content = response.text
+
                     cursor.executescript(sql_content)
+                    save_package_path(file['path'])
             
             conn.commit()
             print(f"{db_type} 数据库已成功初始化")
     except sqlite3.OperationalError as e:
         print(f"执行SQL脚本时出错: {e}")
     except requests.RequestException as e:
-        print(f"从GitHub获取 {db_type} SQL文件失败: {e}")
+        print(f"从GitCode获取 {db_type} SQL文件失败: {e}")
     finally:
         conn.close()
 
-def execute_query(db_type, query, params=()):
-    db_map = {
-        'tags': tags_db_path,
-        'history': history_db_path,
-        'danbooru': danbooru_db_path
-    }
-    conn = sqlite3.connect(db_map[db_type])
-    cursor = conn.cursor()
-    cursor.execute(query, params)
-    conn.commit()
-    conn.close()
 
-def fetch_all(db_type, query, params=()):
+# 拉去远程数据库-安装
+def install_cloud_file_db(db_type, paths):
     db_map = {
-        'tags': tags_db_path,
-        'history': history_db_path,
-        'danbooru': danbooru_db_path
+        'tags': {
+            'path': tags_db_path,
+        },
+        'danbooru': {
+            'path': danbooru_db_path,
+        }
     }
-    conn = sqlite3.connect(db_map[db_type])
+    
+    db_info = db_map[db_type]
+    conn = sqlite3.connect(db_info['path'])
     cursor = conn.cursor()
-    cursor.execute(query, params)
-    results = cursor.fetchall()
-    conn.close()
-    return results
+    
+    try:    
+        if len(paths) > 0:
+            print(f"从你的选择中获取到 {len(paths)} 个文件")
+            for path_url in paths:
+                if path_url.endswith('.sql'):
+                    print(f"正在处理文件: {path_url}")
 
-def fetch_one(db_type, query, params=()):
-    db_map = {
-        'tags': tags_db_path,
-        'history': history_db_path,
-        'danbooru': danbooru_db_path
-    }
-    conn = sqlite3.connect(db_map[db_type])
-    cursor = conn.cursor()
-    cursor.execute(query, params)
-    result = cursor.fetchone()
-    conn.close()
-    return result
+                    # 从GitCode获取SQL文件内容
+                    sql_url = "https://api.gitcode.com/api/v5/repos/qq_27627297/WeiLin-Comfyui-Tools-Prompt/raw/"+path_url+"?access_token=y7S27_wDHXy1xaSQjupJk-Wy"
+                    response = requests.get(sql_url, headers=headers)
+                    response.raise_for_status()
+                    sql_content = response.text
+
+                    cursor.executescript(sql_content)
+                    save_package_path(path_url)
+            
+            conn.commit()
+            print(f"{db_type} 已完成数据安装。")
+    except sqlite3.OperationalError as e:
+        print(f"执行SQL脚本时出错: {e}")
+    except requests.RequestException as e:
+        print(f"从GitCode获取 {db_type} SQL文件失败: {e}")
+    finally:
+        conn.close()
+
+async def execute_query(db_type: str, query: str, params: Tuple[Any, ...] = ()) -> None:
+    """执行SQL查询"""
+    conn = await _get_connection(db_type)
+    try:
+        async with conn.cursor() as cursor:
+            await cursor.execute(query, params)
+            await conn.commit()
+    except aiosqlite.Error as e:
+        print(f"执行查询时出错: {e}")
+        raise
+
+async def fetch_all(db_type: str, query: str, params: Tuple[Any, ...] = ()) -> List[Tuple[Any, ...]]:
+    """获取所有结果"""
+    conn = await _get_connection(db_type)
+    try:
+        async with conn.cursor() as cursor:
+            await cursor.execute(query, params)
+            return await cursor.fetchall()
+    except aiosqlite.Error as e:
+        print(f"获取数据时出错: {e}")
+        raise
+
+async def fetch_one(db_type: str, query: str, params: Tuple[Any, ...] = ()) -> Optional[Tuple[Any, ...]]:
+    """获取单条结果"""
+    conn = await _get_connection(db_type)
+    try:
+        async with conn.cursor() as cursor:
+            await cursor.execute(query, params)
+            return await cursor.fetchone()
+    except aiosqlite.Error as e:
+        print(f"获取数据时出错: {e}")
+        raise
 
 # 修改set_language函数
 def set_language(lang):
@@ -442,8 +578,9 @@ def set_language(lang):
     migrate_db()  # 新增数据库迁移
 
     # 检查并初始化tags和danbooru数据库
-    check_and_initialize_db('tags')
-    check_and_initialize_db('danbooru')
+    if lang == 'zh_CN':
+        check_and_initialize_db('tags')
+        check_and_initialize_db('danbooru')
 
 # 获取数据库路径
 def get_db_path(db_type):
@@ -456,3 +593,15 @@ def get_db_path(db_type):
 
 # 初始化数据库
 set_language(localLang)
+
+
+import atexit
+
+@atexit.register
+async def _close_connections() -> None:
+    """关闭所有数据库连接"""
+    for conn in _connection_pool.values():
+        try:
+            await conn.close()
+        except:
+            pass

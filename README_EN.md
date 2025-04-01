@@ -24,16 +24,26 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 # Version update introduction
 
-> Last updated: 2025-03-31
+> Last updated: 2025-04-01
 
-> 0.0.28 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.29 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+>
+> 1. Fix the Tag moving issue when editing
+>
+> 2. Added Cloud warehouse! You can use the cloud warehouse to dynamically get prompt words or update Danbooru, open in the UI "Share Cloud data"!
+>
+> 3. Optimize performance issues
+>
+> 4. Fixed some known bugs
+
+<details>
+<summary>Click here for more updates from the past</summary>
+
+> 0.0.28 Public Beta Version 2025-03-31
 >
 > 1. Modified the new database pull method has been disclosed to the warehouse: [WeiLin-Comfyui-Tools-Prompt](https://github.com/weilin9999/WeiLin-Comfyui-Tools-Prompt), interested partners can check how to add your own tag or danbooru
 >
 > 2. Optimized the automatic completion function
-
-<details>
-<summary>Click here for more updates from the past</summary>
 
 > 0.0.27 Public Beta Version 2025-03-30
 >

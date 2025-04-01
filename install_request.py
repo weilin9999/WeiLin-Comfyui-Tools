@@ -11,7 +11,13 @@ def install_requirements():
         
         for requirement in requirements:
             try:
-                __import__(requirement.split('==')[0])
+                # 提取纯包名，去除版本号和其他特殊字符
+                package_name = requirement.split('==')[0].split('>')[0].split('<')[0].split('~')[0].strip()
+                # print(f"{package_name} 正在检查...")
+                if package_name == 'uuid7':
+                    from uuid_extensions import uuid7
+                else:
+                    __import__(package_name)
             except ImportError:
                 print(f"{requirement} 未安装，正在安装...")
                 subprocess.check_call([sys.executable, '-m', 'pip', 'install', requirement])

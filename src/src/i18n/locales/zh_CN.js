@@ -101,6 +101,7 @@ export default {
         lookOnLora: '查看Lora',
         aiChat: 'AI对话',
         github: "Github主页",
+        shareCloudData: '共享云数据',
     },
     theme: {
         toggle: '切换主题'
@@ -119,6 +120,17 @@ export default {
         "windowSize":"调节窗口大小",
         "showMore": "显示更多",
         "showLess": "收起"
+    },
+    cloudWindow:{
+        "windowTitle": "共享云仓库",
+        back: '返回上一级',
+        currentPath: '当前路径',
+        tagDatabase: 'Tag 数据库',
+        danbooruDatabase: 'Danbooru 数据库',
+        open: "打开文件夹",
+        installed: '已安装',
+        install: '安装',
+        installing: '正在安装...'
     },
     nodeListWindow:{
         "windowTitle": "节点列表",
@@ -285,6 +297,8 @@ export default {
         tranlaterPackageInstallFail: '等待安装超时，请查看后台安装情况，若安装成功再次点击安装即可验证',
         tranlaterPackageInstallSuccess: '安装翻译包成功',
         translaterTestFail: "翻译失败，请使用其它的翻译服务进行尝试",
+        "installPackageSuccess": "安装共享数据成功！",
+        "installPackageFail": "安装共享数据失败，请查看后台错误"
     },
     history: {
         "title": "历史记录",
