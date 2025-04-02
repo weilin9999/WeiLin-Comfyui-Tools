@@ -112,7 +112,8 @@
         <div class="action-item">
           <button class="tag-manager-btn" @click="shareCloudData" :title="t('controls.shareCloudData')">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tag-icon" width="24" height="24">
-              <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
+              <path
+                d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
             </svg>
             <span class="action-text">{{ t('controls.shareCloudData') }}</span>
           </button>
@@ -124,16 +125,15 @@
       </div>
 
       <!-- 输入框区域 -->
-       <!-- 移除事件 @change="finishPromptPutItHistory" -->
-      <textarea v-model="inputText" class="input-area" @input="handleInput"
-        :placeholder="t('promptBox.placeholder')" @keydown="handleKeydown" @blur="onBlur" rows="6"
-        ref="inputAreaRef"></textarea>
+      <!-- 移除事件 @change="finishPromptPutItHistory" -->
+      <textarea v-model="inputText" class="input-area" @input="handleInput" :placeholder="t('promptBox.placeholder')"
+        @keydown="handleKeydown" @blur="onBlur" rows="6" ref="inputAreaRef"></textarea>
 
       <!-- 自动补全窗口 -->
       <div v-if="showAutocomplete" class="autocomplete-container" ref="autocompleteContainerRef">
         <button class="close-autocomplete-btn" @click.stop="closeAutocomplete">×</button>
         <div v-for="(item, index) in autocompleteResults" :key="index" class="autocomplete-item"
-          :class="{ selected: index === selectedAutocompleteIndex }" @click.stop="selectAutocomplete(index,$event)">
+          :class="{ selected: index === selectedAutocompleteIndex }" @click.stop="selectAutocomplete(index, $event)">
           <span class="tag">{{ item.text }}</span>
           <span class="desc">{{ item.desc }}</span>
         </div>
@@ -158,51 +158,57 @@
 
       <!-- 词组显示区域 -->
       <div class="tokens-container" v-if="tokens.length > 0">
-        <div class="token-item-box" v-for="(token, index) in tokens" :key="index" :draggable="!token.isEditing"
-          @dragstart="handleDragStart(index, $event)" @dragover.prevent="handleDragOver(index, $event)"
-          @drop="handleDrop(index, $event)" :style="{ backgroundColor: token.color }">
-          <!-- 换行标记 -->
-          <div v-if="token.text === '\n'" class="token-item newline-token" @mouseenter="showControls(index, $event)"
-            @mouseleave="handleMouseLeave(index)">
-            <span class="token-symbol" :title="t('promptBox.newline')">↵</span>
-          </div>
-          <!-- Tab标记 -->
-          <div v-else-if="token.text === '\t'" class="token-item tab-token" @mouseenter="showControls(index, $event)"
-            @mouseleave="handleMouseLeave(index)">
-            <span class="token-symbol" :title="t('promptBox.tab')">→</span>
-          </div>
-          <!-- 普通词组 -->
-          <div v-else-if="token.text" class="token-item" @mouseenter="showControls(index, $event)"
-            @mouseleave="handleMouseLeave(index)" :class="{
-      'punctuation': token.isPunctuation
-    }">
-            <span v-if="!token.isEditing || token.isPunctuation" @click="!token.isPunctuation && startEditing(index)">{{
-      token.text }}</span>
-            <input v-else-if="!token.isPunctuation" :value="token.text" @input="handleTokenEdit(index, $event)"
-              @blur="finishEditing(index)" @keyup.enter="finishEditing(index)"
-              :ref="el => { if (el) tokenInputRefs[index] = el }">
-          </div>
-          <!-- 翻译结果显示 -->
-          <div class="translation-result" v-if="token.text !== '\n' && token.text !== '\t'">
-            <div v-if="isTextTranslatable(token.text)" @click="translateFunction(token.text, token)"
-              class="translate-button" :title="t('promptBox.translate')">
-              <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" class="token-item-icon" width="24"
-                height="24">
-                <path
-                  d="M677.676657 294.6142c19.165116 57.5433 44.715939 102.2992 89.431879 147.0551 38.322239-38.3622 63.873063-89.5118 83.038178-147.0551h-172.470057z m-421.56861 319.685h166.076358l-83.038179-223.7795-83.038179 223.7795z"
-                  p-id="2419"></path>
-                <path
-                  d="M894.854661 0.504H128.353929C58.095158 0.504 0.607803 58.0473 0.607803 128.378v767.244c0 70.3307 57.487355 127.874 127.746126 127.874h766.500733c70.258771 0 127.746126-57.5433 127.746126-127.874V128.378c0-70.3307-51.101647-127.874-127.746126-127.874zM581.867062 825.2913c-12.771416 12.7874-25.550824 12.7874-38.322239 12.7874-6.3937 0-19.165116 0-25.550824-6.3937-6.3937-6.3937-12.779408 0-12.779408-6.3937s-6.385708-12.7874-12.771415-25.5748c-6.3937-12.7874-6.3937-19.1811-12.779408-31.9685l-25.542832-70.3307H230.557224L205.0064 767.748c-12.771416 25.5748-19.165116 44.7559-25.550824 57.5433-6.3937 12.7874-19.165116 12.7874-38.322239 12.7874-12.779408 0-25.550824-6.3937-38.330231-12.7874-12.771416-12.7874-19.157124-19.1811-19.157124-31.9685 0-6.3937 0-12.7874 6.385708-25.5748 6.3937-12.7874 6.3937-19.1811 12.771416-31.9685l140.525533-358.0472c6.3937-12.7874 6.3937-25.5748 12.779408-38.3622 6.385708-12.7874 12.771416-25.5748 19.157124-31.9685 6.3937-6.3937 12.779408-19.1811 25.550823-25.5748 12.779408-6.3937 25.550824-6.3937 38.330232-6.3937 12.771416 0 25.542832 0 38.322239 6.3937 12.771416 6.3937 19.165116 12.7874 25.550824 25.5748 6.385708 6.3937 12.771416 19.1811 19.157124 31.9685 6.3937 12.7874 12.779408 25.5748 19.165115 44.7559l140.525534 351.6535c12.771416 25.5748 19.165116 44.7559 19.165116 57.5433-6.3937 6.3937-12.779408 19.1811-19.165116 31.9685zM933.176901 575.937c-70.258771-25.5748-121.360418-57.5433-166.076358-95.9055-44.707947 44.7559-102.195302 76.7244-172.462065 95.9055l-19.157124-31.9685c70.258771-19.1811 127.746126-44.7559 172.462066-89.5118C703.22748 409.7008 664.905241 352.1575 652.125833 288.2205h-63.873063v-25.5748h172.470058c-12.7874-19.1811-25.558816-44.7559-38.330232-63.937l19.157124-6.3937c12.779408 19.1811 31.944524 44.7559 44.715939 70.3307h159.682658v31.9685h-63.873063c-19.157124 63.937-51.093655 121.4803-89.423887 159.8425 44.715939 38.3622 95.809594 70.3307 166.076358 89.5118l-25.550824 31.9685z"
-                  p-id="2420"></path>
-              </svg>
+        <template v-for="(token, index) in tokens" :key="'tag-item-'+index">
+          <div class="token-item-box" :draggable="!token.isEditing" @dragstart="handleDragStart(index, $event)"
+            @dragover.prevent="handleDragOver(index, $event)" @drop="handleDrop(index, $event)"
+            :style="{ backgroundColor: token.color }">
+
+            <!-- 换行标记 -->
+            <div v-if="token.text === '\n'" class="newline-token">
+              <span class="token-symbol" :title="t('promptBox.newline')">↵</span>
             </div>
-            <span class="translated-text">{{ token.translate ? token.translate : '' }}</span>
+
+            <!-- Tab标记 -->
+            <div v-else-if="token.text === '\t'" class="token-item tab-token" @mouseenter="showControls(index, $event)"
+              @mouseleave="handleMouseLeave(index)">
+              <span class="token-symbol" :title="t('promptBox.tab')">→</span>
+            </div>
+
+            <!-- 普通词组 -->
+            <div v-else-if="token.text" class="token-item" @mouseenter="showControls(index, $event)"
+              @mouseleave="handleMouseLeave(index)" :class="{
+                'punctuation': token.isPunctuation
+              }">
+              <span v-if="!token.isEditing || token.isPunctuation"
+                @click="!token.isPunctuation && startEditing(index)">{{
+                  token.text }}</span>
+              <input v-else-if="!token.isPunctuation" :value="token.text" @input="handleTokenEdit(index, $event)"
+                @blur="finishEditing(index)" @keyup.enter="finishEditing(index)"
+                :ref="el => { if (el) tokenInputRefs[index] = el }">
+            </div>
+
+            <!-- 翻译结果显示 -->
+            <div class="translation-result" v-if="token.text !== '\n' && token.text !== '\t'">
+              <div v-if="isTextTranslatable(token.text)" @click="translateFunction(token.text, token)"
+                class="translate-button" :title="t('promptBox.translate')">
+                <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" class="token-item-icon" width="24"
+                  height="24">
+                  <path
+                    d="M677.676657 294.6142c19.165116 57.5433 44.715939 102.2992 89.431879 147.0551 38.322239-38.3622 63.873063-89.5118 83.038178-147.0551h-172.470057z m-421.56861 319.685h166.076358l-83.038179-223.7795-83.038179 223.7795z"
+                    p-id="2419"></path>
+                  <path
+                    d="M894.854661 0.504H128.353929C58.095158 0.504 0.607803 58.0473 0.607803 128.378v767.244c0 70.3307 57.487355 127.874 127.746126 127.874h766.500733c70.258771 0 127.746126-57.5433 127.746126-127.874V128.378c0-70.3307-51.101647-127.874-127.746126-127.874zM581.867062 825.2913c-12.771416 12.7874-25.550824 12.7874-38.322239 12.7874-6.3937 0-19.165116 0-25.550824-6.3937-6.3937-6.3937-12.779408 0-12.779408-6.3937s-6.385708-12.7874-12.771415-25.5748c-6.3937-12.7874-6.3937-19.1811-12.779408-31.9685l-25.542832-70.3307H230.557224L205.0064 767.748c-12.771416 25.5748-19.165116 44.7559-25.550824 57.5433-6.3937 12.7874-19.165116 12.7874-38.322239 12.7874-12.779408 0-25.550824-6.3937-38.330231-12.7874-12.771416-12.7874-19.157124-19.1811-19.157124-31.9685 0-6.3937 0-12.7874 6.385708-25.5748 6.3937-12.7874 6.3937-19.1811 12.771416-31.9685l140.525533-358.0472c6.3937-12.7874 6.3937-25.5748 12.779408-38.3622 6.385708-12.7874 12.771416-25.5748 19.157124-31.9685 6.3937-6.3937 12.779408-19.1811 25.550823-25.5748 12.779408-6.3937 25.550824-6.3937 38.330232-6.3937 12.771416 0 25.542832 0 38.322239 6.3937 12.771416 6.3937 19.165116 12.7874 25.550824 25.5748 6.385708 6.3937 12.771416 19.1811 19.157124 31.9685 6.3937 12.7874 12.779408 25.5748 19.165115 44.7559l140.525534 351.6535c12.771416 25.5748 19.165116 44.7559 19.165116 57.5433-6.3937 6.3937-12.779408 19.1811-19.165116 31.9685zM933.176901 575.937c-70.258771-25.5748-121.360418-57.5433-166.076358-95.9055-44.707947 44.7559-102.195302 76.7244-172.462065 95.9055l-19.157124-31.9685c70.258771-19.1811 127.746126-44.7559 172.462066-89.5118C703.22748 409.7008 664.905241 352.1575 652.125833 288.2205h-63.873063v-25.5748h172.470058c-12.7874-19.1811-25.558816-44.7559-38.330232-63.937l19.157124-6.3937c12.779408 19.1811 31.944524 44.7559 44.715939 70.3307h159.682658v31.9685h-63.873063c-19.157124 63.937-51.093655 121.4803-89.423887 159.8425 44.715939 38.3622 95.809594 70.3307 166.076358 89.5118l-25.550824 31.9685z"
+                    p-id="2420"></path>
+                </svg>
+              </div>
+              <span class="translated-text">{{ token.translate ? token.translate : '' }}</span>
+            </div>
           </div>
 
-          <!-- 在换行符后添加换行 -->
+          <!-- 如果是 换行，插入换行占位元素 -->
           <div v-if="token.text === '\n'" class="line-break"></div>
+        </template>
 
-        </div>
       </div>
 
       <!-- 控制栏容器 -->
@@ -747,6 +753,18 @@ const processInput = async () => {
       //     }
       //   }
       // }
+
+      // 处理换行符
+      if (char === '\n') {
+        if (buffer.trim()) {
+          segments.push(buffer.trim());
+          buffer = '';
+        }
+        segments.push('\n');
+        i++;
+        continue;
+      }
+
       // 处理普通字符   
       if (bracketStack.length === 0 && char === ',') {
         if (buffer.trim()) {
@@ -782,28 +800,55 @@ const processInput = async () => {
   });
 
   segments.forEach(segment => {
-    const trimmedSegment = segment.trim();
-    if (!trimmedSegment) return;
-
-    if (existingTokensMap.has(trimmedSegment)) {
-      result.push(existingTokensMap.get(trimmedSegment));
-    } else {
+    if (segment === '\n') {
+      // 保留换行符作为特殊token
       result.push({
-        text: trimmedSegment,
+        text: '\n',
         translate: '',
         isPunctuation: false,
         isEditing: false,
         isHidden: false,
         color: ''
       });
+    } else if (segment.trim()) {
+      // 处理非空文本
+      const trimmedSegment = segment.trim();
+      if (existingTokensMap.has(trimmedSegment)) {
+        result.push(existingTokensMap.get(trimmedSegment));
+      } else {
+        result.push({
+          text: trimmedSegment,
+          translate: '',
+          isPunctuation: false,
+          isEditing: false,
+          isHidden: false,
+          color: ''
+        });
+      }
     }
+
   });
 
   tokens.value = result;
 
   // 更新输入文本，保持原有格式
-  inputText.value = tokens.value.length > 0 
-  ? tokens.value.map(token => token.text).join(', ') + ',': '';
+  inputText.value = tokens.value.length > 0
+    ? tokens.value.reduce((acc, token, index) => {
+      // 如果是换行符，不加逗号
+      if (token.text === '\n') {
+        return acc + token.text;
+      }
+      // 第一个token不加逗号前缀
+      if (index === 0) {
+        return token.text + (index === tokens.value.length - 1 || tokens.value[index + 1]?.text === '\n' ? ',' : '');
+      }
+      // 前一个token是换行符，不加逗号前缀
+      if (tokens.value[index - 1].text === '\n') {
+        return acc + token.text + (index === tokens.value.length - 1 || tokens.value[index + 1]?.text === '\n' ? ',' : '');
+      }
+      // 其他情况加逗号和空格前缀
+      return acc + ', ' + token.text + (index === tokens.value.length - 1 || tokens.value[index + 1]?.text === '\n' ? ',' : '');
+    }, '') : '';
 
 
   // 处理历史记录
@@ -1080,8 +1125,23 @@ const deleteToken = (index) => {
   }
 
   tokens.value.splice(index, 1)
-  inputText.value = tokens.value.length > 0 
-  ? tokens.value.map(token => token.text).join(', ') + ',': '';
+  inputText.value = tokens.value.length > 0
+    ? tokens.value.reduce((acc, token, index) => {
+      // 如果是换行符，不加逗号
+      if (token.text === '\n') {
+        return acc + token.text;
+      }
+      // 第一个token不加逗号前缀
+      if (index === 0) {
+        return token.text + (index === tokens.value.length - 1 || tokens.value[index + 1]?.text === '\n' ? ',' : '');
+      }
+      // 前一个token是换行符，不加逗号前缀
+      if (tokens.value[index - 1].text === '\n') {
+        return acc + token.text + (index === tokens.value.length - 1 || tokens.value[index + 1]?.text === '\n' ? ',' : '');
+      }
+      // 其他情况加逗号和空格前缀
+      return acc + ', ' + token.text + (index === tokens.value.length - 1 || tokens.value[index + 1]?.text === '\n' ? ',' : '');
+    }, '') : '';
 
   postMessageToWindowsPrompt()
 }
@@ -1267,7 +1327,7 @@ const handleMessage = (event) => {
     if (currentText === '') {
       inputText.value = tagText
     } else if (currentText.endsWith(' ')) {
-      inputText.value = currentText + ', ' + tagText+ ',';
+      inputText.value = currentText + ', ' + tagText + ',';
     } else {
       inputText.value = currentText + ', ' + tagText + ',';
     }
@@ -1294,9 +1354,9 @@ const handleMessage = (event) => {
       if (currentText === '') {
         inputText.value = tagText
       } else if (currentText.endsWith(' ')) {
-        inputText.value = currentText + ', ' + tagText + ',' ;
+        inputText.value = currentText + ', ' + tagText + ',';
       } else {
-        inputText.value = currentText + ', ' + tagText + ',' ;
+        inputText.value = currentText + ', ' + tagText + ',';
       }
 
       lastInputValue.value = inputText.value; // 更新上一次的输入内容
@@ -1461,7 +1521,7 @@ const handleKeydown = (event) => {
 };
 
 // 选择补全项
-const selectAutocomplete = (index,event) => {
+const selectAutocomplete = (index, event) => {
   // 如果有event参数，阻止默认行为和事件冒泡
   if (event) {
     event.preventDefault();
@@ -1600,8 +1660,23 @@ const handleDrop = (index, event) => {
 };
 
 const updateInputText = () => {
-  inputText.value = tokens.value.length > 0 
-  ? tokens.value.map(token => token.text).join(', ') + ',': '';
+  inputText.value = tokens.value.length > 0
+    ? tokens.value.reduce((acc, token, index) => {
+      // 如果是换行符，不加逗号
+      if (token.text === '\n') {
+        return acc + token.text;
+      }
+      // 第一个token不加逗号前缀
+      if (index === 0) {
+        return token.text + (index === tokens.value.length - 1 || tokens.value[index + 1]?.text === '\n' ? ',' : '');
+      }
+      // 前一个token是换行符，不加逗号前缀
+      if (tokens.value[index - 1].text === '\n') {
+        return acc + token.text + (index === tokens.value.length - 1 || tokens.value[index + 1]?.text === '\n' ? ',' : '');
+      }
+      // 其他情况加逗号和空格前缀
+      return acc + ', ' + token.text + (index === tokens.value.length - 1 || tokens.value[index + 1]?.text === '\n' ? ',' : '');
+    }, '') : '';
   postMessageToWindowsPrompt()
 };
 

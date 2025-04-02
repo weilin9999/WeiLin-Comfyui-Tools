@@ -49,7 +49,7 @@
 
 .tokens-container {
     display: flex;
-    flex-wrap: wrap;
+    flex-flow: wrap;
     gap: 8px;
     padding: 12px;
     border: 1px solid var(--weilin-prompt-ui-border-color);
@@ -58,6 +58,7 @@
     background-color: var(--weilin-prompt-ui-primary-bg);
     transition: border-color 0.2s ease;
     margin-top: 10px;
+    width: 100%;
 }
 
 .tokens-container:hover {
@@ -105,7 +106,7 @@
 .line-break {
     display: block;
     width: 100%;
-    height: 0;
+    height: 1px;
     clear: both;
 }
 
@@ -116,8 +117,17 @@
     transition: all 0.2s ease;
     border: 1px solid transparent;
     font-size: 14px;
-    display: block;
-    width: 100%;
+    display: inline-block;
+}
+
+.newline-token::after{
+    content: ""; /* 插入空内容 */
+    width: 100%; /* 占满剩余空间 */
+    order: 1; /* 确保它在.br-class之后 */
+}
+
+.newline-token ~ .token-item-box {
+    order: 2; /* 让.br-class之后的元素换行 */
 }
 
 .tab-token {
@@ -556,12 +566,12 @@
 }
 
 .token-item-box {
-    display: inline-flex;
+    display: inline-block;
     flex-direction: column;
     padding: 3px 6px;
     background-color: var(--weilin-prompt-ui-token-bg);
     border-radius: 6px;
-    overflow: visible;
+    overflow: hidden;
     color: var(--weilin-prompt-ui-primary-text);
     transition: all 0.2s ease;
     border: 1px solid transparent;

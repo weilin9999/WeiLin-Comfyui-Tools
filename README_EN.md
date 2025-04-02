@@ -24,9 +24,19 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 # Version update introduction
 
-> Last updated: 2025-04-01
+> Last updated: 2025-04-02
 
-> 0.0.30 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.31 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+>
+> 1. Add newline display, and Tag display will follow newline after newline
+>
+> 2. Fix the problem that the old data migration will not move the data you add into it. You can go to the directory ```user_data_old``` and change the name of the data file to ```userdatas_zh_CN.db``` and then return to the folder ```user_data``` and delete all the files in the folder. Then paste the change name ```userdatas_zh_CN.db``` into this folder and start Comfyui to migrate the data again!
+>
+
+<details>
+<summary>Click here for more updates from the past</summary>
+
+> 0.0.30 Public Beta Version 2025-04-01
 >
 > 1. Fix the Tag moving issue when editing
 >
@@ -35,9 +45,6 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 > 3. Optimize performance issues
 >
 > 4. Fixed some known bugs
-
-<details>
-<summary>Click here for more updates from the past</summary>
 
 > 0.0.28 Public Beta Version 2025-03-31
 >
