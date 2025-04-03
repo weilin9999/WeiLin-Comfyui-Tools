@@ -279,64 +279,64 @@ def migrate_db():
         conn.close()
     
     # 添加版本3的迁移(移除外键)
-    if current_version < 3:
-        conn = sqlite3.connect(tags_db_path)
-        cursor = conn.cursor()
+    # if current_version < 3:
+    #     conn = sqlite3.connect(tags_db_path)
+    #     cursor = conn.cursor()
         
-        # 重建表结构(移除外键)
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS tag_groups_new (
-                id_index INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT,
-                color TEXT,
-                create_time INTEGER,
-                p_uuid TEXT(128)
-            )
-        ''')
+    #     # 重建表结构(移除外键)
+    #     cursor.execute('''
+    #         CREATE TABLE IF NOT EXISTS tag_groups_new (
+    #             id_index INTEGER PRIMARY KEY AUTOINCREMENT,
+    #             name TEXT,
+    #             color TEXT,
+    #             create_time INTEGER,
+    #             p_uuid TEXT(128)
+    #         )
+    #     ''')
         
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS tag_subgroups_new (
-                id_index INTEGER PRIMARY KEY AUTOINCREMENT,
-                group_id INTEGER,
-                name TEXT,
-                color TEXT,
-                create_time INTEGER,
-                p_uuid TEXT(128),
-                g_uuid TEXT(128)
-            )
-        ''')
+    #     cursor.execute('''
+    #         CREATE TABLE IF NOT EXISTS tag_subgroups_new (
+    #             id_index INTEGER PRIMARY KEY AUTOINCREMENT,
+    #             group_id INTEGER,
+    #             name TEXT,
+    #             color TEXT,
+    #             create_time INTEGER,
+    #             p_uuid TEXT(128),
+    #             g_uuid TEXT(128)
+    #         )
+    #     ''')
         
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS tag_tags_new (
-                id_index INTEGER PRIMARY KEY AUTOINCREMENT,
-                subgroup_id INTEGER,
-                text TEXT,
-                desc TEXT,
-                color TEXT,
-                create_time INTEGER,
-                t_uuid TEXT(128),
-                g_uuid TEXT(128)
-            )
-        ''')
+    #     cursor.execute('''
+    #         CREATE TABLE IF NOT EXISTS tag_tags_new (
+    #             id_index INTEGER PRIMARY KEY AUTOINCREMENT,
+    #             subgroup_id INTEGER,
+    #             text TEXT,
+    #             desc TEXT,
+    #             color TEXT,
+    #             create_time INTEGER,
+    #             t_uuid TEXT(128),
+    #             g_uuid TEXT(128)
+    #         )
+    #     ''')
         
-        # 迁移数据
-        cursor.execute('INSERT INTO tag_groups_new SELECT * FROM tag_groups')
-        cursor.execute('INSERT INTO tag_subgroups_new SELECT * FROM tag_subgroups')
-        cursor.execute('INSERT INTO tag_tags_new SELECT * FROM tag_tags')
+    #     # 迁移数据
+    #     cursor.execute('INSERT INTO tag_groups_new SELECT * FROM tag_groups')
+    #     cursor.execute('INSERT INTO tag_subgroups_new SELECT * FROM tag_subgroups')
+    #     cursor.execute('INSERT INTO tag_tags_new SELECT * FROM tag_tags')
         
-        # 删除旧表
-        cursor.execute('DROP TABLE tag_groups')
-        cursor.execute('DROP TABLE tag_subgroups')
-        cursor.execute('DROP TABLE tag_tags')
+    #     # 删除旧表
+    #     cursor.execute('DROP TABLE tag_groups')
+    #     cursor.execute('DROP TABLE tag_subgroups')
+    #     cursor.execute('DROP TABLE tag_tags')
         
-        # 重命名新表
-        cursor.execute('ALTER TABLE tag_groups_new RENAME TO tag_groups')
-        cursor.execute('ALTER TABLE tag_subgroups_new RENAME TO tag_subgroups')
-        cursor.execute('ALTER TABLE tag_tags_new RENAME TO tag_tags')
+    #     # 重命名新表
+    #     cursor.execute('ALTER TABLE tag_groups_new RENAME TO tag_groups')
+    #     cursor.execute('ALTER TABLE tag_subgroups_new RENAME TO tag_subgroups')
+    #     cursor.execute('ALTER TABLE tag_tags_new RENAME TO tag_tags')
         
-        conn.commit()
-        conn.close()
-        update_version('tags', 3)
+    #     conn.commit()
+    #     conn.close()
+    #     update_version('tags', 3)
 
     # history数据库迁移
     current_version = get_current_version('history')
@@ -391,7 +391,8 @@ def update_uuids(conn):
     """根据SQL文件中的固定UUID更新所有表的UUID字段"""
     cursor = conn.cursor()
     print("开始更新Tag数据...")
-    try:        
+    try:
+        
         # 从Gitee获取SQL文件内容
         sql_url = "https://api.gitcode.com/api/v5/repos/qq_27627297/WeiLin-Comfyui-Tools-Prompt/raw/tags/2025_03_31/tags_2025_03_31.sql?access_token=y7S27_wDHXy1xaSQjupJk-Wy"
         # sql_url = "https://raw.githubusercontent.com/weilin9999/WeiLin-Comfyui-Tools-Prompt/refs/heads/master/tags/2025_03_31/tags_2025_03_31.sql"
@@ -402,7 +403,7 @@ def update_uuids(conn):
         # 直接执行整个SQL文件
         cursor.executescript(sql_content)
 
-         # 1. 先检查并更新tag_groups的p_uuid
+        # 1. 先检查并更新tag_groups的p_uuid
         cursor.execute("SELECT id_index FROM tag_groups WHERE p_uuid IS NULL OR p_uuid = ''")
         empty_groups = cursor.fetchall()
         for group in empty_groups:
@@ -476,20 +477,33 @@ def migrate_old_db():
                 tags_conn = sqlite3.connect(tags_db_path)
                 tags_cursor = tags_conn.cursor()
                 
-                # 迁移tag_groups
+                # 迁移tag_groups，保留原始id_index
                 old_cursor.execute("SELECT * FROM tag_groups")
-                tags_cursor.executemany("INSERT INTO tag_groups (name, color, create_time) VALUES (?, ?, ?)", 
-                                     [(row[1], row[2], row[3]) for row in old_cursor.fetchall()])
+                tags_cursor.executemany("INSERT INTO tag_groups (id_index, name, color, create_time) VALUES (?, ?, ?, ?)", 
+                                     [(row[0], row[1], row[2], row[3]) for row in old_cursor.fetchall()])
                 
-                # 迁移tag_subgroups
+                # 迁移tag_subgroups，保留原始id_index
                 old_cursor.execute("SELECT * FROM tag_subgroups")
-                tags_cursor.executemany("INSERT INTO tag_subgroups (group_id, name, color, create_time) VALUES (?, ?, ?, ?)", 
-                                      [(row[1], row[2], row[3], row[4]) for row in old_cursor.fetchall()])
+                tags_cursor.executemany("INSERT INTO tag_subgroups (id_index, group_id, name, color, create_time) VALUES (?, ?, ?, ?, ?)", 
+                                      [(row[0], row[1], row[2], row[3], row[4]) for row in old_cursor.fetchall()])
                 
-                # 迁移tag_tags
+                # 迁移tag_tags，保留原始id_index
                 old_cursor.execute("SELECT * FROM tag_tags")
-                tags_cursor.executemany("INSERT INTO tag_tags (subgroup_id, text, desc, color, create_time) VALUES (?, ?, ?, ?, ?)", 
-                                      [(row[1], row[2], row[3], row[4], row[5]) for row in old_cursor.fetchall()])
+                tags_cursor.executemany("INSERT INTO tag_tags (id_index, subgroup_id, text, desc, color, create_time) VALUES (?, ?, ?, ?, ?, ?)", 
+                                      [(row[0], row[1], row[2], row[3], row[4], row[5]) for row in old_cursor.fetchall()])
+                
+                # 更新SQLite序列计数器
+                tags_cursor.execute("SELECT MAX(id_index) FROM tag_groups")
+                max_id = tags_cursor.fetchone()[0] or 0
+                tags_cursor.execute(f"UPDATE SQLITE_SEQUENCE SET seq = {max_id} WHERE name = 'tag_groups'")
+                
+                tags_cursor.execute("SELECT MAX(id_index) FROM tag_subgroups")
+                max_id = tags_cursor.fetchone()[0] or 0
+                tags_cursor.execute(f"UPDATE SQLITE_SEQUENCE SET seq = {max_id} WHERE name = 'tag_subgroups'")
+                
+                tags_cursor.execute("SELECT MAX(id_index) FROM tag_tags")
+                max_id = tags_cursor.fetchone()[0] or 0
+                tags_cursor.execute(f"UPDATE SQLITE_SEQUENCE SET seq = {max_id} WHERE name = 'tag_tags'")
                 
                 tags_conn.commit()
                 tags_conn.close()
