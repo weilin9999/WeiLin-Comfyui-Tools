@@ -376,7 +376,7 @@ async def _get_collect_history(request):
 async def _add_collect_history(request):
     data = await request.json()
     try:
-        new_entry = add_collect_history(
+        new_entry = await add_collect_history(
             data['tag'], data.get('name', ""), data.get('color', ""))
     except Exception as e:
         print(f"Error: {e}")
@@ -389,7 +389,7 @@ async def _add_collect_history(request):
 async def _delete_collect_history(request):
     data = await request.json()
     try:
-        delete_info = delete_collect_history(data['id_index'])
+        delete_info = await delete_collect_history(data['id_index'])
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
@@ -401,7 +401,7 @@ async def _delete_collect_history(request):
 async def _batch_delete_collect_history(request):
     data = await request.json()
     try:
-        delete_info = batch_delete_collect_history(data['id_indices'])
+        delete_info = await batch_delete_collect_history(data['id_indices'])
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
