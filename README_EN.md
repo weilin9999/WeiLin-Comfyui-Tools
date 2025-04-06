@@ -24,15 +24,20 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 # Version update introduction
 
-> Last updated: 2025-04-04
+> Last updated: 2025-04-06
 
-> 0.0.33 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.34 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
 >
-> 1. Fix collection and history request errors
+> 1. Fixed an issue where history would not record
 >
 
 <details>
 <summary>Click here for more updates from the past</summary>
+
+> 0.0.33 Public Beta Version 2025-04-04
+>
+> 1. Fix collection and history request errors
+>
 
 > 0.0.32 Public Beta Version 2025-04-03
 >

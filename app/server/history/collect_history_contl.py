@@ -3,7 +3,7 @@ from ..dao.dao import execute_query,fetch_all,fetch_one
 
 async def read_collect_history():
     """读取 collect_history 表并返回内容"""
-    query = "SELECT id_index, tag, name, color, create_time FROM collect_history WHERE is_deleted = 0"
+    query = "SELECT id_index, tag, name, color, create_time FROM collect_history WHERE is_deleted = 0 ORDER BY create_time DESC"
     data = await fetch_all('history',query)
     
     # 将数据转换为 JSON 格式
