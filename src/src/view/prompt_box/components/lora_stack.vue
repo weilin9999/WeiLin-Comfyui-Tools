@@ -20,7 +20,7 @@
       </div>
       <div :class="`${prefix}lora-body`">
         <div :class="`${prefix}lora-list`">
-          <div v-for="lora in selectedLoras" :key="lora.name" class="lora-item">
+          <div v-for="lora in selectedLoras" :key="lora.name" class="lora-item" :class="{ 'hidden-lora': lora.hidden }">
             <div class="lora-info">
               <div class="lora-header">
                 <span class="lora-name" :title="lora.name">{{ lora.name }}</span>
@@ -60,12 +60,26 @@
                     step="0.1" />
                 </div>
               </div>
+
+              <div class="lora-footer">
+                <button class="hide-btn" @click="toggleHideLora(lora)"
+                  :title="lora.hidden ? t('lora.showLora') : t('lora.hideLora')">
+                  <svg viewBox="0 0 24 24" width="14" height="14">
+                    <path v-if="!lora.hidden"
+                      d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z" />
+                    <path v-else
+                      d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+                  </svg>
+                  {{ lora.hidden ? t('lora.showLora') : t('lora.hideLora') }}
+                </button>
+              </div>
+
             </div>
           </div>
         </div>
       </div>
     </div>
-    <loraDetail ref="loraDetailLoraStackRef"/>
+    <loraDetail ref="loraDetailLoraStackRef" />
   </div>
 </template>
 
@@ -95,6 +109,13 @@ const openLoraManager = () => {
   window.postMessage({ type: 'weilin_prompt_ui_openLoraManager_addLora' }, '*')
 }
 
+// 添加切换隐藏状态的方法
+const toggleHideLora = (lora) => {
+  lora.hidden = !lora.hidden;
+  emit('update:selectedLoras', props.selectedLoras);
+};
+
+
 // 添加Lora
 const addLora = (lora) => {
   // 检查是否已存在
@@ -119,11 +140,11 @@ const removeLora = (lora) => {
 }
 
 
-const loraDetailLoraStackRef  = ref()
+const loraDetailLoraStackRef = ref()
 
 const lookOnLora = (loraData) => {
   // console.log('lookOnLora', loraData)
-  loraDetailLoraStackRef.value.open({name: loraData.lora})
+  loraDetailLoraStackRef.value.open({ name: loraData.lora })
 }
 
 // 监听来自Lora管理器的消息
@@ -260,6 +281,11 @@ defineExpose({
   width: 100%;
 }
 
+.hidden-lora {
+  background: rgba(255, 200, 200, 0.2) !important; /* 淡红色背景 */
+  border-color: rgba(255, 150, 150, 0.5) !important; /* 可选：淡红色边框 */
+}
+
 .lora-header {
   display: flex;
   justify-content: space-between;
@@ -358,4 +384,37 @@ defineExpose({
   fill: var(--weilin-prompt-ui-primary-color);
 }
 
+.lora-footer {
+  padding: 8px 12px;
+  border-top: 1px solid var(--weilin-prompt-ui-border-color);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.hide-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--weilin-prompt-ui-secondary-text);
+  transition: all 0.3s ease;
+}
+
+.hide-btn:hover {
+  background-color: var(--weilin-prompt-ui-hover-bg-color);
+  color: var(--weilin-prompt-ui-primary-text);
+}
+
+.hide-btn svg {
+  fill: var(--weilin-prompt-ui-secondary-text);
+}
+
+.hide-btn:hover svg {
+  fill: var(--weilin-prompt-ui-primary-color);
+}
 </style>

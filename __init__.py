@@ -81,6 +81,11 @@ class WeiLinPromptUI:
                     "default": "",
                     "placeholder": placeholder_lora_text,
                 }),
+                "temp_str": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "placeholder": "temp prompt words",
+                }),
                 "opt_text": (ANY, {"default": ""}),
                 "opt_clip": ("CLIP", ),
                 "opt_model": ("MODEL",),
@@ -100,7 +105,7 @@ class WeiLinPromptUI:
     CATEGORY = node_name_text
 
     # 加载Lora
-    def load_lora_ing(self, positive="",lora_str="", opt_text="", opt_clip=None, opt_model=None):
+    def load_lora_ing(self, positive="",lora_str="",temp_str="", opt_text="", opt_clip=None, opt_model=None):
         model_lora_secondA = opt_model
         clip_lora_secondA = opt_clip
 

@@ -161,7 +161,7 @@
         <template v-for="(token, index) in tokens" :key="'tag-item-'+index">
           <div class="token-item-box" :draggable="!token.isEditing" @dragstart="handleDragStart(index, $event)"
             @dragover.prevent="handleDragOver(index, $event)" @drop="handleDrop(index, $event)"
-            :style="{ backgroundColor: token.color }">
+            @dblclick="toggleHidden(index)" :style="{ backgroundColor: token.color }">
 
             <!-- 换行标记 -->
             <div v-if="token.text === '\n'" class="newline-token">
@@ -204,6 +204,15 @@
               <span class="translated-text">{{ token.translate ? token.translate : '' }}</span>
             </div>
           </div>
+
+          <!-- 在显示token的地方添加 -->
+          <span v-if="token.isHidden" class="hidden-hint" :title="token.hiddenHint">
+            <!-- 这里可以添加一个视觉提示图标 -->
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </span>
 
           <!-- 如果是 换行，插入换行占位元素 -->
           <div v-if="token.text === '\n'" class="line-break"></div>
@@ -334,6 +343,7 @@ const props = defineProps({
   },
 })
 
+// 输入prompt信息
 const inputText = ref('')
 const tokens = ref([])
 const tokenInputRefs = {}
@@ -348,6 +358,7 @@ const settingDialog = ref(null)
 const langBtnRef = ref(null)
 const languageSwitcherRef = ref(null)
 
+// Lora选择信息
 const selectedLoras = ref([])
 const loraOpen = ref(false)
 
@@ -361,6 +372,7 @@ const translateText = ref('')
 
 // 添加防抖相关的变量
 const debounceTimeout = ref(null); // 用于存储 setTimeout 的 ID
+const proceTimeout = ref(null);
 const lastInputValue = ref(''); // 用于存储上一次的输入内容
 
 const toggleLora = () => {
@@ -476,7 +488,7 @@ const wrapWith = (bracketType) => {
 
   tokens.value[activeControls.value].text = text;
 
-  postMessageToWindowsPrompt()
+  finishPromptPutItHistory();
 };
 
 const removeLayer = (bracketType) => {
@@ -495,7 +507,7 @@ const removeLayer = (bracketType) => {
   if (text.startsWith(bracketType) && text.endsWith(bracketPair[bracketType])) {
     text = text.slice(1, -1);
     tokens.value[activeControls.value].text = text;
-    postMessageToWindowsPrompt();
+    finishPromptPutItHistory();
   }
 };
 
@@ -685,6 +697,7 @@ const handleInput = (event) => {
       }
     }
 
+    // finishPromptPutItHistory();
   }, 300); // 300ms 防抖
 
   postMessageToWindowsPrompt()
@@ -693,6 +706,15 @@ const handleInput = (event) => {
 const processInput = async () => {
   const text = inputText.value;
   let segments = [];
+
+  // 首先记录所有隐藏token的原始位置
+  const hiddenTokensWithOriginalIndex = tokens.value
+    .map((token, originalIndex) => ({
+      token,
+      originalIndex,  // 保存原始绝对位置
+      currentIndex: originalIndex  // 初始时currentIndex与originalIndex相同
+    }))
+    .filter(({ token }) => token.isHidden);
 
   // 递归函数处理嵌套括号
   const parseNestedBrackets = (str, startIndex = 0) => {
@@ -793,12 +815,14 @@ const processInput = async () => {
   segments = parseNestedBrackets(text);
 
   // 处理每个片段
-  const result = [];
   const existingTokensMap = new Map();
-  tokens.value.forEach(token => {
-    existingTokensMap.set(token.text, token);
+  tokens.value.forEach((token, index) => {
+    existingTokensMap.set(index, token); // 使用索引作为key
   });
 
+  const result = [];
+
+  // 然后处理剩余的segments（新增的token）
   segments.forEach(segment => {
     if (segment === '\n') {
       // 保留换行符作为特殊token
@@ -813,9 +837,18 @@ const processInput = async () => {
     } else if (segment.trim()) {
       // 处理非空文本
       const trimmedSegment = segment.trim();
-      if (existingTokensMap.has(trimmedSegment)) {
-        result.push(existingTokensMap.get(trimmedSegment));
-      } else {
+      // 尝试按顺序匹配原始token
+      let matched = false;
+      for (const [index, token] of existingTokensMap) {
+        if (token.text === trimmedSegment && !result.includes(token)) {
+          result.push(token);
+          existingTokensMap.delete(index); // 已匹配的token从map中移除
+          matched = true;
+          break;
+        }
+      }
+
+      if (!matched) {
         result.push({
           text: trimmedSegment,
           translate: '',
@@ -829,36 +862,68 @@ const processInput = async () => {
 
   });
 
+  //重新插入隐藏token到它们原来的位置
+  hiddenTokensWithOriginalIndex.forEach(({ token, originalIndex }) => {
+    let insertIndex = originalIndex;  // 使用originalIndex而不是currentIndex
+
+    // 确保插入位置有效
+    while (insertIndex > result.length) {
+      insertIndex--;
+    }
+
+    // 如果所有尝试都失败，插入到最后
+    if (insertIndex < 0) {
+      result.push(token);
+    } else {
+      result.splice(insertIndex, 0, token);
+    }
+  });
+
   tokens.value = result;
 
-  // 更新输入文本，保持原有格式
+  // 更新输入文本，保持原有格式，但排除隐藏的tokens
   inputText.value = tokens.value.length > 0
     ? tokens.value.reduce((acc, token, index) => {
+      // 如果token是隐藏的，不添加到输入文本中
+      if (token.isHidden) {
+        return acc;
+      }
+
       // 如果是换行符，不加逗号
       if (token.text === '\n') {
         return acc + token.text;
       }
-      // 第一个token不加逗号前缀
-      if (index === 0) {
-        return token.text + (index === tokens.value.length - 1 || tokens.value[index + 1]?.text === '\n' ? ',' : '');
+
+      // 第一个非隐藏token不加逗号前缀
+      if (acc === '') {
+        return token.text;
       }
+
+      // 查找下一个非隐藏token
+      let nextNonHiddenIndex = index + 1;
+      while (nextNonHiddenIndex < tokens.value.length && tokens.value[nextNonHiddenIndex]?.isHidden) {
+        nextNonHiddenIndex++;
+      }
+
       // 前一个token是换行符，不加逗号前缀
-      if (tokens.value[index - 1].text === '\n') {
-        return acc + token.text + (index === tokens.value.length - 1 || tokens.value[index + 1]?.text === '\n' ? ',' : '');
+      const prevNonHiddenIndex = findPrevNonHiddenIndex(index);
+      if (prevNonHiddenIndex !== -1 && tokens.value[prevNonHiddenIndex].text === '\n') {
+        return acc + token.text;
       }
+
       // 其他情况加逗号和空格前缀
-      return acc + ', ' + token.text + (index === tokens.value.length - 1 || tokens.value[index + 1]?.text === '\n' ? ',' : '');
+      return acc + ', ' + token.text;
     }, '') : '';
 
 
   // 处理历史记录
-  if (historyTimer.value) {
-    clearTimeout(historyTimer.value);
+  if (proceTimeout.value) {
+    clearTimeout(proceTimeout.value);
   }
-  historyTimer.value = setTimeout(() => {
+  proceTimeout.value = setTimeout(() => {
+    // console.log('处理历史记录');
     finishPromptPutItHistory();
-  }, 5000);
-
+  }, 1000);
   postMessageToWindowsPrompt();
 
   // 处理翻译
@@ -951,13 +1016,22 @@ const oneClickTranslatePrompt = async () => {
 const tempInputText = ref('')
 
 const finishPromptPutItHistory = () => {
+  // console.log('finishPromptPutItHistory 被调用', new Error().stack);
   // 去除空格、换行和制表符
   const trimmedInput = inputText.value.replace(/[\s\t\n]+/g, '');
   if (selectedLoras.value.length > 0) {
     if (trimmedInput.length > 0) {
-      const putJson = {
+      const tempLora = selectedLoras.value.filter(lora => !lora.hidden);
+      let putJson = {
         prompt: inputText.value,
-        lora: selectedLoras.value
+        lora: "",
+        temp_data: {
+          tokens: tokens.value,
+          lora: selectedLoras.value
+        }
+      }
+      if (tempLora.length > 0) {
+        putJson.lora = tempLora
       }
       const jsonStr = JSON.stringify(putJson)
       if (tempInputText.value != jsonStr) {
@@ -967,9 +1041,15 @@ const finishPromptPutItHistory = () => {
     }
   } else {
     if (tempInputText.value != inputText.value) {
-      tempInputText.value = inputText.value
+      const putJson = {
+        prompt: inputText.value,
+        temp_data: {
+          tokens: tokens.value,
+        }
+      }
+      const jsonStr = JSON.stringify(putJson)
       if (trimmedInput.length > 0) {
-        historyApi.saveHistory({ tag: inputText.value })
+        historyApi.saveHistory({ tag: jsonStr })
       }
     }
   }
@@ -977,12 +1057,19 @@ const finishPromptPutItHistory = () => {
 }
 
 const postMessageToWindowsPrompt = () => {
-  const trimmedInput = inputText.value.replace(/[\s\t\n]+/g, '');
   if (selectedLoras.value.length > 0) {
     tempInputText.value = inputText.value
-    const putJson = {
+    const tempLora = selectedLoras.value.filter(lora => !lora.hidden);
+    let putJson = {
       prompt: inputText.value,
-      lora: selectedLoras.value
+      lora: "",
+      temp_data: {
+        tokens: tokens.value,
+        lora: selectedLoras.value,
+      }
+    }
+    if (tempLora.length > 0) {
+      putJson.lora = tempLora
     }
     const jsonStr = JSON.stringify(putJson)
     window.postMessage({
@@ -994,6 +1081,10 @@ const postMessageToWindowsPrompt = () => {
     const putJson = {
       prompt: inputText.value,
       lora: "",
+      temp_data: {
+        tokens: tokens.value,
+        lora: "",
+      }
     }
     const jsonStr = JSON.stringify(putJson)
     window.postMessage({
@@ -1125,25 +1216,41 @@ const deleteToken = (index) => {
   }
 
   tokens.value.splice(index, 1)
+  // 更新输入文本，保持原有格式，但排除隐藏的tokens
   inputText.value = tokens.value.length > 0
     ? tokens.value.reduce((acc, token, index) => {
+      // 如果token是隐藏的，不添加到输入文本中
+      if (token.isHidden) {
+        return acc;
+      }
+
       // 如果是换行符，不加逗号
       if (token.text === '\n') {
         return acc + token.text;
       }
-      // 第一个token不加逗号前缀
-      if (index === 0) {
-        return token.text + (index === tokens.value.length - 1 || tokens.value[index + 1]?.text === '\n' ? ',' : '');
+
+      // 第一个非隐藏token不加逗号前缀
+      if (acc === '') {
+        return token.text;
       }
+
+      // 查找下一个非隐藏token
+      let nextNonHiddenIndex = index + 1;
+      while (nextNonHiddenIndex < tokens.value.length && tokens.value[nextNonHiddenIndex]?.isHidden) {
+        nextNonHiddenIndex++;
+      }
+
       // 前一个token是换行符，不加逗号前缀
-      if (tokens.value[index - 1].text === '\n') {
-        return acc + token.text + (index === tokens.value.length - 1 || tokens.value[index + 1]?.text === '\n' ? ',' : '');
+      const prevNonHiddenIndex = findPrevNonHiddenIndex(index);
+      if (prevNonHiddenIndex !== -1 && tokens.value[prevNonHiddenIndex].text === '\n') {
+        return acc + token.text;
       }
+
       // 其他情况加逗号和空格前缀
-      return acc + ', ' + token.text + (index === tokens.value.length - 1 || tokens.value[index + 1]?.text === '\n' ? ',' : '');
+      return acc + ', ' + token.text;
     }, '') : '';
 
-  postMessageToWindowsPrompt()
+  finishPromptPutItHistory()
 }
 
 // 处理词组编辑
@@ -1174,7 +1281,7 @@ const handleTokenEdit = (index, event) => {
       text: newValue
     }
 
-    postMessageToWindowsPrompt()
+    finishPromptPutItHistory()
   }
 }
 
@@ -1194,7 +1301,7 @@ const startEditing = (index) => {
       input.setSelectionRange(len, len);
       adjustInputWidth(input);
       input.addEventListener('input', () => adjustInputWidth(input));
-      postMessageToWindowsPrompt()
+      finishPromptPutItHistory()
     }
   });
 }
@@ -1237,7 +1344,6 @@ watch(tokens, (newTokens) => {
 watch(selectedLoras, (newLoras) => {
   // console.log(newLoras)
   // finishPromptPutItHistory()
-  postMessageToWindowsPrompt()
   finishPromptPutItHistory()
 }, { deep: true })
 
@@ -1617,19 +1723,32 @@ const closeAutocomplete = () => {
 };
 
 const setPromptText = (text) => {
+  // console.log(text)
   try {
     const jsonStr = JSON.parse(text)
+
     inputText.value = jsonStr.prompt
     lastInputValue.value = inputText.value; // 更新上一次的输入内容
     if (jsonStr.lora.length > 0) {
       selectedLoras.value = jsonStr.lora
     }
+
+    if (jsonStr.temp_data && jsonStr.temp_data != "") {
+      // console.log(jsonStr.temp_data)
+      const tempDataJson = jsonStr.temp_data
+      // console.log(tempDataJson)
+      if (tempDataJson.tokens && tempDataJson.tokens.length > 0 && tempDataJson.tokens != "") {
+        tokens.value = tempDataJson.tokens
+      }
+      if (tempDataJson.lora && tempDataJson.lora.length > 0 && tempDataJson.lora != "") {
+        selectedLoras.value = tempDataJson.lora
+      }
+    }
+
     processInput()
   } catch (error) {
-    // console.log('读取数据错误：', error)
-    inputText.value = text
-    lastInputValue.value = inputText.value; // 更新上一次的输入内容
-    processInput()
+    console.log('读取数据错误：', error)
+    inputText.value = t('promptBox.errorPrompt')
   }
 }
 
@@ -1660,22 +1779,38 @@ const handleDrop = (index, event) => {
 };
 
 const updateInputText = () => {
+  // 更新输入文本，保持原有格式，但排除隐藏的tokens
   inputText.value = tokens.value.length > 0
     ? tokens.value.reduce((acc, token, index) => {
+      // 如果token是隐藏的，不添加到输入文本中
+      if (token.isHidden) {
+        return acc;
+      }
+
       // 如果是换行符，不加逗号
       if (token.text === '\n') {
         return acc + token.text;
       }
-      // 第一个token不加逗号前缀
-      if (index === 0) {
-        return token.text + (index === tokens.value.length - 1 || tokens.value[index + 1]?.text === '\n' ? ',' : '');
+
+      // 第一个非隐藏token不加逗号前缀
+      if (acc === '') {
+        return token.text;
       }
+
+      // 查找下一个非隐藏token
+      let nextNonHiddenIndex = index + 1;
+      while (nextNonHiddenIndex < tokens.value.length && tokens.value[nextNonHiddenIndex]?.isHidden) {
+        nextNonHiddenIndex++;
+      }
+
       // 前一个token是换行符，不加逗号前缀
-      if (tokens.value[index - 1].text === '\n') {
-        return acc + token.text + (index === tokens.value.length - 1 || tokens.value[index + 1]?.text === '\n' ? ',' : '');
+      const prevNonHiddenIndex = findPrevNonHiddenIndex(index);
+      if (prevNonHiddenIndex !== -1 && tokens.value[prevNonHiddenIndex].text === '\n') {
+        return acc + token.text;
       }
+
       // 其他情况加逗号和空格前缀
-      return acc + ', ' + token.text + (index === tokens.value.length - 1 || tokens.value[index + 1]?.text === '\n' ? ',' : '');
+      return acc + ', ' + token.text;
     }, '') : '';
   postMessageToWindowsPrompt()
 };
@@ -1692,6 +1827,39 @@ const openGitHub = () => {
 const shareCloudData = () => {
   window.parent.postMessage({ type: 'weilin_prompt_ui_open_cloud_window' }, '*')
 }
+
+// 添加一个辅助函数来查找前一个非隐藏的token索引
+const findPrevNonHiddenIndex = (currentIndex) => {
+  for (let i = currentIndex - 1; i >= 0; i--) {
+    if (!tokens.value[i].isHidden) {
+      return i;
+    }
+  }
+  return -1;
+};
+
+// 添加toggleHidden方法
+const toggleHidden = (index) => {
+  if (index >= 0 && index < tokens.value.length) {
+    // 不允许隐藏换行符
+    if (tokens.value[index].text === '\n' || tokens.value[index].text === '\t') {
+      return;
+    }
+
+    // 切换隐藏状态
+    tokens.value[index].isHidden = !tokens.value[index].isHidden;
+
+    // 添加/移除隐藏提示
+    if (tokens.value[index].isHidden) {
+      tokens.value[index].hiddenHint = t('promptBox.hiddenHint'); // 使用国际化提示
+    } else {
+      tokens.value[index].hiddenHint = '';
+    }
+
+    // 更新输入文本，排除隐藏的tokens
+    updateInputText();
+  }
+};
 
 defineExpose({
   setPromptText

@@ -14,6 +14,7 @@ export default {
         addBracket: '添加括号',
         removeLayer: '减去括号',
         oneClickTranslate: '一键翻译未翻译的词组',
+        hiddenHint: "双击显示提示词",
         settings: {
             title: '设置',
             cancel: '取消',
@@ -84,6 +85,7 @@ export default {
             testingTranslater: "测试翻译",
             inputTestTranslaterPlaceholder: "请输入要翻译的内容",
             outPutTestTranslaterPlaceholder: "翻译结果将显示在这里",
+            errorPrompt: "读取节点提示词失败！",
         },
     },
     controls: {
@@ -160,6 +162,8 @@ export default {
         "promptWordsTip": "使用该模型时的推荐提示词",
         "loraWorks": "Lora提示词",
         "strWeight": "文本强度权重",
+        hideLora: "隐藏Lora",
+        showLora: "显示Lora",
     },
     tagManager: {
         "deletePrimaryCategoryConfirm": "确定要删除分类 {name} 吗？",

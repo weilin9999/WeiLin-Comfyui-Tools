@@ -120,14 +120,18 @@
     display: inline-block;
 }
 
-.newline-token::after{
-    content: ""; /* 插入空内容 */
-    width: 100%; /* 占满剩余空间 */
-    order: 1; /* 确保它在.br-class之后 */
+.newline-token::after {
+    content: "";
+    /* 插入空内容 */
+    width: 100%;
+    /* 占满剩余空间 */
+    order: 1;
+    /* 确保它在.br-class之后 */
 }
 
-.newline-token ~ .token-item-box {
-    order: 2; /* 让.br-class之后的元素换行 */
+.newline-token~.token-item-box {
+    order: 2;
+    /* 让.br-class之后的元素换行 */
 }
 
 .tab-token {
@@ -767,4 +771,18 @@
 
 .vertical-btn:hover {
     background-color: var(--weilin-prompt-ui-primary-color);
+}
+
+/* 添加隐藏token的样式 */
+.hidden-hint {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 4px;
+    color: #999;
+    cursor: help;
+}
+
+.hidden-hint svg {
+    width: 1em;
+    height: 1em;
 }

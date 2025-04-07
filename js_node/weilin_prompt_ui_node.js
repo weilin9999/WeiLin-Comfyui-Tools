@@ -97,11 +97,12 @@ app.registerExtension({
         const r = onNodeCreated ? onNodeCreated.apply(this, arguments) : undefined;
 
         const thisNodeName = nodeData.name // 存储当前的节点名称
-        let nodeTextAreaList = [] // 按顺序载入element，name="positive" || "lora_str"
+        let nodeTextAreaList = [] // 按顺序载入element，name="positive" || "lora_str" || "temp_str"
         const thisNodeSeed = generateUUID(); // 随机唯一种子ID
 
 
         hideWidgetForGood(this, this.widgets.find(w => w.name === "lora_str"))
+        hideWidgetForGood(this, this.widgets.find(w => w.name === "temp_str"))
 
         for (let index = 0; index < this.widgets.length; index++) {
           const widgetItem = this.widgets[index];
@@ -135,6 +136,10 @@ app.registerExtension({
             let thisInputElement = widgetItem.element
             thisInputElement.readOnly = true
             nodeTextAreaList[1] = thisInputElement
+          } else if (widgetItem.name == "temp_str") {
+            let thisInputElement = widgetItem.element
+            thisInputElement.readOnly = true
+            nodeTextAreaList[2] = thisInputElement
           }
         }
         // console.log(this)
@@ -147,6 +152,7 @@ app.registerExtension({
           const newValue = event.target.value;
           updateNodeTextBySeed(newValue);
           window.parent.postMessage({ type: 'weilin_prompt_ui_update_node_list_info', nodeList: globalNodeList }, '*')
+
         });
 
 
@@ -203,6 +209,7 @@ app.registerExtension({
 
         randomID = generateUUID();
 
+        // 节点按钮点击事件
         this.addWidget("button", localLanguage, '', ($e) => {
           // console.log(thisNodeName)
           // 发送消息给父窗口
@@ -212,46 +219,72 @@ app.registerExtension({
           let jsonData = {
             prompt: nodeTextAreaList[0].value,
             lora: [],
+            temp_data: {},
           }
           if (nodeData.name === "WeiLinPromptUI" && nodeTextAreaList[1].value.length > 0) {
             jsonData.lora = JSON.parse(nodeTextAreaList[1].value);
           }
-          const data = JSON.stringify(jsonData)
+
+          if(nodeTextAreaList[2].value.length > 0){
+            jsonData.temp_data = JSON.parse(nodeTextAreaList[2].value)
+          }
+
+          const data = JSON.stringify(jsonData)          
           window.parent.postMessage({ type: 'weilin_prompt_ui_openPromptBox', id: randomID, prompt: data, node: nodeData.name}, '*')
         });
+
 
         window.addEventListener('message', event => {
           // console.log(e)
           if (event.data.type === 'weilin_prompt_ui_prompt_update_prompt_' + randomID) {
+            // 接收到更新提示词内容消息
+
             const jsonReponse = JSON.parse(event.data.data)
             // console.log(jsonReponse)
             nodeTextAreaList[0].value = jsonReponse.prompt;
+
             if (nodeData.name === "WeiLinPromptUI"){
-              if (jsonReponse.lora.length > 0 && jsonReponse.lora != "") {
+              // console.log(jsonReponse.lora.length)
+              if (jsonReponse.lora && jsonReponse.lora.length > 0 && jsonReponse.lora != "") {
                 nodeTextAreaList[1].value = JSON.stringify(jsonReponse.lora);
               } else {
                 nodeTextAreaList[1].value = "";
               }
             }
 
+            // console.log(jsonReponse.temp_data)
+            // console.log(jsonReponse.temp_data != "")
+            if (jsonReponse.temp_data && jsonReponse.temp_data != "") {
+              // console.log(jsonReponse.temp_data)
+              nodeTextAreaList[2].value = JSON.stringify(jsonReponse.temp_data);
+            }
+
             // console.log(nodeTextAreaList)
-            updateNodeTextBySeed(thisNodeSeed, event.data.data);
+            updateNodeTextBySeed(thisNodeSeed, jsonReponse.prompt);
+
             window.parent.postMessage({ type: 'weilin_prompt_ui_update_node_list_info', nodeList: globalNodeList }, '*')
 
           } else if (event.data.type === 'weilin_prompt_ui_prompt_get_node_list_info') {
+            // 获取节点导航信息
 
             updateNodeTextBySeed(thisNodeSeed, nodeTextAreaList[0].value);
             window.parent.postMessage({ type: 'weilin_prompt_ui_update_node_list_info', nodeList: globalNodeList }, '*')
 
           } else if (event.data.type === "weilin_prompt_ui_prompt_open_node_wit_seed" && event.data.seed === thisNodeSeed) {
+            // 节点导航打开节点UI按钮
+
             randomID = generateUUID();
             // console.log("register====>",randomID)
             let jsonData = {
               prompt: nodeTextAreaList[0].value,
               lora: [],
+              temp_data: {},
             }
             if (nodeData.name === "WeiLinPromptUI" && nodeTextAreaList[1].value.length > 0) {
               jsonData.lora = JSON.parse(nodeTextAreaList[1].value);
+            }
+            if(nodeTextAreaList[2].value.length > 0){
+              jsonData.temp_data = JSON.parse(nodeTextAreaList[2].value)
             }
             const data = JSON.stringify(jsonData)
             window.parent.postMessage({ type: 'weilin_prompt_ui_openPromptBox', id: randomID, prompt: data, node: nodeData.name }, '*')

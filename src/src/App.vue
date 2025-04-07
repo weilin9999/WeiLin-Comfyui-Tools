@@ -328,6 +328,8 @@ const handleMessage = (event) => {
     windows.value.tag.visible = true
     windowManager.setActiveWindow('tag')
   } else if (event.data.type === 'weilin_prompt_ui_openPromptBox') {
+    // 按钮点击打开promptBox
+
     thisEditPromptId.value = event.data.id
     promptManager.value = 'prompt'
     windows.value.prompt.visible = true
@@ -339,6 +341,7 @@ const handleMessage = (event) => {
       promptBoxRef.value.setPromptText(event.data.prompt)
     })
     windowManager.setActiveWindow('prompt')
+    
   } else if (event.data.type === 'weilin_prompt_ui_openLoraManager') {
     loraManager.value = 'look'
     windows.value.lora.visible = true

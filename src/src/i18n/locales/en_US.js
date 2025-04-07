@@ -14,6 +14,7 @@ export default {
         addBracket: 'Add Bracket',
         removeLayer: 'Remove Bracket',
         oneClickTranslate: 'One Click Translate Untranslated Phrases',
+        hiddenHint: "Double-click to show",
         settings: {
             title: 'Settings',
             cancel: 'Cancel',
@@ -87,6 +88,7 @@ export default {
             testingTranslater: "Test translation",
             inputTestTranslaterPlaceholder: "Please enter the content to be translated",
             outPutTestTranslaterPlaceholder: "The translation result will be displayed here",
+            errorPrompt: "Read the prompt node failed",
         },
     },
     controls: {
@@ -133,6 +135,8 @@ export default {
         "promptWordsTip": "Recommended prompt words when using this model",
         "loraWorks": "Lora Prompt Words",
         "strWeight": "Text Strength Weight",
+        hideLora: "Hidden Lora",
+        showLora: "Show Lora",
     },
     common: {
         confirmDelete: "Confirm Delete",
