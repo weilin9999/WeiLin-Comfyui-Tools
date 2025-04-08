@@ -1,7 +1,7 @@
 [project]
 name = "weilin-comfyui-tools"
 description = "让你在 ComfyUI 中快捷的使用提示词工具 Quickly use the prompt word tool in ComfyUI"
-version = "0.0.35"
+version = "0.0.36"
 license = {file = "LICENSE"}
 dependencies = []
 
@@ -12,4 +12,4 @@ Repository = "https://github.com/weilin9999/WeiLin-Comfyui-Tools"
 [tool.comfy]
 PublisherId = "weilin"
 DisplayName = "WeiLin-Comfyui-Tools"
-Icon = ""
+Icon = "https://raw.gitcode.com/qq_27627297/public_project/files/main/comfyui_logo.jpg"

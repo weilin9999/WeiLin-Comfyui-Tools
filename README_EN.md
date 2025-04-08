@@ -24,15 +24,22 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 # Version update introduction
 
-> Last updated: 2025-04-07
+> Last updated: 2025-04-08
 
-> 0.0.35 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.36 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
 >
-> 1. The new feature can hide Lora and hide Tag functions, which can temporarily block Lora and Tag you want
+> 1. Fixed some known bugs
+>
+> 2. Optimized completion accuracy
 >
 
 <details>
 <summary>Click here for more updates from the past</summary>
+
+> 0.0.35 Public Beta Version 2025-04-07
+>
+> 1. The new feature can hide Lora and hide Tag functions, which can temporarily block Lora and Tag you want
+>
 
 > 0.0.34 Public Beta Version 2025-04-06
 >

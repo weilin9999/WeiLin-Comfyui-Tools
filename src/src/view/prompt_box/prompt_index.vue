@@ -609,10 +609,104 @@ const replaceTagsWithDesc = (text, tagMap) => {
 // 添加一个 ref 用于存储定时器
 const historyTimer = ref(null);
 
-// 优化后的 handleInput 函数
 const handleInput = (event) => {
   if (!event?.target) return;
 
+  // 获取原始输入值和光标位置
+  const originalValue = event.target.value;
+  const cursorPosition = event.target.selectionStart;
+  const cursorEnd = event.target.selectionEnd;
+  
+
+
+
+  // 1. 首先处理格式转换
+  const formatConversions = {
+    comma: { enabled: localStorage.getItem('weilin_prompt_ui_comma_conversion') !== 'false', pattern: /，/g, replace: ',' },
+    period: { enabled: localStorage.getItem('weilin_prompt_ui_period_conversion') !== 'false', pattern: /。/g, replace: '.' },
+    bracket: {
+      enabled: localStorage.getItem('weilin_prompt_ui_bracket_conversion') !== 'false', patterns: [
+        { pattern: /【/g, replace: '[' },
+        { pattern: /】/g, replace: ']' },
+        { pattern: /（/g, replace: '(' },
+        { pattern: /）/g, replace: ')' }
+      ]
+    },
+    angleBracket: {
+      enabled: localStorage.getItem('weilin_prompt_ui_angle_bracket_conversion') !== 'false', patterns: [
+        { pattern: /《/g, replace: '<' },
+        { pattern: /》/g, replace: '>' }
+      ]
+    },
+    underscore: { enabled: localStorage.getItem('weilin_prompt_ui_underscore_to_bracket') === 'true', pattern: /_/g, replace: ' ' }
+  };
+
+  // 记录每个替换操作前光标位置的字符
+  let beforeCursor = originalValue.substring(0, cursorPosition);
+  let processedValue = originalValue;
+  
+  // 应用所有转换
+  Object.values(formatConversions).forEach(conversion => {
+    if (conversion.enabled) {
+      if (conversion.pattern) {
+        // 处理单个模式的替换
+        beforeCursor = beforeCursor.replace(conversion.pattern, conversion.replace);
+        processedValue = processedValue.replace(conversion.pattern, conversion.replace);
+      } else if (conversion.patterns) {
+        // 处理多个模式的替换
+        conversion.patterns.forEach(({pattern, replace}) => {
+          beforeCursor = beforeCursor.replace(pattern, replace);
+          processedValue = processedValue.replace(pattern, replace);
+        });
+      }
+    }
+  });
+
+  // 2. 直接更新输入框值
+  inputText.value = processedValue;
+  
+  // 3. 立即计算并设置新的光标位置
+  // 使用转换后的beforeCursor长度作为新的光标位置
+  const newCursorPosition = beforeCursor.length;
+  const selectionDiff = cursorEnd - cursorPosition;
+  const newCursorEnd = newCursorPosition + selectionDiff;
+  
+  // 确保DOM更新后立即设置光标位置
+  nextTick(() => {
+    if (inputAreaRef.value) {
+      inputAreaRef.value.setSelectionRange(newCursorPosition, newCursorEnd);
+      // 确保输入框获得焦点
+      inputAreaRef.value.focus();
+    }
+  });
+
+  // 4. 精确获取当前输入内容用于补全
+  const textBeforeCursor = processedValue.substring(0, newCursorPosition);
+  
+  // 查找当前输入的单词起始位置
+  let wordStart = newCursorPosition;
+  while (wordStart > 0 && !/[,\s]/.test(textBeforeCursor[wordStart - 1])) {
+    wordStart--;
+  }
+  
+  const currentWord = textBeforeCursor.substring(wordStart, newCursorPosition).trim();
+
+  // 5. 防抖处理
+  if (debounceTimeout.value) {
+    clearTimeout(debounceTimeout.value);
+  }
+
+  debounceTimeout.value = setTimeout(() => {
+    if (currentWord) {
+      triggerAutocomplete(currentWord);
+    }
+    postMessageToWindowsPrompt();
+  }, 300);
+};
+
+const processInput = async () => {
+
+  // 预设设置
   let isCommaConversionEnabled = localStorage.getItem('weilin_prompt_ui_comma_conversion') === 'true';
   let isPeriodConversionEnabled = localStorage.getItem('weilin_prompt_ui_period_conversion') === 'true';
   let isBracketConversionEnabled = localStorage.getItem('weilin_prompt_ui_bracket_conversion') === 'true';
@@ -666,44 +760,7 @@ const handleInput = (event) => {
     inputText.value = inputText.value.replace(/_/g, ' ');
   }
 
-
-  // 清除之前的定时器
-  if (debounceTimeout.value) {
-    clearTimeout(debounceTimeout.value);
-  }
-
-  // 获取当前输入值
-  const currentValue = event.target.value;
-
-  // 设置新的定时器
-  debounceTimeout.value = setTimeout(() => {
-    // 如果输入框为空或内容减少（如删除操作）
-    if (currentValue === '' || currentValue.length < lastInputValue.value.length) {
-      lastInputValue.value = currentValue;
-      return;
-    }
-
-    // 计算新增内容
-    const newValue = currentValue.slice(lastInputValue.value.length);
-
-    // 只有当有新内容输入时才触发补全
-    if (newValue.trim() !== '') {
-      // 按逗号分割，取最后一个非空部分
-      const segments = newValue.split(',').filter(Boolean);
-      const lastSegment = segments[segments.length - 1]?.trim();
-
-      if (lastSegment) {
-        triggerAutocomplete(lastSegment);
-      }
-    }
-
-    // finishPromptPutItHistory();
-  }, 300); // 300ms 防抖
-
-  postMessageToWindowsPrompt()
-};
-
-const processInput = async () => {
+  // 处理文本分割
   const text = inputText.value;
   let segments = [];
 
@@ -905,14 +962,21 @@ const processInput = async () => {
         nextNonHiddenIndex++;
       }
 
+      // 判断是否是最后一个非隐藏token
+      const isLastToken = nextNonHiddenIndex >= tokens.value.length;
+      const nextToken = nextNonHiddenIndex < tokens.value.length ? tokens.value[nextNonHiddenIndex] : null;
+
+      // 如果是换行符前或者最后一个token，则添加逗号
+      const shouldAddComma = (nextToken && nextToken.text === '\n') || isLastToken;
+
       // 前一个token是换行符，不加逗号前缀
       const prevNonHiddenIndex = findPrevNonHiddenIndex(index);
       if (prevNonHiddenIndex !== -1 && tokens.value[prevNonHiddenIndex].text === '\n') {
-        return acc + token.text;
+        return acc + token.text + (shouldAddComma ? ',' : '');
       }
 
       // 其他情况加逗号和空格前缀
-      return acc + ', ' + token.text;
+      return acc + ', ' + token.text + (shouldAddComma ? ',' : '');
     }, '') : '';
 
 
@@ -1240,14 +1304,21 @@ const deleteToken = (index) => {
         nextNonHiddenIndex++;
       }
 
+      // 判断是否是最后一个非隐藏token
+      const isLastToken = nextNonHiddenIndex >= tokens.value.length;
+      const nextToken = nextNonHiddenIndex < tokens.value.length ? tokens.value[nextNonHiddenIndex] : null;
+
+      // 如果是换行符前或者最后一个token，则添加逗号
+      const shouldAddComma = (nextToken && nextToken.text === '\n') || isLastToken;
+
       // 前一个token是换行符，不加逗号前缀
       const prevNonHiddenIndex = findPrevNonHiddenIndex(index);
       if (prevNonHiddenIndex !== -1 && tokens.value[prevNonHiddenIndex].text === '\n') {
-        return acc + token.text;
+        return acc + token.text + (shouldAddComma ? ',' : '');
       }
 
       // 其他情况加逗号和空格前缀
-      return acc + ', ' + token.text;
+      return acc + ', ' + token.text + (shouldAddComma ? ',' : '');
     }, '') : '';
 
   finishPromptPutItHistory()
@@ -1626,95 +1697,89 @@ const handleKeydown = (event) => {
   }
 };
 
-// 选择补全项
 const selectAutocomplete = (index, event) => {
   // 如果有event参数，阻止默认行为和事件冒泡
   if (event) {
     event.preventDefault();
     event.stopPropagation();
   }
-  if (autocompleteResults.value[index]) {
-    showAutocomplete.value = false;
 
-    // 获取当前输入值和选中的补全项
-    const currentText = inputText.value;
-    let tagTempText = autocompleteResults.value[index].text;
-    let tagText = "";
+  if (!autocompleteResults.value[index]) return;
 
-    let isCommaConversionEnabled = localStorage.getItem('weilin_prompt_ui_comma_conversion') === 'true';
-    let isPeriodConversionEnabled = localStorage.getItem('weilin_prompt_ui_period_conversion') === 'true';
-    let isBracketConversionEnabled = localStorage.getItem('weilin_prompt_ui_bracket_conversion') === 'true';
-    let isAngleBracketConversionEnabled = localStorage.getItem('weilin_prompt_ui_angle_bracket_conversion') === 'true';
-    let isUnderscoreToBracketEnabled = localStorage.getItem('weilin_prompt_ui_underscore_to_bracket') === 'true';
+  showAutocomplete.value = false;
 
-    if (!localStorage.getItem('weilin_prompt_ui_comma_conversion')) {
-      localStorage.setItem('weilin_prompt_ui_comma_conversion', 'true')
-      isCommaConversionEnabled = true
-    }
-    if (!localStorage.getItem('weilin_prompt_ui_period_conversion')) {
-      localStorage.setItem('weilin_prompt_ui_period_conversion', 'true')
-      isPeriodConversionEnabled = true
-    }
-    if (!localStorage.getItem('weilin_prompt_ui_bracket_conversion')) {
-      localStorage.setItem('weilin_prompt_ui_bracket_conversion', 'true')
-      isBracketConversionEnabled = true
-    }
-    if (!localStorage.getItem('weilin_prompt_ui_angle_bracket_conversion')) {
-      localStorage.setItem('weilin_prompt_ui_angle_bracket_conversion', 'true')
-      isAngleBracketConversionEnabled = true
-    }
-    if (!localStorage.getItem('weilin_prompt_ui_underscore_to_bracket')) {
-      localStorage.setItem('weilin_prompt_ui_underscore_to_bracket', 'false')
-      isUnderscoreToBracketEnabled = false
-    }
+  // 获取当前输入框的选区位置
+  const cursorPosition = inputAreaRef.value.selectionStart;
+  const cursorEnd = inputAreaRef.value.selectionEnd;
 
+  // 获取当前输入文本
+  const currentText = inputText.value;
 
-    if (isCommaConversionEnabled) {
-      tagText = tagTempText.replace(/，/g, ',');
-    }
-    if (isPeriodConversionEnabled) {
-      tagText = tagTempText.replace(/。/g, '.');
-    }
-    if (isBracketConversionEnabled) {
-      tagText = tagTempText
-        .replace(/【/g, '[')  // 中文左方括号
-        .replace(/】/g, ']')  // 中文右方括号
-        .replace(/（/g, '(')  // 中文左圆括号
-        .replace(/）/g, ')'); // 中文右圆括号
-    }
-    if (isAngleBracketConversionEnabled) {
-      // 替换中文书名号为英文尖括号
-      tagText = tagTempText
-        .replace(/《/g, '<')  // 中文左书名号
-        .replace(/》/g, '>'); // 中文右书名号
-    }
+  // 处理补全文本格式转换
+  let tagText = autocompleteResults.value[index].text;
 
-    if (isUnderscoreToBracketEnabled) {
-      // 替换下划线为空格
-      tagText = tagTempText.replace(/_/g, ' ');
-    }
-
-    // 找到最后一个空格或逗号的位置
-    const lastSeparatorIndex = Math.max(
-      currentText.lastIndexOf(' '),
-      currentText.lastIndexOf(',')
-    );
-
-    // 替换当前正在输入的部分
-    if (lastSeparatorIndex === -1) {
-      // 如果没有分隔符，直接替换整个输入
-      inputText.value = tagText + ',';
-    } else {
-      // 保留前面的内容，替换后面的部分
-      inputText.value = currentText.slice(0, lastSeparatorIndex + 1) + tagText + ',';
-    }
-
-    // 更新上一次的输入内容
-    lastInputValue.value = inputText.value;
-
-    // 触发输入事件以更新词组
-    processInput();
+  // 应用所有格式转换
+  if (localStorage.getItem('weilin_prompt_ui_comma_conversion') !== 'false') {
+    tagText = tagText.replace(/，/g, ',');
   }
+  if (localStorage.getItem('weilin_prompt_ui_period_conversion') !== 'false') {
+    tagText = tagText.replace(/。/g, '.');
+  }
+  if (localStorage.getItem('weilin_prompt_ui_bracket_conversion') !== 'false') {
+    tagText = tagText
+      .replace(/【/g, '[')
+      .replace(/】/g, ']')
+      .replace(/（/g, '(')
+      .replace(/）/g, ')');
+  }
+  if (localStorage.getItem('weilin_prompt_ui_angle_bracket_conversion') !== 'false') {
+    tagText = tagText
+      .replace(/《/g, '<')
+      .replace(/》/g, '>');
+  }
+  if (localStorage.getItem('weilin_prompt_ui_underscore_to_bracket') === 'true') {
+    tagText = tagText.replace(/_/g, ' ');
+  }
+
+  // 确定要替换的范围
+  let replaceStart = cursorPosition;
+  let replaceEnd = cursorEnd;
+
+  // 向前查找单词边界
+  while (replaceStart > 0 &&
+    !/[,\s]/.test(currentText[replaceStart - 1])) {
+    replaceStart--;
+  }
+
+  // 向后查找单词边界
+  while (replaceEnd < currentText.length &&
+    !/[,\s]/.test(currentText[replaceEnd])) {
+    replaceEnd++;
+  }
+
+  // 执行替换
+  const newText =
+    currentText.substring(0, replaceStart) +
+    tagText +
+    currentText.substring(replaceEnd);
+
+  // 计算新光标位置
+  const newCursorPosition = replaceStart + tagText.length;
+
+  // 更新输入文本
+  inputText.value = newText;
+  lastInputValue.value = newText;
+
+  // 触发输入处理
+  processInput();
+
+  // 恢复光标位置
+  nextTick(() => {
+    if (inputAreaRef.value) {
+      inputAreaRef.value.selectionStart = newCursorPosition;
+      inputAreaRef.value.selectionEnd = newCursorPosition;
+    }
+  });
 };
 
 // 关闭补全窗口
@@ -1803,15 +1868,23 @@ const updateInputText = () => {
         nextNonHiddenIndex++;
       }
 
+      // 判断是否是最后一个非隐藏token
+      const isLastToken = nextNonHiddenIndex >= tokens.value.length;
+      const nextToken = nextNonHiddenIndex < tokens.value.length ? tokens.value[nextNonHiddenIndex] : null;
+
+      // 如果是换行符前或者最后一个token，则添加逗号
+      const shouldAddComma = (nextToken && nextToken.text === '\n') || isLastToken;
+
       // 前一个token是换行符，不加逗号前缀
       const prevNonHiddenIndex = findPrevNonHiddenIndex(index);
       if (prevNonHiddenIndex !== -1 && tokens.value[prevNonHiddenIndex].text === '\n') {
-        return acc + token.text;
+        return acc + token.text + (shouldAddComma ? ',' : '');
       }
 
       // 其他情况加逗号和空格前缀
-      return acc + ', ' + token.text;
+      return acc + ', ' + token.text + (shouldAddComma ? ',' : '');
     }, '') : '';
+
   postMessageToWindowsPrompt()
 };
 
