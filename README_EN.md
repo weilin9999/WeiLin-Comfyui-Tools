@@ -24,17 +24,30 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 # Version update introduction
 
-> Last updated: 2025-04-08
+> Last updated: 2025-04-13
 
-> 0.0.36 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.37 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+>
+> 1. Fixed some known bugs
+>
+> 2. Optimized the logjam problem of Lora manager
+>
+> 3. Added basic model display and Lora Raw data display in Lora details
+>
+> 4. Added the Tag operation prompt
+>
+> 5. Added the image conversion function in the hover sphere
+>
+
+<details>
+<summary>Click here for more updates from the past</summary>
+
+> 0.0.36 Public Beta Version 2025-04-08
 >
 > 1. Fixed some known bugs
 >
 > 2. Optimized completion accuracy
 >
-
-<details>
-<summary>Click here for more updates from the past</summary>
 
 > 0.0.35 Public Beta Version 2025-04-07
 >
