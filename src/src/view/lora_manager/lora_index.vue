@@ -2,11 +2,9 @@
   <div :class="`${prefix}lora-manager`">
     <div class="lora-manager-top-bar">
       <!-- 添加搜索框 -->
-      <input 
-        v-model="searchQuery"
-        :class="`${prefix}search-input`"
-        :placeholder="t('loraManager.searchPlaceholder')"
-      />
+      <input v-model="searchQuery" :class="`${prefix}search-input`" :placeholder="t('loraManager.searchPlaceholder')"
+        @input="debouncedSearch" />
+
       <button :class="`${prefix}refresh-btn`" @click="refreshList" :title="t('loraManager.refresh')">
         <svg :class="[`${prefix}refresh-icon`, { 'is-rotating': isRefreshing }]" viewBox="0 0 24 24" width="20"
           height="20">
@@ -15,62 +13,91 @@
         </svg>
       </button>
 
-      <button style="margin-left: 10px;" :class="`${prefix}refresh-btn`" @click="getAllLoraList" :title="t('loraManager.cacheAll')">
-        <svg  :class="[`${prefix}refresh-icon`, { 'is-rotating': isRefreshing }]" viewBox="0 0 24 24" width="20" height="20">
+      <button style="margin-left: 10px;" :class="`${prefix}refresh-btn`" @click="getAllLoraList"
+        :title="t('loraManager.cacheAll')">
+        <svg :class="[`${prefix}refresh-icon`, { 'is-rotating': isRefreshing }]" viewBox="0 0 24 24" width="20"
+          height="20">
           <path
             d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2z" />
         </svg>
       </button>
     </div>
 
-
     <!-- 主分类导航 -->
-    <div :class="`${prefix}category-nav`">
-      <button :class="[`${prefix}category-btn`, { active: currentCategory === 'all' }]" @click="selectCategory('all')">
-        {{ t('loraManager.all') }}
-      </button>
-      <button v-for="category in categories" :key="category"
+    <div :class="`${prefix}category-nav`" v-if="!isSearch">
+      <button v-for="(category) in Object.keys(folderList)" :key="category"
         :class="[`${prefix}category-btn`, { active: currentCategory === category }]" @click="selectCategory(category)">
-        {{ category }}
+        {{ category === '/' ? 'root' : category == "all" ? t('loraManager.all') : category }}
       </button>
     </div>
 
     <!-- 子分类导航 -->
-    <div v-if="subCategories.length > 0" :class="`${prefix}subcategory-nav`">
-      <button v-for="subCategory in subCategories" :key="subCategory"
+    <div v-if="currentCategory != 'all' && !isSearch" :class="`${prefix}subcategory-nav`">
+      <button v-for="subCategory in Object.keys(selectFolder)" :key="subCategory"
         :class="[`${prefix}category-btn`, { active: currentSubCategory === subCategory }]"
-        @click="currentSubCategory = subCategory">
-        {{ subCategory }}
+        @click="selectSecondCategory(subCategory)">
+        {{ subCategory === '/' ? 'root' : subCategory }}
       </button>
     </div>
 
-    <div :class="`${prefix}lora-list`">
-      <div v-for="lora in filteredLoraList" :key="lora.file_path" :class="`${prefix}lora-item`"
-        @click="openLoraDetail(lora)">
-        <div :class="`${prefix}lora-item-content`">
-          <div :class="`${prefix}lora-preview`">
-            <img v-if="lora.preview" :src="lora.preview" :alt="lora.model_name" :title="lora.model_name" />
-            <div v-else :class="`${prefix}no-preview`">
+    <!-- 使用虚拟滚动列表 -->
+    <div :class="`${prefix}lora-list-container`" ref="scrollContainer" @scroll="handleScroll">
+      <div v-if="isLoading && !isLoadingMore" class="loading-indicator">
+        {{ t('loraManager.loading') }}
+      </div>
+      <div v-else-if="paginatedLoraList.length === 0" class="empty-list">
+        {{ t('loraManager.noResults') }}
+      </div>
+
+      <div :class="`${prefix}lora-list`"
+        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px;">
+        <div v-for="lora in paginatedLoraList" :key="lora.file_path" :class="`${prefix}lora-card`"
+          @click="openLoraDetail(lora)"
+          style="display: flex; flex-direction: column; min-height: 200px; cursor: pointer;">
+          <div :class="`${prefix}lora-preview`"
+            style="flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden;width: 100%;">
+            <img v-if="lora.preview" :src="lora.preview" :alt="lora.model_name" :title="lora.model_name" loading="lazy"
+              style="width: 100%; height: 100%; object-fit: cover; min-height: 150px;" />
+            <div v-else :class="`${prefix}no-preview`"
+              style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; min-height: 150px;">
               <svg viewBox="0 0 24 24" width="24" height="24">
                 <path
                   d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
               </svg>
             </div>
           </div>
-          <div :class="`${prefix}lora-info`">
-            <h4 :class="`${prefix}lora-name`" :title="retLoraName(lora)">{{ retLoraName(lora) }}</h4>
-            <p :class="`${prefix}lora-path`" :title="lora.file_path">{{ lora.file_path }}</p>
-            <p :class="`${prefix}lora-path`" :title="t('loraManager.loraWorks')">{{ lora.loraWorks }}</p>
+          <div :class="`${prefix}lora-name`" style="padding: 8px; text-align: center; 
+         word-break: break-word; 
+         white-space: normal;
+         display: -webkit-box;
+         -webkit-line-clamp: 2;
+         -webkit-box-orient: vertical;
+         overflow: hidden;
+         min-height: 40px;
+         line-height: 1.2;">
+            {{ retLoraName(lora) }}
           </div>
         </div>
       </div>
+
+      <div>
+        <!-- 加载更多提示 -->
+        <div v-if="isLoadingMore" class="loading-more">
+          {{ t('loraManager.loadingMore') }}
+        </div>
+        <div v-if="!isLoadingMore && hasLoadedAll" class="no-more-data">
+          {{ t('loraManager.noMoreData') }}
+        </div>
+      </div>
+
     </div>
+
     <loraDetail ref="loraDetailRef" />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { loraApi } from '@/api/lora'
 import loraDetail from './lora_detail.vue'
@@ -79,10 +106,80 @@ import message from "@/utils/message"
 const prefix = "weilin_prompt_ui_"
 const { t } = useI18n()
 const isRefreshing = ref(false)
+const isLoading = ref(false)
+const isLoadingMore = ref(false) // 加载更多状态
+const hasLoadedAll = ref(false) // 是否已加载全部
 const currentCategory = ref('all')
 const currentSubCategory = ref('')
 const intervalId = ref(null)
 const searchQuery = ref('')
+const scrollContainer = ref(null)
+
+// 分页相关
+const currentPage = ref(1)
+const pageSize = ref(50) // 每页显示的数量
+const totalPages = computed(() => {
+  if (currentCategory.value === 'all') {
+    const rootFolder = selectFolder.value
+    if (rootFolder) {
+      const valuesArray = Object.values(rootFolder)
+      return Math.ceil(valuesArray.length / pageSize.value)
+    }
+  } else {
+    const rootFolder = selectFolder.value["/"]
+    if (rootFolder) {
+      const valuesArray = Object.values(rootFolder)
+      return Math.ceil(valuesArray.length / pageSize.value)
+    }
+    return 1
+  }
+})
+
+
+const folderList = ref([])
+const selectFolder = ref([])
+const seed = ref('')
+
+const openSetSeed = (newSeed) => {
+  seed.value = newSeed
+}
+
+const getFolderList = async () => {
+  try {
+    const res = await loraApi.getLoraFolderList()
+    folderList.value = res.data
+  } catch (error) {
+    console.error('Failed to get folder list:', error)
+    message({ type: "error", str: 'message.loadFailed' })
+  }
+}
+
+// 处理滚动事件
+const handleScroll = () => {
+  if (!scrollContainer.value || isLoadingMore.value || hasLoadedAll.value) return
+
+  const container = scrollContainer.value
+  // 当滚动到距离底部100px时触发加载更多
+  if (container.scrollHeight - container.scrollTop - container.clientHeight < 100) {
+    loadMoreData()
+  }
+}
+
+const isSearch = ref(false)
+// 防抖搜索
+let searchTimeout = null
+const debouncedSearch = () => {
+  if (searchTimeout) clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    if (searchQuery.value.length > 0) {
+      isSearch.value = true
+      searchLoraList()
+    } else {
+      isSearch.value = false
+      refreshList()
+    }
+  }, 300)
+}
 
 const props = defineProps({
   loraManager: {
@@ -91,18 +188,10 @@ const props = defineProps({
   }
 })
 
-// 存储处理后的数据结构
-const loraData = ref({
-  categories: [],          // 主分类
-  allLoras: [],           // 所有lora文件
-  categorizedLoras: {},   // 按分类存储的lora文件
-  subCategories: {}       // 存储子分类信息
-})
-
-const retLoraName = (lora)=>{
-  if(lora.local_info.name && lora.local_info.name !== '' && lora.local_info.name.length > 0){
+const retLoraName = (lora) => {
+  if (lora.local_info?.name && lora.local_info.name !== '' && lora.local_info.name.length > 0) {
     return lora.local_info.name
-  }else{
+  } else {
     return lora.name
   }
 }
@@ -117,193 +206,144 @@ const openLoraDetail = (loraData) => {
   }
 }
 
-// 获取文件的分类信息
-const getFileCategories = (path) => {
-  const parts = path.split(/[\/\\]/)
-  if (parts.length === 1) return { main: 'root', sub: null }
-
-  const main = parts[0]
-  // 如果是文件，则不包含在子分类中
-  if (parts[parts.length - 1].includes('.')) {
-    const subParts = parts.slice(1, -1)
-    const sub = subParts.length > 0 ? subParts.join('/') : 'root'
-    return { main, sub }
-  } else {
-    // 如果是目录，则包含在子分类中
-    const sub = parts.slice(1).join('/')
-    return { main, sub }
+const searchLoraList = async () => {
+  try {
+    const res = await loraApi.searchLoraGetFolderList(searchQuery.value)
+    selectFolder.value = res.data
+    if (selectFolder.value.length > 0) {
+      currentPage.value = 1 // 重置页码
+      const valuesArray = Object.values(selectFolder.value)
+      // 根据当前页码获取对应的50条数据
+      const startIndex = (currentPage.value - 1) * 50
+      const endIndex = startIndex + 50
+      const pageData = valuesArray.slice(startIndex, endIndex)
+      getRangeLoraList(pageData)
+    }
+  } catch (error) {
+    console.error('Failed to get folder list:', error)
+    message({ type: "error", str: 'message.loadFailed' })
   }
 }
 
-// 处理原始数据，构建数据结构
-const processLoraData = (data) => {
-  const categories = new Set()
-  const categorizedLoras = {}
-  const subCategories = {}
 
-  // 处理所有路径，先提取目录结构
-  data.path.forEach(path => {
-    const { main, sub } = getFileCategories(path)
-    if (main !== 'root') {
-      categories.add(main)
-      if (!categorizedLoras[main]) {
-        categorizedLoras[main] = {}
-        subCategories[main] = new Set()
-      }
-      if (sub) {
-        // 只添加目录路径，不添加文件名
-        const dirParts = sub.split('/')
-        if (dirParts[dirParts.length - 1].includes('.')) {
-          dirParts.pop()
-        }
-        if (dirParts.length === 0) {
-          subCategories[main].add('root')
-        } else {
-          subCategories[main].add(dirParts.join('/'))
-        }
-      }
-    }
-  })
+// 分页后的列表
+const paginatedLoraList = ref([])
 
-  // 处理所有文件
-  data.loras.forEach(lora => {
-    const { main, sub } = getFileCategories(lora.basename)
-    if (main === 'root') {
-      if (!categorizedLoras.root) categorizedLoras.root = { '': [] }
-      categorizedLoras.root[''].push(lora)
-    } else {
-      if (!categorizedLoras[main]) {
-        categorizedLoras[main] = {}
-      }
-      // 对于文件，使用其所在的目录路径作为key
-      const dirPath = sub ? sub.split('/').filter(part => !part.includes('.')).join('/') || 'root' : ''
-      if (!categorizedLoras[main][dirPath]) {
-        categorizedLoras[main][dirPath] = []
-      }
-      categorizedLoras[main][dirPath].push(lora)
-    }
-  })
-
-  // 转换 Set 为数组并排序
-  const sortedCategories = Array.from(categories).sort()
-  sortedCategories.push('root')
-
-  // 转换子分类 Set 为排序后的数组，确保 'root' 在最后
-  const processedSubCategories = {}
-  for (const category in subCategories) {
-    const subCats = Array.from(subCategories[category])
-    const rootIndex = subCats.indexOf('root')
-    if (rootIndex !== -1) {
-      subCats.splice(rootIndex, 1)
-      subCats.sort()
-      subCats.push('root')
-    } else {
-      subCats.sort()
-    }
-    processedSubCategories[category] = subCats
-  }
-
-  return {
-    categories: sortedCategories,
-    allLoras: data.loras,
-    categorizedLoras,
-    subCategories: processedSubCategories
-  }
-}
-
-// 获取当前分类的子分类
-const subCategories = computed(() => {
-  if (currentCategory.value === 'all' || currentCategory.value === 'root') {
-    return []
-  }
-  return loraData.value.subCategories[currentCategory.value] || []
-})
-
-// 根据当前分类和子分类获取显示的文件列表
-const filteredLoraList = computed(() => {
-  let list = []
-  
-  // 先根据分类获取基础列表
-  if (currentCategory.value === 'all') {
-    list = loraData.value.allLoras
-  } else {
-    const categoryData = loraData.value.categorizedLoras[currentCategory.value]
-    if (!categoryData) return []
-    
-    if (currentCategory.value === 'root' || !currentSubCategory.value) {
-      list = categoryData[''] || []
-    } else {
-      list = categoryData[currentSubCategory.value] || []
-    }
-  }
-
-  // 如果有搜索词，进行过滤
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    return list.filter(lora => {
-      // 优先匹配 local_info.name
-      if (lora.local_info?.name) {
-        return lora.local_info.name.toLowerCase().includes(query)
-      }
-      // 如果没有 local_info.name，则匹配 name
-      return lora.name.toLowerCase().includes(query)
-    })
-  }
-
-  return list
-})
-
-// 选择分类时重置子分类
+// 选择分类时重置子分类和页码
 const selectCategory = (category) => {
-  currentCategory.value = category
-  currentSubCategory.value = 'root'
+  if (category === "all") {
+    paginatedLoraList.value = []
+    currentCategory.value = category
+    currentSubCategory.value = "/"
+    selectFolder.value = folderList.value[category]
+    const rootFolder = selectFolder.value
+    if (rootFolder) {
+      currentPage.value = 1 // 重置页码
+      const valuesArray = Object.values(rootFolder)
+      // 根据当前页码获取对应的50条数据
+      const startIndex = (currentPage.value - 1) * 50
+      const endIndex = startIndex + 50
+      const pageData = valuesArray.slice(startIndex, endIndex)
+      getRangeLoraList(pageData)
+    }
+  } else {
+    paginatedLoraList.value = []
+    currentCategory.value = category
+    currentSubCategory.value = "/"
+    selectFolder.value = folderList.value[category]
+    const rootFolder = selectFolder.value["/"]
+    if (rootFolder) {
+      currentPage.value = 1 // 重置页码
+      const valuesArray = Object.values(rootFolder)
+      // 根据当前页码获取对应的50条数据
+      const startIndex = (currentPage.value - 1) * 50
+      const endIndex = startIndex + 50
+      const pageData = valuesArray.slice(startIndex, endIndex)
+      getRangeLoraList(pageData)
+    }
+  }
+
 }
 
-// 获取分类列表
-const categories = computed(() => {
-  return loraData.value.categories
-})
+const selectSecondCategory = (subCategory) => {
+  if (subCategory != currentSubCategory.value) {
+    currentSubCategory.value = subCategory
+    paginatedLoraList.value = []
+    const rootFolder = selectFolder.value[currentSubCategory.value]
+    if (rootFolder) {
+      currentPage.value = 1 // 重置页码
+      const valuesArray = Object.values(rootFolder)
+      // 根据当前页码获取对应的50条数据
+      const startIndex = (currentPage.value - 1) * 50
+      const endIndex = startIndex + 50
+      const pageData = valuesArray.slice(startIndex, endIndex)
+      getRangeLoraList(pageData)
+    }
+  }
+}
 
-const getLoraList = async () => {
-  const res = await loraApi.getLoraList()
-  // 处理数据并存储
-  loraData.value = processLoraData(res.data)
+
+const getRangeLoraList = async (arr) => {
+  const res = await loraApi.getLoraRangeList(arr)
+  if (currentPage.value === 1) {
+    paginatedLoraList.value = res.data.loras
+  } else {
+    paginatedLoraList.value = paginatedLoraList.value.concat(res.data.loras)
+  }
 }
 
 const getAllLoraList = async () => {
   if (intervalId.value != null) {
     message({ type: "warn", str: 'message.isLoading' })
+    return
   }
-  const res = await loraApi.getAllLoraList()
-  // 处理数据并存储
-  // loraData.value = processLoraData(res.data)
-  
-  // 每秒调用一次 getAllLoraStatus
-  intervalId.value = setInterval(async () => {
-    await getAllLoraStatus()
-  }, 1000)
 
-  // 假设在某个条件下需要停止调用，可以使用 clearInterval(intervalId)
+  try {
+    await loraApi.getAllLoraList()
+
+    // 每秒调用一次 getAllLoraStatus
+    intervalId.value = setInterval(async () => {
+      await getAllLoraStatus()
+    }, 1000)
+  } catch (error) {
+    console.error('Failed to get all lora list:', error)
+    message({ type: "error", str: 'message.loadFailed' })
+  }
 }
 
 const getAllLoraStatus = async () => {
-  const res = await loraApi.getAllLoraStatus()
-  // console.log(res)
-  if (res.data.isLoading == false) {
+  try {
+    const res = await loraApi.getAllLoraStatus()
+
+    if (res.data.isLoading === false) {
+      clearInterval(intervalId.value)
+      intervalId.value = null
+      message({ type: "success", str: 'message.loaddingSuccess' })
+      // 加载完成后刷新列表
+      await refreshList()
+    } else {
+      message({ type: "warn", str: 'message.loaddingPrc', name: res.data.progress })
+    }
+  } catch (error) {
+    console.error('Failed to get lora status:', error)
     clearInterval(intervalId.value)
-    message({ type: "success", str: 'message.loaddingSuccess'})
-  }else{
-    message({ type: "warn", str: 'message.loaddingPrc', name: res.data.progress})
+    intervalId.value = null
+    message({ type: "error", str: 'message.loadFailed' })
   }
-  // 处理数据并存储
-  // loraData.value = processLoraData(res.data)
 }
 
 const refreshList = async () => {
   if (isRefreshing.value) return
   isRefreshing.value = true
+  currentPage.value = 1 // 刷新时重置页码
+  hasLoadedAll.value = false
+  isLoadingMore.value = false
+
   try {
-    await getLoraList()
+    await getFolderList()
+    nextTick(() => {
+      selectCategory('all')
+    })
   } catch (error) {
     console.error('Failed to refresh lora list:', error)
   } finally {
@@ -311,25 +351,109 @@ const refreshList = async () => {
   }
 }
 
+
+// 加载更多数据
+const loadMoreData = async () => {
+  // 如果已经是最后一页，标记为全部加载完成
+  if (currentPage.value >= totalPages.value) {
+    hasLoadedAll.value = true
+    return
+  }
+
+  isLoadingMore.value = true
+
+  try {
+    // 增加页码
+    currentPage.value++
+    // 加载更多数据
+    if (isSearch.value) {
+      selectFolder.value = res.data
+      if (selectFolder.value.length > 0) {
+        const valuesArray = Object.values(selectFolder.value)
+        // 根据当前页码获取对应的50条数据
+        const startIndex = (currentPage.value - 1) * 50
+        const endIndex = startIndex + 50
+        const pageData = valuesArray.slice(startIndex, endIndex)
+        getRangeLoraList(pageData)
+      }
+    } else {
+      if (currentCategory.value === "all") {
+        selectFolder.value = folderList.value[currentCategory.value]
+        const rootFolder = selectFolder.value
+        if (rootFolder) {
+          const valuesArray = Object.values(rootFolder)
+          // 根据当前页码获取对应的50条数据
+          const startIndex = (currentPage.value - 1) * 50
+          const endIndex = startIndex + 50
+          const pageData = valuesArray.slice(startIndex, endIndex)
+          getRangeLoraList(pageData)
+        }
+      } else {
+        const rootFolder = selectFolder.value[currentSubCategory.value]
+        if (rootFolder) {
+          const valuesArray = Object.values(rootFolder)
+          // 根据当前页码获取对应的50条数据
+          const startIndex = (currentPage.value - 1) * 50
+          const endIndex = startIndex + 50
+          const pageData = valuesArray.slice(startIndex, endIndex)
+          getRangeLoraList(pageData)
+        }
+      }
+    }
+
+
+  } finally {
+    isLoadingMore.value = false
+  }
+}
+
+// 重置加载状态
+const resetLoadingState = () => {
+  currentPage.value = 1
+  hasLoadedAll.value = false
+  isLoadingMore.value = false
+}
+
+// 监听分类和搜索变化，重置页码和加载状态
+watch([currentCategory, currentSubCategory, searchQuery], () => {
+  resetLoadingState()
+})
+
+// 组件挂载时加载数据
 onMounted(() => {
-  getLoraList()
+  refreshList()
 })
 
 // 选择Lora
 const selectLora = (lora) => {
-  // console.log(lora)
-  window.postMessage({
-    type: 'weilin_prompt_ui_selectLora',
-    lora: {
-      name: lora.model_name,
-      lora: lora.name,
-      weight: lora.local_info.strengthMin ? lora.local_info.strengthMin : 0.5,
-      text_encoder_weight: lora.local_info.strWeight ? lora.local_info.strWeight : 0.5,
-      loraWorks: lora.local_info.loraWorks ? lora.local_info.loraWorks : '',
-    }
-  }, '*')
+  if (seed.value !== '') {
+    window.postMessage({
+      type: 'weilin_prompt_ui_selectLora_stack_' + seed.value,
+      lora: {
+        name: lora.model_name,
+        lora: lora.name,
+        weight: lora.local_info?.strengthMin ? lora.local_info.strengthMin : 0.5,
+        text_encoder_weight: lora.local_info?.strWeight ? lora.local_info.strWeight : 0.5,
+        loraWorks: lora.local_info?.loraWorks ? lora.local_info.loraWorks : '',
+      }
+    }, '*')
+  } else {
+    window.postMessage({
+      type: 'weilin_prompt_ui_selectLora',
+      lora: {
+        name: lora.model_name,
+        lora: lora.name,
+        weight: lora.local_info?.strengthMin ? lora.local_info.strengthMin : 0.5,
+        text_encoder_weight: lora.local_info?.strWeight ? lora.local_info.strWeight : 0.5,
+        loraWorks: lora.local_info?.loraWorks ? lora.local_info.loraWorks : '',
+      }
+    }, '*')
+  }
 }
 
+defineExpose({
+  openSetSeed
+})
 
 </script>
 
@@ -337,16 +461,47 @@ const selectLora = (lora) => {
 .weilin_prompt_ui_lora-manager {
   overflow: hidden;
   background: var(--weilin-prompt-ui-primary-bg);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .weilin_prompt_ui_lora-manager-container {
   padding: 16px;
 }
 
+.weilin_prompt_ui_lora-list-container {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+  padding-right: 8px;
+  box-sizing: border-box;
+}
+
+.weilin_prompt_ui_lora-list-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.weilin_prompt_ui_lora-list-container::-webkit-scrollbar-track {
+  background: var(--weilin-prompt-ui-scrollbar-track);
+  border-radius: 3px;
+}
+
+.weilin_prompt_ui_lora-list-container::-webkit-scrollbar-thumb {
+  background: var(--weilin-prompt-ui-scrollbar-thumb);
+  border-radius: 3px;
+}
+
+.weilin_prompt_ui_lora-list-container::-webkit-scrollbar-thumb:hover {
+  background: var(--weilin-prompt-ui-scrollbar-thumb-hover);
+}
+
+
 .weilin_prompt_ui_lora-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding-bottom: 16px;
 }
 
 .weilin_prompt_ui_lora-item {
@@ -515,5 +670,84 @@ const selectLora = (lora) => {
   outline: none;
   border-color: var(--weilin-prompt-ui-primary-color);
   box-shadow: 0 0 0 2px rgba(var(--weilin-prompt-ui-primary-color), 0.2);
+}
+
+/* 分页控制样式 */
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 10px 0;
+  gap: 10px;
+}
+
+.weilin_prompt_ui_page-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--weilin-prompt-ui-border-color);
+  border-radius: 4px;
+  background: var(--weilin-prompt-ui-primary-bg);
+  color: var(--weilin-prompt-ui-primary-text);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.weilin_prompt_ui_page-btn:hover:not(:disabled) {
+  background: var(--weilin-prompt-ui-hover-bg-color);
+}
+
+.weilin_prompt_ui_page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-info {
+  color: var(--weilin-prompt-ui-secondary-text);
+}
+
+.loading-indicator,
+.empty-list {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: var(--weilin-prompt-ui-secondary-text);
+  font-size: 16px;
+}
+
+.loading-more,
+.no-more-data {
+  text-align: center;
+  padding: 15px 0;
+  color: var(--weilin-prompt-ui-secondary-text);
+  font-size: 14px;
+}
+
+.no-more-data {
+  color: var(--weilin-prompt-ui-secondary-text);
+  opacity: 0.8;
+}
+
+.weilin_prompt_ui_lora-card {
+  border: 1px solid var(--weilin-prompt-ui-border-color);
+  border-radius: 8px;
+  background: var(--weilin-prompt-ui-primary-bg);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  aspect-ratio: 1/1.3;
+  /* 保持卡片比例 */
+}
+
+.weilin_prompt_ui_lora-preview {
+  aspect-ratio: 1/1;
+  /* 保持图片区域为正方形 */
+}
+
+.weilin_prompt_ui_lora-name {
+  margin: 0;
+  font-size: 14px;
+  color: var(--weilin-prompt-ui-primary-text);
+  word-break: break-word;
+  white-space: normal;
+  line-height: 1.2;
 }
 </style>

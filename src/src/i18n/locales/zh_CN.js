@@ -15,6 +15,7 @@ export default {
         removeLayer: '减去括号',
         oneClickTranslate: '一键翻译未翻译的词组',
         hiddenHint: "双击显示提示词",
+        tagTips: "鼠标左键双击屏蔽Tag<br>鼠标左键单击Tag可以编辑<br>鼠标左键拖动可以拖动Tag",
         settings: {
             title: '设置',
             cancel: '取消',
@@ -140,6 +141,7 @@ export default {
     },
     lora: {
         "title": "Lora 信息",
+        rawTitle: "LoraRaw",
         "file": "文件",
         "hash": "Hash值",
         "civitai": "Civitai",
@@ -164,6 +166,9 @@ export default {
         "strWeight": "文本强度权重",
         hideLora: "隐藏Lora",
         showLora: "显示Lora",
+        baseModel: "基础模型",
+        skipClip: "跳过层",
+        seeLoraRaw: "查看LoraRaw",
     },
     tagManager: {
         "deletePrimaryCategoryConfirm": "确定要删除分类 {name} 吗？",
@@ -260,6 +265,11 @@ export default {
         refresh: "刷新",
         cacheAll: "缓存全部Lora信息",
         searchPlaceholder: "搜索Lora...",
+        prevPage: "上一页",
+        nextPage: "下一页",
+        noResults: "未找到相关结果",
+        loadingMore: "正在加载更多...",
+        noMoreData: "没有更多结果了",
     },
     "message": {
         "copySuccess": "复制成功",
@@ -302,7 +312,8 @@ export default {
         tranlaterPackageInstallSuccess: '安装翻译包成功',
         translaterTestFail: "翻译失败，请使用其它的翻译服务进行尝试",
         "installPackageSuccess": "安装共享数据成功！",
-        "installPackageFail": "安装共享数据失败，请查看后台错误"
+        "installPackageFail": "安装共享数据失败，请查看后台错误",
+        loadFailed: "加载失败",
     },
     history: {
         "title": "历史记录",
@@ -348,6 +359,7 @@ export default {
         "aiWindow": "打开AI对话",
         "restoreWindow": "重置所有窗口",
         "openNodeListWindow": "打开节点列表",
+        tranToWeb: "图片转换工具",
     },
     aiWindow: {
         "windowTitle": "AI对话窗口",
@@ -466,5 +478,14 @@ export default {
         "esperanto": "世界语",
         "basque": "巴斯克语",
         "irish": "爱尔兰语"
+    },
+    utils: {
+        tranToWeb: '转换图片为HTML',
+        dropOrPasteImage: '拖动图片或粘贴图片到此处',
+        downloadHtml: '下载HTML',
+        copyHtml: '复制HTML',
+        copySuccess: 'HTML已复制',
+        copyFailed: '复制HTML失败',
+        clear: '清空内容'
     }
 } 

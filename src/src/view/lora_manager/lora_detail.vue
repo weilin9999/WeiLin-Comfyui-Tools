@@ -35,6 +35,11 @@
                                 <tr>
                                     <td class="label">{{ t('lora.file') }}</td>
                                     <td colspan="2">{{ loraInfo.file }}</td>
+                                    <td colspan="3">
+                                        <button class="fetch-btn" @click="openLoraRaw(loraInfo.raw.metadata)">
+                                            {{ t('lora.seeLoraRaw') }}
+                                        </button>
+                                    </td>
                                 </tr>
 
                                 <!-- Hash值 -->
@@ -105,7 +110,34 @@
                                     </td>
                                 </tr>
 
-                                
+                                <!-- 基础模型 -->
+                                <tr>
+                                    <td class="label">{{ t('lora.baseModel') }}</td>
+                                    <td colspan="2">{{
+                                        !loraInfo.baseModelFile && !loraInfo.baseModelFile
+                                            ? ""
+                                            : (loraInfo.baseModel || "") +
+                                            (loraInfo.baseModelFile
+                                                ? `
+                                        (${loraInfo.baseModelFile})`
+                                                : "")
+                                    }}</td>
+                                </tr>
+
+                                <!-- 跳过层 -->
+                                <tr>
+                                    <td class="label">{{ t('lora.skipClip') }}</td>
+                                    <td colspan="2">{{
+                                        (_t =
+                                            (_s = loraInfo.raw) === null || _s === void 0
+                                                ? void 0
+                                                : _s.metadata) === null || _t === void 0
+                                            ?void 0
+                                        : _t.ss_clip_skip
+                                        }}</td>
+                                </tr>
+
+
                                 <!-- 其他可编辑字段 -->
                                 <template v-for="field in editableFields" :key="field.key">
                                     <tr :class="{ 'is-editing': isEditing[field.key] }">
@@ -154,9 +186,9 @@
                                     </td>
                                     <td colspan="2">
                                         <ul class="word-list">
-                                            <li v-for="(word, index) in isCollapsed ? trainedWords.slice(0, 10) : trainedWords" 
-                                                 :key="'words-'+index" class="word-item"
-                                                :class="{ 'is-selected': isWordSelected(word.word) ,'is-hidden': isCollapsed && index >= 10}"
+                                            <li v-for="(word, index) in isCollapsed ? trainedWords.slice(0, 10) : trainedWords"
+                                                :key="'words-' + index" class="word-item"
+                                                :class="{ 'is-selected': isWordSelected(word.word), 'is-hidden': isCollapsed && index >= 10 }"
                                                 @click="toggleWordSelection(word.word)">
                                                 <span>{{ word.word }}</span>
                                                 <svg v-if="word.civitai" viewBox="0 0 24 24" width="16" height="16"
@@ -166,7 +198,8 @@
                                                 </svg>
                                                 <small v-if="word.count != null">{{ word.count }}</small>
                                             </li>
-                                            <li v-if="trainedWords.length > 10" class="toggle-btn" @click="toggleCollapse">
+                                            <li v-if="trainedWords.length > 10" class="toggle-btn"
+                                                @click="toggleCollapse">
                                                 {{ isCollapsed ? t('common.showMore') : t('common.showLess') }}
                                             </li>
                                         </ul>
@@ -242,6 +275,8 @@
         </template>
     </DraggableWindow>
 
+    <loraRaw ref="loraRawRef" />
+
 </template>
 
 <script setup>
@@ -251,6 +286,7 @@ import DraggableWindow from '@/components/DraggableWindow.vue'
 import { windowManager } from '@/utils/windowManager'
 import message from '@/utils/message'
 import { loraApi } from '@/api/lora'
+import loraRaw from './lora_raw.vue'
 
 const { t } = useI18n()
 const loading = ref(false)
@@ -353,6 +389,13 @@ defineExpose({
 
 const fileURL = ref('')
 const emit = defineEmits(['close', 'update'])
+
+
+const loraRawRef = ref()
+
+const openLoraRaw = (loraRawData) => {
+    loraRawRef.value.open(loraRawData)
+}
 
 // 编辑状态管理
 const isEditing = ref({})
@@ -511,7 +554,7 @@ const refreshLoraInfo = async () => {
             });
         })
         .catch((err) => {
-            message({ type: "warn", str:  'message.networkError' });
+            message({ type: "warn", str: 'message.networkError' });
             loading.value = false;
         });
 }
@@ -550,49 +593,49 @@ const saveInfo = (param) => {
     loraApi
         .postLoraSave(fileURL.value, param)
         .then((res) => {
-          // console.log(res.data.data)
-          loraInfo.value = res.data;
-          nextTick(function () {
-            var _j, _k, _u, _v, _w;
-            loraInfo.value.name =
-              loraInfo.value.name ||
-              ((_k =
-                (_j = loraInfo.value.raw) === null || _j === void 0
-                  ? void 0
-                  : _j.metadata) === null || _k === void 0
-                ? void 0
-                : _k.ss_output_name === void 0
-                  ? _k["modelspec.title"]
-                  : _k.ss_output_name) ||
-              "";
-            editValues.value.nameValue = loraInfo.value.name;
-            loraInfo.value.strengthMin =
-              (_u = loraInfo.value.strengthMin) !== null && _u !== void 0
-                ? _u
-                : "";
-            editValues.value.minValue = loraInfo.value.strengthMin;
-            loraInfo.value.strengthMax =
-              (_v = loraInfo.value.strengthMax) !== null && _v !== void 0
-                ? _v
-                : "";
-            editValues.value.maxValue = loraInfo.value.strengthMax;
-            loraInfo.value.userNote =
-              (_w = loraInfo.value.userNote) !== null && _w !== void 0
-                ? _w
-                : "";
-            editValues.value.notesValue = loraInfo.value.userNote;
+            // console.log(res.data.data)
+            loraInfo.value = res.data;
+            nextTick(function () {
+                var _j, _k, _u, _v, _w;
+                loraInfo.value.name =
+                    loraInfo.value.name ||
+                    ((_k =
+                        (_j = loraInfo.value.raw) === null || _j === void 0
+                            ? void 0
+                            : _j.metadata) === null || _k === void 0
+                        ? void 0
+                        : _k.ss_output_name === void 0
+                            ? _k["modelspec.title"]
+                            : _k.ss_output_name) ||
+                    "";
+                editValues.value.nameValue = loraInfo.value.name;
+                loraInfo.value.strengthMin =
+                    (_u = loraInfo.value.strengthMin) !== null && _u !== void 0
+                        ? _u
+                        : "";
+                editValues.value.minValue = loraInfo.value.strengthMin;
+                loraInfo.value.strengthMax =
+                    (_v = loraInfo.value.strengthMax) !== null && _v !== void 0
+                        ? _v
+                        : "";
+                editValues.value.maxValue = loraInfo.value.strengthMax;
+                loraInfo.value.userNote =
+                    (_w = loraInfo.value.userNote) !== null && _w !== void 0
+                        ? _w
+                        : "";
+                editValues.value.notesValue = loraInfo.value.userNote;
 
-            loading.value = false;
-          });
+                loading.value = false;
+            });
 
-          message({ type: "success", str: 'message.saveSuccess' });
+            message({ type: "success", str: 'message.saveSuccess' });
         })
         .catch((err) => {
-          message({ type: "warn", str: 'message.networkError'});
-          // console.log(err)
-          loading.value = false;
+            message({ type: "warn", str: 'message.networkError' });
+            // console.log(err)
+            loading.value = false;
         });
-    }
+}
 
 const toggleWordSelection = (word) => {
     const index = selectedWords.value.indexOf(word)
@@ -645,7 +688,7 @@ const statusText = computed(() => {
 const isCollapsed = ref(true); // 添加展开/收起状态
 
 const toggleCollapse = () => {
-  isCollapsed.value = !isCollapsed.value;
+    isCollapsed.value = !isCollapsed.value;
 }
 
 </script>
@@ -965,18 +1008,18 @@ input:focus {
 }
 
 .word-item .is-hidden {
-  display: none;
+    display: none;
 }
 
 .toggle-btn {
-  cursor: pointer;
-  color: var(--primary-color);
-  text-align: center;
-  padding: 4px;
-  margin-top: 8px;
+    cursor: pointer;
+    color: var(--primary-color);
+    text-align: center;
+    padding: 4px;
+    margin-top: 8px;
 }
 
 .toggle-btn:hover {
-  text-decoration: underline;
+    text-decoration: underline;
 }
 </style>

@@ -21,7 +21,7 @@
       :position="windows.lora.position" :size="windows.lora.size" :z-index="windowManager.getZIndex('lora')"
       @update:position="updatePosition('lora', $event)" @update:size="updateSize('lora', $event)"
       @active="windowManager.setActiveWindow('lora')" @close="closeWindow('lora')">
-      <LoraManager :loraManager="loraManager" />
+      <LoraManager :loraManager="loraManager" ref="loraManagerRef" />
     </DraggableWindow>
 
     <!-- 历史记录窗口  -->
@@ -64,6 +64,18 @@
       <CloudWindow />
     </DraggableWindow>
 
+    <!-- Lora堆窗口 -->
+    <DraggableWindow name="loraStackWindow" v-if="windows.lora_stack_window.visible" 
+    :title="t('controls.loraStack')"
+      :position="windows.lora_stack_window.position" :size="windows.lora_stack_window.size"
+      :z-index="windowManager.getZIndex('lora_stack_window')"
+      @update:position="updatePosition('lora_stack_window', $event)"
+      @update:size="updateSize('lora_stack_window', $event)"
+      @active="windowManager.setActiveWindow('lora_stack_window')"
+      @close="closeWindow('lora_stack_window')">
+      <LoraStackWindow ref="loraStackRef" />
+    </DraggableWindow>
+
     <!-- 悬浮球 -->
     <FloatingBall v-if="isFloatingBallEnabled">WeiLin</FloatingBall>
 
@@ -84,6 +96,7 @@ import { useTagStore } from '@/stores/tagStore';
 import AiWindow from '@/view/ai_window/ai_window.vue'
 import NodeListWindow from '@/view/node_list/index.vue'
 import CloudWindow from '@/view/cloud/index.vue'
+import LoraStackWindow from '@/view/lora_manager/lora_stack.vue'
 import { translatorApi } from '@/api/translator'
 import { tagsApi } from '@/api/tags'
 
@@ -113,38 +126,51 @@ const globalPrompt = ref('')
 const DEFAULT_WINDOWS = {
   prompt: {
     visible: false,
+    is_default_close: false,
     position: { x: 100, y: 100 },
     size: { width: 600, height: 500 }
   },
   tag: {
     visible: false,
+    is_default_close: false,
     position: { x: 150, y: 150 },
     size: { width: 800, height: 600 }
   },
   lora: {
     visible: false,
+    is_default_close: false,
     position: { x: 200, y: 200 },
     size: { width: 800, height: 600 }
   },
   history: {
     visible: false,
+    is_default_close: false,
     position: { x: 300, y: 300 },
     size: { width: 800, height: 600 }
   },
   ai_window: {
     visible: false,
+    is_default_close: false,
     position: { x: 400, y: 400 },
     size: { width: 800, height: 600 }
   },
   node_list_window: {
     visible: false,
+    is_default_close: false,
     position: { x: 100, y: 100 },
     size: { width: 300, height: 600 }
   },
   cloud_window: {
     visible: false,
+    is_default_close: false,
     position: { x: 100, y: 100 },
     size: { width: 800, height: 600 }
+  },
+  lora_stack_window: {
+    visible: false,
+    is_default_close: true,
+    position: { x: 100, y: 100 },
+    size: { width: 300, height: 600 }
   }
 }
 
@@ -161,7 +187,9 @@ const getInitialWindowState = () => {
         if (key in mergedState) {
           mergedState[key] = {
             ...DEFAULT_WINDOWS[key],
-            ...parsedState[key]
+            ...parsedState[key],
+            // 如果is_default_close为true，则强制visible为false
+            visible: parsedState[key].is_default_close ? false : parsedState[key].visible
           }
         }
       }
@@ -190,8 +218,10 @@ watch(windows, (newState) => {
 // 组件挂载时注册所有窗口
 onMounted(() => {
   Object.keys(windows.value).forEach(windowName => {
+    // console.log(windowName)
     windowManager.registerWindow(windowName)
   })
+
   initTheme()
   // 添加消息监听
   window.addEventListener('message', handleMessage)
@@ -254,6 +284,7 @@ const restoreWindowsToDefault = () => {
   const LORA_DETAIL_WINDOWS = {
     loraDetail: {
         visible: false,
+        is_default_close: false,
         position: { x: 150, y: 150 },
         size: { width: 800, height: 600 }
     }
@@ -262,38 +293,51 @@ const restoreWindowsToDefault = () => {
   const DEFAULT_GOL_WINDOWS = {
     prompt: {
       visible: false,
+      is_default_close: false,
       position: { x: 100, y: 100 },
       size: { width: 600, height: 400 }
     },
     tag: {
       visible: false,
+      is_default_close: false,
       position: { x: 150, y: 150 },
       size: { width: 800, height: 600 }
     },
     lora: {
       visible: false,
+      is_default_close: false,
       position: { x: 200, y: 200 },
       size: { width: 800, height: 600 }
     },
     history: {
       visible: false,
+      is_default_close: false,
       position: { x: 300, y: 300 },
       size: { width: 800, height: 600 }
     },
     ai_window: {
       visible: false,
+      is_default_close: false,
       position: { x: 400, y: 400 },
       size: { width: 800, height: 600 }
     },
     node_list_window: {
       visible: false,
+      is_default_close: false,
       position: { x: 100, y: 100 },
       size: { width: 400, height: 800 }
     },
     cloud_window: {
       visible: false,
+      is_default_close: false,
       position: { x: 100, y: 100 },
       size: { width: 800, height: 600 }
+    },
+    lora_stack_window: {
+      visible: false,
+      is_default_close: true,
+      position: { x: 100, y: 100 },
+      size: { width: 300, height: 600 }
     }
   }
 
@@ -316,6 +360,8 @@ const getTranslaterSetting = () => {
 getTranslaterSetting()
 
 const promptBoxRef = ref()
+const loraStackRef = ref()
+const loraManagerRef = ref()
 
 // 处理消息
 const handleMessage = (event) => {
@@ -349,6 +395,16 @@ const handleMessage = (event) => {
   } else if (event.data.type === 'weilin_prompt_ui_openLoraManager_addLora') {
     loraManager.value = 'addLora'
     windows.value.lora.visible = true
+    nextTick(() => {  
+      loraManagerRef.value.openSetSeed("")
+    })
+    windowManager.setActiveWindow('lora')
+  } else if (event.data.type === 'weilin_prompt_ui_openLoraManager_addLora_stack') {
+    loraManager.value = 'addLora'
+    windows.value.lora.visible = true
+    nextTick(() => {  
+      loraManagerRef.value.openSetSeed(event.data.seed)
+    })
     windowManager.setActiveWindow('lora')
   } else if (event.data.type === 'weilin_prompt_ui_openHistoryManager') {
     windows.value.history.visible = true
@@ -391,6 +447,12 @@ const handleMessage = (event) => {
   }else if (event.data.type === 'weilin_prompt_ui_open_cloud_window') {
     windows.value.cloud_window.visible = true
     windowManager.setActiveWindow('cloud_window')
+  } else if (event.data.type === 'weilin_prompt_ui_open_node_lora_stack_window') {
+    windows.value.lora_stack_window.visible = true
+    nextTick(() => {  
+      loraStackRef.value.initLoraStack(event.data.prompt,event.data.seed)
+    })
+    windowManager.setActiveWindow('lora_stack_window')
   }
 }
 

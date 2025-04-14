@@ -86,6 +86,11 @@ class WeiLinPromptUI:
                     "default": "",
                     "placeholder": "temp prompt words",
                 }),
+                "temp_lora_str": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "placeholder": "temp prompt words",
+                }),
                 "opt_text": (ANY, {"default": ""}),
                 "opt_clip": ("CLIP", ),
                 "opt_model": ("MODEL",),
@@ -141,7 +146,7 @@ class WeiLinPromptUI:
                     strength_model = 0.5
 
                 lora_path = folder_paths.get_full_path("loras", str_lora_item["lora"])
-                print("lora_path:",lora_path)
+                print("加载Lora lora_path:",lora_path)
                 lora = None
                 if self.loaded_loraA is not None:
                     if self.loaded_loraA[0] == lora_path:
@@ -161,8 +166,144 @@ class WeiLinPromptUI:
             outputA = clip_lora_secondA.encode_from_tokens(tokensA, return_pooled=True, return_dict=True)
             condA = outputA.pop("cond")
             return (text_dec,[[condA, outputA]], clip_lora_secondA, model_lora_secondA)
-        return (text_dec, clip_lora_secondA, opt_clip, model_lora_secondA)
+        return (text_dec, clip_lora_secondA, clip_lora_secondA, model_lora_secondA)
         # return (model_lora_second, clip_lora_second)
+
+
+# 提示词UI - 仅使用Lora堆
+class WeiLinPromptUIOnlyLoraStack:
+
+    def __init__(self):
+        self.loaded_loraA = None
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "clip": ("CLIP", ),
+                "model": ("MODEL",),
+            },
+            "optional": {
+                "lora_str": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "placeholder": placeholder_lora_text,
+                }),
+                "temp_lora_str": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "placeholder": "temp prompt words",
+                }),
+            }
+        }
+
+    RETURN_TYPES = ( "CLIP", "MODEL", )
+    RETURN_NAMES = ( "CLIP", "MODEL", )
+
+    # FUNCTION = "encode"
+    FUNCTION = "load_lora_ing"
+
+    # OUTPUT_NODE = False
+
+    CATEGORY = node_name_text
+
+    # 加载Lora
+    def load_lora_ing(self, lora_str="", clip=None, model=None):
+        model_lora_secondA = model
+        clip_lora_secondA = clip
+
+        lora_list= None
+
+        if len(lora_str) > 0:
+            json_object = json.loads(lora_str)
+            lora_list = json_object
+
+        # 当模型不为空时
+        if model != None and lora_list != None:
+            for str_lora_item in lora_list:
+                # print(loar_sim_path,str_n_arr)
+                strength_model = float(str_lora_item["weight"])
+                strength_clip = float(str_lora_item["text_encoder_weight"])
+                print("strength_model：",strength_model,"strength_clip：",strength_clip)
+                if strength_clip<=0.0:
+                    strength_clip = 0
+                if strength_model <= 0.0:
+                    strength_model = 0.5
+
+                lora_path = folder_paths.get_full_path("loras", str_lora_item["lora"])
+                print("加载Lora lora_path:",lora_path)
+                lora = None
+                if self.loaded_loraA is not None:
+                    if self.loaded_loraA[0] == lora_path:
+                        lora = self.loaded_loraA[1]
+                    else:
+                        temp = self.loaded_loraA
+                        self.loaded_loraA = None
+                        del temp
+
+                if lora is None:
+                    lora = comfy.utils.load_torch_file(lora_path, safe_load=True)
+                    self.loaded_loraA = (lora_path, lora)
+
+                model_lora_secondA, clip_lora_secondA = load_lora_for_models(model_lora_secondA, clip_lora_secondA, lora, strength_model, strength_clip)
+
+        return (clip_lora_secondA, model_lora_secondA)
+        # return (model_lora_second, clip_lora_second)
+
+# 提示词UI - 不加载Lora
+class WeiLinPromptUIWithoutLora:
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "positive": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "placeholder": placeholder_text,
+                }),
+            },
+            "optional": {
+                "temp_str": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "placeholder": "temp prompt words",
+                }),
+                "opt_text": (ANY, {"default": ""}),
+                "opt_clip": ("CLIP", ),
+            }
+        }
+
+    RETURN_TYPES = ("STRING", "CONDITIONING", "CLIP", )
+    RETURN_NAMES = ("STRING", "CONDITIONING", "CLIP", )
+
+    FUNCTION = "encode"
+
+    CATEGORY = node_name_text
+
+    def encode(self, positive="", opt_text="", opt_clip=None):
+        text_dec = ""
+        if is_json(positive):
+            json_object = json.loads(positive)
+            if len(opt_text) > 0:
+                text_dec = opt_text +", "+ json_object.get("prompt", "")
+            else:
+                text_dec = json_object.get("prompt", "")
+        else:
+            if len(opt_text) > 0:
+                text_dec = opt_text +", "+positive
+            else:
+                text_dec = positive
+        
+        if opt_clip is not None:
+            tokens = opt_clip.tokenize(text_dec)
+            return (text_dec, opt_clip.encode_from_tokens_scheduled(tokens), opt_clip)
+        
+        return (text_dec, opt_clip, opt_clip)
+
 
 
 def load_lora_for_models(model, clip, lora, strength_model, strength_clip):
@@ -210,61 +351,13 @@ def copy_folder(source_folder, destination_folder):
 
 
 
-# 提示词UI - 不加载Lora
-class WeiLinPromptUIWithoutLora:
-
-    def __init__(self):
-        pass
-
-    @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "positive": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "placeholder": placeholder_text,
-                }),
-            },
-            "optional": {
-                "opt_text": (ANY, {"default": ""}),
-                "opt_clip": ("CLIP", ),
-            }
-        }
-
-    RETURN_TYPES = ("STRING", "CONDITIONING", "CLIP", )
-    RETURN_NAMES = ("STRING", "CONDITIONING", "CLIP", )
-
-    FUNCTION = "encode"
-
-    CATEGORY = node_name_text
-
-    def encode(self, positive="", opt_text="", opt_clip=None):
-        text_dec = ""
-        if is_json(positive):
-            json_object = json.loads(positive)
-            if len(opt_text) > 0:
-                text_dec = opt_text +", "+ json_object.get("prompt", "")
-            else:
-                text_dec = json_object.get("prompt", "")
-        else:
-            if len(opt_text) > 0:
-                text_dec = opt_text +", "+positive
-            else:
-                text_dec = positive
-        
-        if opt_clip is not None:
-            tokens = opt_clip.tokenize(text_dec)
-            return (text_dec, opt_clip.encode_from_tokens_scheduled(tokens), opt_clip)
-        
-        return (text_dec, opt_clip, opt_clip)
-
 
 # A dictionary that contains all nodes you want to export with their names
 # NOTE: names should be globally unique
 NODE_CLASS_MAPPINGS = {
     "WeiLinPromptUI": WeiLinPromptUI,
     "WeiLinPromptUIWithoutLora": WeiLinPromptUIWithoutLora,
+    "WeiLinPromptUIOnlyLoraStack": WeiLinPromptUIOnlyLoraStack,
 }
 
 # A dictionary that contains the friendly/humanly readable titles for the nodes
@@ -274,11 +367,13 @@ if localLan == "zh_CN":
     NODE_DISPLAY_NAME_MAPPINGS = {
         "WeiLinPromptUI": "WeiLin 提示词UI",
         "WeiLinPromptUIWithoutLora": "WeiLin 提示词UI - 不加载Lora",
+        "WeiLinPromptUIOnlyLoraStack": "WeiLin 提示词UI - 仅使用Lora堆",
     }
 else:
     NODE_DISPLAY_NAME_MAPPINGS = {
         "WeiLinPromptUI": "WeiLin Prompt UI",
         "WeiLinPromptUIWithoutLora": "WeiLin Prompt UI - Do Not Load Lora",
+        "WeiLinPromptUIOnlyLoraStack": "WeiLin Prompt UI - Only Use Lora Stack",
     }
 
 WEB_DIRECTORY = "./js_node"

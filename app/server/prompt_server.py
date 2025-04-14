@@ -62,6 +62,23 @@ async def _get_extra_networks_load_all(request):
 @PromptServer.instance.routes.get(baseUrl+"get_lora_load_status")
 async def _get_lora_load_status(request):
     return web.json_response({"data": loading_status})
+
+# 新写法 日期2025-04-14 拆分获取的方式
+
+@PromptServer.instance.routes.post(baseUrl+"get_lora_folder_list")
+async def _get_lora_folder_list(request):
+    return web.json_response({"data": get_lora_folder()})
+
+@PromptServer.instance.routes.post(baseUrl+"get_lora_list_by_range")
+async def _get_lora_folder_list(request):
+    data = await request.json()
+    return web.json_response({"data": await get_rang_for_extra_networks(data["range"])})
+
+@PromptServer.instance.routes.post(baseUrl+"get_lora_list_by_search")
+async def _get_lora_folder_list(request):
+    data = await request.json()
+    return web.json_response({"data": await search_lora_files(data["search"])})
+
 # =======================================================================================================
 
 # ============================================= Lora 信息 ============================================

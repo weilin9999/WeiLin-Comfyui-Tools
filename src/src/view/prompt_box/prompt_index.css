@@ -476,6 +476,16 @@
     margin-top: 1px;
 }
 
+.lora-manager-container {
+    margin-top: 1px;
+    padding: 6px;
+    box-sizing: border-box;
+    max-height: 600px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
 .tag-manager-section {
     margin-top: 16px;
     background: var(--weilin-prompt-ui-primary-bg);
@@ -786,3 +796,26 @@
     width: 1em;
     height: 1em;
 }
+
+.tag-tips-box {
+    position: fixed;
+    z-index: 1000;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    max-width: 300px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+  }
+  
+  .tag-tips-content {
+    margin: 0;
+  }
+  
+  .tag-tips-content p {
+    white-space: normal;
+    line-height: 1.5;
+  }

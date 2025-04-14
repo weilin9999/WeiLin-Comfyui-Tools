@@ -66,6 +66,98 @@ def prepare_lora_item_data(item_path, auto_fetch=False):
     # item["search_terms"] = ["Lora\\"+item_path]
     return item
 
+def get_lora_folder():
+    """
+    获取Lora文件夹结构，以层次化结构返回，包含每个目录下的文件和子目录
+    
+    返回:
+        包含目录结构的字典:
+        - "/": 根目录
+          - "/": 根目录下的文件列表
+        - "一级目录名": 该一级目录下的子目录和文件
+          - "/": 该目录下的文件列表
+          - "子目录名": 子目录下的文件列表
+    """
+    all_files = folder_paths.get_filename_list("loras")
+    
+    # 初始化结果字典
+    result = {
+        "all": all_files,
+        "/": {
+            "/": {}  # 根目录下的文件
+        }
+    }
+    
+    # 处理所有文件路径
+    for file_path in all_files:
+        parts = file_path.replace('\\', '/').split('/')
+        
+        if len(parts) == 1:
+            # 根目录文件
+            result["/"]["/"][parts[0]] = file_path
+        else:
+            # 一级目录
+            level1_dir = parts[0]
+            
+            # 确保一级目录在结果字典中
+            if level1_dir not in result:
+                result[level1_dir] = {
+                    "/": {}  # 该目录下的文件
+                }
+            
+            if len(parts) == 2:
+                # 一级目录下的文件
+                result[level1_dir]["/"][parts[1]] = file_path
+            else:
+                # 二级及以下目录
+                subdir = "\\".join(parts[1:-1])  # 排除文件名
+                
+                # 确保子目录在一级目录下
+                if subdir not in result[level1_dir]:
+                    result[level1_dir][subdir] = {}  # 子目录下的文件直接存储
+                
+                # 添加文件到子目录，使用完整路径
+                result[level1_dir][subdir][parts[-1]] = file_path
+    
+    return result
+
+async def search_lora_files(query):
+    """
+    模糊搜索Lora文件，根据文件名进行匹配
+    
+    参数:
+        query: 搜索关键词
+    
+    返回:
+        匹配的文件路径列表
+    """
+    all_files = folder_paths.get_filename_list("loras")
+    results = []
+    
+    # 转换查询字符串为小写，用于不区分大小写的搜索
+    query = query.lower()
+    
+    for file_path in all_files:
+        # 获取文件名（不含路径）
+        file_name = os.path.basename(file_path)
+        
+        # 如果文件名包含查询字符串，则添加到结果中
+        if query in file_name.lower():
+            results.append(file_path)
+    
+    return results
+
+async def get_rang_for_extra_networks(arr=[]):
+    return_response= {"loras": []}
+    if len(arr) > 0:
+        items = []
+        with concurrent.futures.ThreadPoolExecutor(max_workers=os.cpu_count()*2) as executor:
+            futures = [executor.submit(prepare_lora_item_data, item_path, False) for item_path in arr]
+            for future in tqdm(futures):
+                items.append(future.result())
+        return_response["loras"] = items
+    return return_response
+
 async def get_extra_networks(auto_fetch=False):
     global loading_status
     loras_path  = folder_paths.get_filename_list("loras")

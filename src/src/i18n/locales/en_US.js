@@ -15,6 +15,7 @@ export default {
         removeLayer: 'Remove Bracket',
         oneClickTranslate: 'One Click Translate Untranslated Phrases',
         hiddenHint: "Double-click to show",
+        tagTips: "Double-click the left mouse button to mask the Tag<br>click the Tag to edit<br>and drag the Tag to drag",
         settings: {
             title: 'Settings',
             cancel: 'Cancel',
@@ -113,6 +114,7 @@ export default {
     },
     lora: {
         "title": "Lora Information",
+        rawTitle: "LoraRaw",
         "file": "File",
         "hash": "Hash",
         "civitai": "Civitai",
@@ -137,6 +139,9 @@ export default {
         "strWeight": "Text Strength Weight",
         hideLora: "Hidden Lora",
         showLora: "Show Lora",
+        baseModel: "Base Model",
+        skipClip: "Clip Skip",
+        seeLoraRaw: "LoraRaw",
     },
     common: {
         confirmDelete: "Confirm Delete",
@@ -252,6 +257,11 @@ export default {
         refresh: "Refresh",
         cacheAll: "Cache all Lora information",
         searchPlaceholder: "Search Lora...",
+        noResults: "No results found",
+        prevPage: "prev page",
+        nextPage: "next page",
+        loadingMore: "Loadding more ...",
+        noMoreData: "No more data",
     },
     "message": {
         "copySuccess": "Copy successful",
@@ -294,6 +304,7 @@ export default {
         translaterTestFail: "Translation failed, please try using another translation service",
         "installPackageSuccess": "Successfully installed translation package",
         "installPackageFail": "Failed to install translation package, please check the background installation status",
+        loadFailed: "load failed",
     },
     cloudWindow:{
         "windowTitle": "Share Cloud Window",
@@ -350,6 +361,7 @@ export default {
         "aiWindow": "open AI Chat",
         "restoreWindow": "reset all windows",
         "openNodeListWindow": "open Node List",
+        tranToWeb: "Image to Web Utils",
     },
     aiWindow: {
         "windowTitle": "AI Chat Window",
@@ -468,5 +480,14 @@ export default {
         "esperanto": "esperanto",
         "basque": "basque",
         "irish": "irish"
+    },
+    utils: {
+        tranToWeb: 'Image to HTML',
+        dropOrPasteImage: 'Drop or paste image here',
+        downloadHtml: 'Download HTML',
+        copyHtml: 'Copy HTML',
+        copySuccess: 'HTML copied to clipboard',
+        copyFailed: 'Failed to copy HTML',
+        clear: 'Clear'
     }
 } 

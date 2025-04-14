@@ -71,5 +71,29 @@ export const loraApi = {
         data: body,
         headers: {'Content-Type': 'multipart/form-data'}
       })
-}
+  },
+
+   // 获取Lora文件夹列表
+  getLoraFolderList: async () => {
+    return await request({
+      url: '/get_lora_folder_list',
+      method: 'post',
+    })
+  },
+  // 根据数组获取Lora具体信息
+  getLoraRangeList: async (range) => {
+    return await request({
+      url: '/get_lora_list_by_range',
+      method: 'post',
+      data:{ range }
+    })
+  },
+  // 查询Lora返回相关信息
+  searchLoraGetFolderList: async (search) => {
+    return await request({
+      url: '/get_lora_list_by_search',
+      method: 'post',
+      data:{ search }
+    })
+  },
 } 

@@ -17,14 +17,19 @@
         <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item3')">{{ t('floatingBall.loraManager') }}</div>
         <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item4')">{{ t('floatingBall.aiWindow') }}</div>
         <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item6')">{{ t('floatingBall.openNodeListWindow') }}</div>
+        <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item7')">{{ t('floatingBall.tranToWeb') }}</div>
         <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item5')">{{ t('floatingBall.restoreWindow') }}</div>
       </div>
     </div>
+
+    <tranToWeb ref="tranToWebRef" />
+
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n'
+import tranToWeb from './tranToWeb.vue';
 
 const { t } = useI18n()
 // 新增悬浮球设置相关状态
@@ -132,8 +137,16 @@ const handleMenuItemClick = (item) => {
         case 'item6':
             window.parent.postMessage({ type: 'weilin_prompt_ui_open_node_list_window' }, '*')
             break;
+        case 'item7':
+            openTranToWebDialog()
+            break;
     }
 };
+
+const tranToWebRef = ref()
+const openTranToWebDialog = () => {
+    tranToWebRef.value.open()
+}
 
 // 监听悬浮球设置
 const handleMessage = (event) => {
@@ -225,10 +238,10 @@ onUnmounted(() => {
 
 .weilin_prompt_ui_menu-container {
     position: absolute;
-    top: -240px;
+    top: -270px;
     /* 目录在悬浮球上方 */
     left: 50%;
-    max-height: 260px;
+    max-height: 290px;
     width: 120px;
     transform: translateX(-50%);
     background-color: var(--p-menubar-submenu-background);

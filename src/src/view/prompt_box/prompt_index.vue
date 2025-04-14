@@ -220,6 +220,13 @@
 
       </div>
 
+      <!-- 添加悬浮提示框 -->
+      <div v-if="showTagTipsBox" class="tag-tips-box" :style="tagTipsPosition">
+        <div class="tag-tips-content">
+          <p v-html="t('promptBox.tagTips')"></p>
+        </div>
+      </div>
+
       <!-- 控制栏容器 -->
       <div v-show="activeControls !== null && tokens[activeControls]" class="token-controls" :style="controlsPosition"
         @mouseenter="isOverControls = true" @mouseleave="handleControlsLeave">
@@ -284,6 +291,31 @@
         </div>
       </div>
 
+      <!-- Lora管理器容器 -->
+      <div class="tag-manager-section">
+        <div class="tag-manager-header" @click="toggleLoraManager">
+          <div class="header-left">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" class="tag-icon" width="24" height="24">
+              <path
+                d="M129 128h350v80H209v224h270v80H129V128zM129 895V576h768v319H129z m80-239v159h608V656H209zM730 356c19.882 0 36-16.118 36-36s-16.118-36-36-36-36 16.118-36 36 16.118 36 36 36z">
+              </path>
+              <path
+                d="M578.517 214.386a32.002 32.002 0 0 0-16.01 27.731l0.058 155.918a31.998 31.998 0 0 0 16 27.701l135.156 78.033a32.002 32.002 0 0 0 31.99 0.006l135.058-77.909a32.002 32.002 0 0 0 16.01-27.731l-0.058-155.918a32 32 0 0 0-16-27.701l-135.157-78.033a31.998 31.998 0 0 0-31.989-0.005l-135.058 77.908z m67.002 58.058l84.033-48.591 84.181 48.715 0.034 95.24-84.034 48.591-84.18-48.714-0.034-95.241z">
+              </path>
+            </svg>
+            <span class="section-title">{{ t('controls.loraManager') }}</span>
+          </div>
+          <div class="header-right">
+            <svg class="collapse-icon" :class="{ 'is-collapsed': !showLoraManager }" viewBox="0 0 24 24">
+              <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" />
+            </svg>
+          </div>
+        </div>
+        <div class="lora-manager-container" v-show="showLoraManager">
+          <LoraManager />
+        </div>
+      </div>
+
       <!-- 标签管理器容器 -->
       <div class="tag-manager-section">
         <div class="tag-manager-header" @click="toggleTagManager">
@@ -323,6 +355,7 @@ import { historyApi } from '@/api/history'
 import message from '@/utils/message'
 import { useTagStore } from '@/stores/tagStore';
 import { autocompleteApi } from '@/api/autocomplete'
+import LoraManager from "@/view/lora_manager/lora_index.vue"
 
 const tagStore = useTagStore();
 const prefix = "weilin_prompt_ui_"
@@ -368,6 +401,13 @@ const autocompleteResults = ref([]);
 const selectedAutocompleteIndex = ref(0);
 
 const translateText = ref('')
+
+// 在现有的ref声明部分添加
+const showTagTipsBox = ref(false);
+const tagTipsPosition = ref({
+  top: '0px',
+  left: '0px'
+});
 
 
 // 添加防抖相关的变量
@@ -616,7 +656,7 @@ const handleInput = (event) => {
   const originalValue = event.target.value;
   const cursorPosition = event.target.selectionStart;
   const cursorEnd = event.target.selectionEnd;
-  
+
 
 
 
@@ -644,7 +684,7 @@ const handleInput = (event) => {
   // 记录每个替换操作前光标位置的字符
   let beforeCursor = originalValue.substring(0, cursorPosition);
   let processedValue = originalValue;
-  
+
   // 应用所有转换
   Object.values(formatConversions).forEach(conversion => {
     if (conversion.enabled) {
@@ -654,7 +694,7 @@ const handleInput = (event) => {
         processedValue = processedValue.replace(conversion.pattern, conversion.replace);
       } else if (conversion.patterns) {
         // 处理多个模式的替换
-        conversion.patterns.forEach(({pattern, replace}) => {
+        conversion.patterns.forEach(({ pattern, replace }) => {
           beforeCursor = beforeCursor.replace(pattern, replace);
           processedValue = processedValue.replace(pattern, replace);
         });
@@ -664,13 +704,13 @@ const handleInput = (event) => {
 
   // 2. 直接更新输入框值
   inputText.value = processedValue;
-  
+
   // 3. 立即计算并设置新的光标位置
   // 使用转换后的beforeCursor长度作为新的光标位置
   const newCursorPosition = beforeCursor.length;
   const selectionDiff = cursorEnd - cursorPosition;
   const newCursorEnd = newCursorPosition + selectionDiff;
-  
+
   // 确保DOM更新后立即设置光标位置
   nextTick(() => {
     if (inputAreaRef.value) {
@@ -682,13 +722,13 @@ const handleInput = (event) => {
 
   // 4. 精确获取当前输入内容用于补全
   const textBeforeCursor = processedValue.substring(0, newCursorPosition);
-  
+
   // 查找当前输入的单词起始位置
   let wordStart = newCursorPosition;
   while (wordStart > 0 && !/[,\s]/.test(textBeforeCursor[wordStart - 1])) {
     wordStart--;
   }
-  
+
   const currentWord = textBeforeCursor.substring(wordStart, newCursorPosition).trim();
 
   // 5. 防抖处理
@@ -1089,10 +1129,8 @@ const finishPromptPutItHistory = () => {
       let putJson = {
         prompt: inputText.value,
         lora: "",
-        temp_data: {
-          tokens: tokens.value,
-          lora: selectedLoras.value
-        }
+        temp_prompt: tokens.value,
+        temp_lora: selectedLoras.value
       }
       if (tempLora.length > 0) {
         putJson.lora = tempLora
@@ -1107,9 +1145,9 @@ const finishPromptPutItHistory = () => {
     if (tempInputText.value != inputText.value) {
       const putJson = {
         prompt: inputText.value,
-        temp_data: {
-          tokens: tokens.value,
-        }
+        lora: "",
+        temp_prompt: tokens.value,
+        temp_lora: ""
       }
       const jsonStr = JSON.stringify(putJson)
       if (trimmedInput.length > 0) {
@@ -1127,10 +1165,8 @@ const postMessageToWindowsPrompt = () => {
     let putJson = {
       prompt: inputText.value,
       lora: "",
-      temp_data: {
-        tokens: tokens.value,
-        lora: selectedLoras.value,
-      }
+      temp_prompt: tokens.value,
+      temp_lora: selectedLoras.value
     }
     if (tempLora.length > 0) {
       putJson.lora = tempLora
@@ -1145,10 +1181,8 @@ const postMessageToWindowsPrompt = () => {
     const putJson = {
       prompt: inputText.value,
       lora: "",
-      temp_data: {
-        tokens: tokens.value,
-        lora: "",
-      }
+      temp_prompt: tokens.value,
+      temp_lora: ""
     }
     const jsonStr = JSON.stringify(putJson)
     window.postMessage({
@@ -1177,6 +1211,12 @@ const showControls = (index, event) => {
   // 检测并设置权重值
   const text = tokens.value[index].text;
   weightValue.value = findInnerWeight(text);
+
+  tagTipsPosition.value = {
+    top: `${rect.bottom + window.scrollY + rect.height + 10}px`,
+    left: `${rect.left + rect.width / 2}px`
+  };
+  showTagTipsBox.value = true;
 }
 
 
@@ -1219,6 +1259,8 @@ const handleMouseLeave = (index) => {
     }
     hideTimeout.value = null
   }, 100)
+
+  showTagTipsBox.value = false;
 }
 
 // 处理鼠标离开控制栏
@@ -1476,6 +1518,15 @@ const showTagManager = ref(true)
 const toggleTagManager = () => {
   showTagManager.value = !showTagManager.value
 }
+
+// 添加折叠状态控制
+const showLoraManager = ref(false)
+
+// 切换Lora管理器显示状态
+const toggleLoraManager = () => {
+  showLoraManager.value = !showLoraManager.value
+}
+
 
 // 添加消息监听
 onMounted(() => {
@@ -1789,31 +1840,47 @@ const closeAutocomplete = () => {
 
 const setPromptText = (text) => {
   // console.log(text)
-  try {
-    const jsonStr = JSON.parse(text)
+  if (text.length > 0) {
+    try {
+      const jsonStr = JSON.parse(text)
 
-    inputText.value = jsonStr.prompt
-    lastInputValue.value = inputText.value; // 更新上一次的输入内容
-    if (jsonStr.lora.length > 0) {
-      selectedLoras.value = jsonStr.lora
-    }
-
-    if (jsonStr.temp_data && jsonStr.temp_data != "") {
-      // console.log(jsonStr.temp_data)
-      const tempDataJson = jsonStr.temp_data
-      // console.log(tempDataJson)
-      if (tempDataJson.tokens && tempDataJson.tokens.length > 0 && tempDataJson.tokens != "") {
-        tokens.value = tempDataJson.tokens
+      inputText.value = jsonStr.prompt
+      lastInputValue.value = inputText.value; // 更新上一次的输入内容
+      
+      if (jsonStr.lora && jsonStr.lora != "") {
+        selectedLoras.value = jsonStr.lora
       }
-      if (tempDataJson.lora && tempDataJson.lora.length > 0 && tempDataJson.lora != "") {
-        selectedLoras.value = tempDataJson.lora
-      }
-    }
 
-    processInput()
-  } catch (error) {
-    console.log('读取数据错误：', error)
-    inputText.value = t('promptBox.errorPrompt')
+      if (jsonStr.temp_prompt && jsonStr.temp_prompt != "") {
+        // console.log(jsonStr.temp_prompt)
+        const tempDataJson = jsonStr.temp_prompt
+        // console.log(tempDataJson)
+        let isOldVersion = false
+        if (tempDataJson.tokens && tempDataJson.tokens.length > 0 && tempDataJson.tokens != "") {
+          tokens.value = tempDataJson.tokens
+          isOldVersion = true
+        }
+        if (tempDataJson.lora && tempDataJson.lora.length > 0 && tempDataJson.lora != "") {
+          selectedLoras.value = tempDataJson.lora
+          isOldVersion = true
+        }
+
+        if(!isOldVersion) {
+          tokens.value = tempDataJson
+        }
+
+      }
+
+      if (jsonStr.temp_lora && jsonStr.temp_lora.length > 0 && jsonStr.temp_lora != "") {
+        const tempDataJson = jsonStr.temp_lora
+        selectedLoras.value = tempDataJson
+      }
+
+      processInput()
+    } catch (error) {
+      // console.log('读取数据错误：', error)
+      message({ type: "warn", str: 'promptBox.settings.errorPrompt' });
+    }
   }
 }
 

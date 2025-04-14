@@ -119,7 +119,8 @@ const toggleHideLora = (lora) => {
 // 添加Lora
 const addLora = (lora) => {
   // 检查是否已存在
-  if (!props.selectedLoras.find(item => item.name === lora.name)) {
+  console.log(props.selectedLoras)
+  if (props.selectedLoras && !props.selectedLoras.find(item => item.name === lora.name)) {
     props.selectedLoras.push({
       name: lora.name,
       weight: 1,
