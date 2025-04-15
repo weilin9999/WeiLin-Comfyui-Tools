@@ -111,11 +111,11 @@ function renderLoraItem(seed, index, lora) {
         <div class="lora-weights">
             <div class="weight-item">
                 <label>${getSystemLanguage() === 'zh' ? '模型权重' : 'Model Weight'}</label>
-                <input type="number" class="lora-weight" min="0" max="2" step="0.1" value="${lora.weight}">
+                <input id="model-weight-${seed}-${index}" type="number" class="lora-weight" min="0" max="2" step="0.1" value="${lora.weight}">
             </div>
             <div class="weight-item">
                 <label>${getSystemLanguage() === 'zh' ? '文本编码器权重' : 'Text Encoder Weight'}</label>
-                <input type="number" class="lora-weight" min="0" max="2" step="0.1" value="${lora.text_encoder_weight}">
+                <input id="text-encoder-weight-${seed}-${index}" type="number" class="lora-weight" min="0" max="2" step="0.1" value="${lora.text_encoder_weight}">
             </div>
         </div>
         <div class="lora-footer">
@@ -136,11 +136,11 @@ function renderLoraItem(seed, index, lora) {
     const weightInputs = loraItem.querySelectorAll('.lora-weight');
     weightInputs.forEach(input => {
         input.addEventListener('change', (e) => {
-            const lora = window.weilinGlobalSelectedLoras[seed][index]
+            const lora = window.weilinGlobalSelectedLoras[seed][index];
             if (lora) {
-                if (e.target.previousElementSibling.textContent.includes('Model')) {
+                if (input.id.startsWith('model-weight')) {
                     lora.weight = parseFloat(e.target.value);
-                } else {
+                } else if (input.id.startsWith('text-encoder-weight')) {
                     lora.text_encoder_weight = parseFloat(e.target.value);
                 }
                 updateLoraStackInfoToWindows(seed);

@@ -26,7 +26,7 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 > Last updated: 2025-04-15
 
-> 0.0.39 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.40 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
 >
 > 1. Fixed the node running error problem and fixed some known bugs
 >
