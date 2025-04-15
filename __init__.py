@@ -110,7 +110,7 @@ class WeiLinPromptUI:
     CATEGORY = node_name_text
 
     # 加载Lora
-    def load_lora_ing(self, positive="",lora_str="",temp_str="", opt_text="", opt_clip=None, opt_model=None):
+    def load_lora_ing(self, positive="",lora_str="",temp_str="",temp_lora_str="", opt_text="", opt_clip=None, opt_model=None):
         model_lora_secondA = opt_model
         clip_lora_secondA = opt_clip
 
@@ -208,7 +208,7 @@ class WeiLinPromptUIOnlyLoraStack:
     CATEGORY = node_name_text
 
     # 加载Lora
-    def load_lora_ing(self, lora_str="", clip=None, model=None):
+    def load_lora_ing(self, clip=None, model=None, lora_str="", temp_lora_str=""):
         model_lora_secondA = model
         clip_lora_secondA = clip
 
@@ -284,7 +284,7 @@ class WeiLinPromptUIWithoutLora:
 
     CATEGORY = node_name_text
 
-    def encode(self, positive="", opt_text="", opt_clip=None):
+    def encode(self, positive="", temp_str="", opt_text="", opt_clip=None):
         text_dec = ""
         if is_json(positive):
             json_object = json.loads(positive)
@@ -365,15 +365,15 @@ NODE_DISPLAY_NAME_MAPPINGS = {}
 
 if localLan == "zh_CN":
     NODE_DISPLAY_NAME_MAPPINGS = {
-        "WeiLinPromptUI": "WeiLin 提示词UI",
-        "WeiLinPromptUIWithoutLora": "WeiLin 提示词UI - 不加载Lora",
-        "WeiLinPromptUIOnlyLoraStack": "WeiLin 提示词UI - 仅使用Lora堆",
+        "WeiLinPromptUI": "WeiLin 全能提示词编辑器",
+        "WeiLinPromptUIWithoutLora": "WeiLin 提示词编辑器",
+        "WeiLinPromptUIOnlyLoraStack": "WeiLin Lora堆",
     }
 else:
     NODE_DISPLAY_NAME_MAPPINGS = {
-        "WeiLinPromptUI": "WeiLin Prompt UI",
-        "WeiLinPromptUIWithoutLora": "WeiLin Prompt UI - Do Not Load Lora",
-        "WeiLinPromptUIOnlyLoraStack": "WeiLin Prompt UI - Only Use Lora Stack",
+        "WeiLinPromptUI": "All-Round WeiLin Prompt Editor",
+        "WeiLinPromptUIWithoutLora": "WeiLin Prompt Editor",
+        "WeiLinPromptUIOnlyLoraStack": "WeiLin Lora Stack",
     }
 
 WEB_DIRECTORY = "./js_node"

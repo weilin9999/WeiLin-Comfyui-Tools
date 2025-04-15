@@ -139,8 +139,10 @@ const totalPages = computed(() => {
 const folderList = ref([])
 const selectFolder = ref([])
 const seed = ref('')
+const actionAct = ref(0)
 
-const openSetSeed = (newSeed) => {
+const openSetSeed = (action,newSeed) => {
+  actionAct.value = action
   seed.value = newSeed
 }
 
@@ -426,7 +428,18 @@ onMounted(() => {
 
 // 选择Lora
 const selectLora = (lora) => {
-  if (seed.value !== '') {
+  if (actionAct.value === 0) {
+    window.postMessage({
+      type: 'weilin_prompt_ui_selectLora',
+      lora: {
+        name: lora.model_name,
+        lora: lora.name,
+        weight: lora.local_info?.strengthMin ? lora.local_info.strengthMin : 0.5,
+        text_encoder_weight: lora.local_info?.strWeight ? lora.local_info.strWeight : 0.5,
+        loraWorks: lora.local_info?.loraWorks ? lora.local_info.loraWorks : '',
+      }
+    }, '*')
+  }else if (actionAct.value === 1) {
     window.postMessage({
       type: 'weilin_prompt_ui_selectLora_stack_' + seed.value,
       lora: {
@@ -437,9 +450,9 @@ const selectLora = (lora) => {
         loraWorks: lora.local_info?.loraWorks ? lora.local_info.loraWorks : '',
       }
     }, '*')
-  } else {
+  } else if (actionAct.value === 2) {
     window.postMessage({
-      type: 'weilin_prompt_ui_selectLora',
+      type: 'weilin_prompt_ui_selectLora_stack_node_' + seed.value,
       lora: {
         name: lora.model_name,
         lora: lora.name,

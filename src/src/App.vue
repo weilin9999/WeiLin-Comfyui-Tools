@@ -78,6 +78,7 @@
 
     <!-- 悬浮球 -->
     <FloatingBall v-if="isFloatingBallEnabled">WeiLin</FloatingBall>
+    <loraDetail ref="loraDetailLoraStackRef" />
 
   </div>
 </template>
@@ -99,6 +100,7 @@ import CloudWindow from '@/view/cloud/index.vue'
 import LoraStackWindow from '@/view/lora_manager/lora_stack.vue'
 import { translatorApi } from '@/api/translator'
 import { tagsApi } from '@/api/tags'
+import loraDetail from '@/view/lora_manager/lora_detail.vue'
 
 const tagStore = useTagStore();
 
@@ -362,6 +364,7 @@ getTranslaterSetting()
 const promptBoxRef = ref()
 const loraStackRef = ref()
 const loraManagerRef = ref()
+const loraDetailLoraStackRef = ref()
 
 // 处理消息
 const handleMessage = (event) => {
@@ -396,17 +399,24 @@ const handleMessage = (event) => {
     loraManager.value = 'addLora'
     windows.value.lora.visible = true
     nextTick(() => {  
-      loraManagerRef.value.openSetSeed("")
+      loraManagerRef.value.openSetSeed(0,"")
     })
     windowManager.setActiveWindow('lora')
   } else if (event.data.type === 'weilin_prompt_ui_openLoraManager_addLora_stack') {
     loraManager.value = 'addLora'
     windows.value.lora.visible = true
     nextTick(() => {  
-      loraManagerRef.value.openSetSeed(event.data.seed)
+      loraManagerRef.value.openSetSeed(1,event.data.seed)
     })
     windowManager.setActiveWindow('lora')
-  } else if (event.data.type === 'weilin_prompt_ui_openHistoryManager') {
+  } else if (event.data.type === 'weilin_prompt_ui_openLoraManager_addLora_stack_node') {
+    loraManager.value = 'addLora'
+    windows.value.lora.visible = true
+    nextTick(() => {  
+      loraManagerRef.value.openSetSeed(2,event.data.seed)
+    })
+    windowManager.setActiveWindow('lora')
+  }  else if (event.data.type === 'weilin_prompt_ui_openHistoryManager') {
     windows.value.history.visible = true
     windowManager.setActiveWindow('history')
   } else if (event.data.type === 'weilin_prompt_ui_openAiWindow') { 
@@ -453,6 +463,8 @@ const handleMessage = (event) => {
       loraStackRef.value.initLoraStack(event.data.prompt,event.data.seed)
     })
     windowManager.setActiveWindow('lora_stack_window')
+  }else if (event.data.type ===  "weilin_prompt_ui_openLoraDetail"){
+    loraDetailLoraStackRef.value.open({ name: event.data.lora })
   }
 }
 

@@ -64,30 +64,43 @@ function removeNodeBySeed(seed) {
     globalNodeList.splice(index, 1);
   }
 }
+function initWindow() {
+  var script = document.createElement('script');
+  // 设置 script 元素的属性
+  script.src = './weilin/prompt_ui/webjs'; // 注意确保这里的路径是正确的，并且服务器正在运行。
+  script.type = 'text/javascript';
+  script.async = true;
+  document.head.appendChild(script);
+
+  // 创建一个新的 link 元素
+  var link = document.createElement('link');
+  // 设置 link 元素的属性
+  link.rel = 'stylesheet';
+  link.type = 'text/css';
+  link.href = './weilin/prompt_ui/file/style.css'; // 确保这里的路径是正确的，并且服务器正在运行。
+  document.head.appendChild(link);
+
+  // loraStack 脚本载入
+  var script = document.createElement('script');
+  // 设置 script 元素的属性
+  script.src = './weilin/prompt_ui/file/lora_stack.js'; // 注意确保这里的路径是正确的，并且服务器正在运行。
+  script.type = 'text/javascript';
+  script.async = true;
+  document.head.appendChild(script);
+  // 创建一个新的 link 元素
+  var link = document.createElement('link');
+  // 设置 link 元素的属性
+  link.rel = 'stylesheet';
+  link.type = 'text/css';
+  link.href = './weilin/prompt_ui/file/lora_stack.css'; // 确保这里的路径是正确的，并且服务器正在运行。
+  document.head.appendChild(link);
+}
+initWindow()
 
 app.registerExtension({
   name: "weilin.prompt_ui_node",
-
-  async init() {
-    var script = document.createElement('script');
-    // 设置 script 元素的属性
-    script.src = './weilin/prompt_ui/webjs'; // 注意确保这里的路径是正确的，并且服务器正在运行。
-    script.type = 'text/javascript';
-    script.async = true;
-    document.head.appendChild(script);
-
-    // 创建一个新的 link 元素
-    var link = document.createElement('link');
-
-    // 设置 link 元素的属性
-    link.rel = 'stylesheet';
-    link.type = 'text/css';
-    link.href = './weilin/prompt_ui/file/style.css'; // 确保这里的路径是正确的，并且服务器正在运行。
-    document.head.appendChild(link);
-
-  },
-  async setup() { },
-
+  async init() {},
+  async setup() {},
   async beforeRegisterNodeDef(nodeType, nodeData, app) {
     // console.log(app)
     if (
@@ -119,28 +132,6 @@ app.registerExtension({
             let thisInputElement = widgetItem.element
             // thisInputElement.readOnly = true
             nodeTextAreaList[0] = thisInputElement
-
-            // 创建全局MutationObserver监听元素移除
-            const observer = new MutationObserver((mutationsList) => {
-              for (const mutation of mutationsList) {
-                if (mutation.type === 'childList') {
-                  for (const node of mutation.removedNodes) {
-                    if (node === thisInputElement || node.contains(thisInputElement)) {
-                      // console.log('Element removed!');
-                      // 元素被销毁 事件发送更新元素
-                      removeNodeBySeed(thisNodeSeed);
-                      window.parent.postMessage({ type: 'weilin_prompt_ui_update_node_list_info', nodeList: globalNodeList }, '*')
-                      // 停止监听
-                      observer.disconnect();
-                    }
-                  }
-                }
-              }
-            });
-
-            // 使用document作为观察目标
-            observer.observe(document, { childList: true, subtree: true });
-
           } else if (widgetItem.name == "lora_str") {
             let thisInputElement = widgetItem.element
             thisInputElement.readOnly = true
@@ -155,6 +146,12 @@ app.registerExtension({
             nodeTextAreaList[3] = thisInputElement
           }
         }
+
+        // Lora Stack 创建可视化节点
+        if (nodeData.name === "WeiLinPromptUIOnlyLoraStack") {
+          await createLoraStackWidget(this, thisNodeSeed,nodeTextAreaList[3]);
+        }
+
         // console.log(this)
 
         if (nodeData.name === "WeiLinPromptUI" ||
@@ -217,6 +214,16 @@ app.registerExtension({
           if (nodeData.name === "WeiLinPromptUI" ||
             nodeData.name === "WeiLinPromptUIWithoutLora") {
             updateNodeTitleBySeed(thisNodeSeed, newTitle);
+            window.parent.postMessage({ type: 'weilin_prompt_ui_update_node_list_info', nodeList: globalNodeList }, '*')
+          }
+        }
+
+        // 节点被删除事件
+        this.onRemoved = () => {
+          // 元素被销毁 事件发送更新元素
+          if (nodeData.name === "WeiLinPromptUI" ||
+            nodeData.name === "WeiLinPromptUIWithoutLora") {
+            removeNodeBySeed(thisNodeSeed);
             window.parent.postMessage({ type: 'weilin_prompt_ui_update_node_list_info', nodeList: globalNodeList }, '*')
           }
         }
@@ -317,14 +324,14 @@ app.registerExtension({
 
             // console.log(nodeTextAreaList)
             updateNodeTextBySeed(thisNodeSeed, jsonReponse.prompt);
-
             window.parent.postMessage({ type: 'weilin_prompt_ui_update_node_list_info', nodeList: globalNodeList }, '*')
 
           } else if (event.data.type === 'weilin_prompt_ui_prompt_get_node_list_info') {
             // 获取节点导航信息
-
-            updateNodeTextBySeed(thisNodeSeed, nodeTextAreaList[0].value);
-            window.parent.postMessage({ type: 'weilin_prompt_ui_update_node_list_info', nodeList: globalNodeList }, '*')
+            if (nodeData.name === "WeiLinPromptUI" || nodeData.name === "WeiLinPromptUIWithoutLora") {
+              updateNodeTextBySeed(thisNodeSeed, nodeTextAreaList[0].value);
+              window.parent.postMessage({ type: 'weilin_prompt_ui_update_node_list_info', nodeList: globalNodeList }, '*')
+            }
 
           } else if (event.data.type === "weilin_prompt_ui_prompt_open_node_wit_seed" && event.data.seed === thisNodeSeed) {
             // 节点导航打开节点UI按钮
@@ -349,6 +356,7 @@ app.registerExtension({
 
             const data = JSON.stringify(jsonData)
             window.parent.postMessage({ type: 'weilin_prompt_ui_openPromptBox', id: randomID, prompt: data, node: nodeData.name }, '*')
+          
           } else if (event.data.type === 'weilin_prompt_ui_prompt_finish_lora_stack_' + randomID) {
             // 接收到更新LoraStack内容消息
             const jsonReponse = JSON.parse(event.data.data)
@@ -360,14 +368,39 @@ app.registerExtension({
               } else {
                 nodeTextAreaList[1].value = "";
               }
-            }
-            if (nodeData.name === "WeiLinPromptUI" || nodeData.name === "WeiLinPromptUIOnlyLoraStack") {
+
               if (jsonReponse.temp_lora && jsonReponse.temp_lora != "") {
                 nodeTextAreaList[3].value = JSON.stringify(jsonReponse.temp_lora);
+              }else{
+                nodeTextAreaList[3].value = "";
+              }
+
+              if (nodeTextAreaList[3].value.length > 0) {
+                window.weilinGlobalSelectedLoras[thisNodeSeed] = JSON.parse(nodeTextAreaList[3].value)
+              }else {
+                window.weilinGlobalSelectedLoras[thisNodeSeed]= []
+              }
+              renderAllLoras(thisNodeSeed)
+            }
+          
+          }else if (event.data.type === "weilin_prompt_ui_prompt_node_finish_lora_stack_" + thisNodeSeed) {
+            // 接收到更新LoraStack内容消息
+            const jsonReponse = JSON.parse(event.data.data)
+            if (nodeData.name === "WeiLinPromptUIOnlyLoraStack") {
+              if (jsonReponse.lora && jsonReponse.lora.length > 0 && jsonReponse.lora != "") {
+                nodeTextAreaList[1].value = JSON.stringify(jsonReponse.lora);
+              } else {
+                nodeTextAreaList[1].value = "";
+              }
+              if (jsonReponse.temp_lora && jsonReponse.temp_lora != "") {
+                nodeTextAreaList[3].value = JSON.stringify(jsonReponse.temp_lora);
+              }else{
+                nodeTextAreaList[3].value = "";
               }
             }
+          }else if (event.data.type === "weilin_prompt_ui_selectLora_stack_node_"+thisNodeSeed) {
+            addLora(thisNodeSeed,event.data.lora)
           }
-
 
         }, false);
 
@@ -380,7 +413,7 @@ app.registerExtension({
 
 //from melmass
 // https://github.com/kijai/ComfyUI-KJNodes/blob/main/web/js/spline_editor.js
-export function hideWidgetForGood(node, widget, suffix = '') {
+function hideWidgetForGood(node, widget, suffix = '') {
   widget.origType = widget.type
   widget.origComputeSize = widget.computeSize
   widget.origSerializeValue = widget.serializeValue
@@ -402,4 +435,69 @@ export function hideWidgetForGood(node, widget, suffix = '') {
       hideWidgetForGood(node, w, ':' + widget.name)
     }
   }
+}
+
+function createLoraStackWidget(node, seed, ptEl) {
+  var element = document.createElement("div");
+  const previewNode = node;
+  const prSeed = seed;
+  const prTempLoraEl = ptEl;
+
+
+  var previewWidget = node.addDOMWidget("weilin_lora_stack", "lora_stack", element, {
+    serialize: false,
+    hideOnZoom: false,
+    getValue() {
+      return element.value;
+    },
+    setValue(v) {
+      element.value = v;
+    },
+  });
+
+  previewNode.onResize = function () {
+    let [w, h] = previewNode.size;
+    if (h < 300) h = 300;
+    previewNode.size = [w, h];
+  };
+
+
+  previewWidget.value = { hidden: false, paused: false, params: {} }
+  previewWidget.parentEl = document.createElement("div");
+  previewWidget.parentEl.className = "lora-stack";
+  element.appendChild(previewWidget.parentEl);
+
+  const lang = navigator.language || navigator.userLanguage;
+  const localLang = lang.startsWith('zh') ? 'zh' : 'en';
+  previewWidget.contentEl = document.createElement("div");
+  previewWidget.contentEl.innerHTML = `
+    <div class="lora-header">
+        <div class="header-actions">
+            <button class="add-btn" onclick="openLoraManager(this)" id="addLoraBtn" data-seed="`+prSeed+`" title="${localLang === 'zh' ? '添加Lora' : 'Add Lora' }">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                </svg>
+            </button>
+        </div>
+    </div>
+    <div class="lora-body">
+        <div class="lora-list" id="loraListContainer_`+prSeed+`">
+            <!-- Lora items will be added here dynamically -->
+        </div>
+    </div>
+  `
+  previewWidget.contentEl.className = "lora-content"
+  previewWidget.parentEl.appendChild(previewWidget.contentEl)
+
+  setTimeout(() => {
+    if (prTempLoraEl.value.length > 0) {
+      window.weilinGlobalSelectedLoras[seed] = JSON.parse(prTempLoraEl.value)
+    }else {
+      window.weilinGlobalSelectedLoras[seed]= []
+    }
+    renderAllLoras(seed)
+    // console.log(window.weilinGlobalSelectedLoras)
+  },300)
+
+  // console.log(node)
 }

@@ -993,7 +993,9 @@ const processInput = async () => {
 
       // 第一个非隐藏token不加逗号前缀
       if (acc === '') {
-        return token.text;
+        // 当只有一个token时，直接返回token文本加逗号
+        const isOnlyToken = tokens.value.filter(t => !t.isHidden).length === 1;
+        return token.text + (isOnlyToken ? ',' : '');
       }
 
       // 查找下一个非隐藏token
@@ -1337,7 +1339,9 @@ const deleteToken = (index) => {
 
       // 第一个非隐藏token不加逗号前缀
       if (acc === '') {
-        return token.text;
+        // 当只有一个token时，直接返回token文本加逗号
+        const isOnlyToken = tokens.value.filter(t => !t.isHidden).length === 1;
+        return token.text + (isOnlyToken ? ',' : '');
       }
 
       // 查找下一个非隐藏token
@@ -1865,7 +1869,7 @@ const setPromptText = (text) => {
           isOldVersion = true
         }
 
-        if(!isOldVersion) {
+        if(!isOldVersion && tempDataJson.length > 0 && tempDataJson != "") {
           tokens.value = tempDataJson
         }
 
@@ -1926,7 +1930,9 @@ const updateInputText = () => {
 
       // 第一个非隐藏token不加逗号前缀
       if (acc === '') {
-        return token.text;
+        // 当只有一个token时，直接返回token文本加逗号
+        const isOnlyToken = tokens.value.filter(t => !t.isHidden).length === 1;
+        return token.text + (isOnlyToken ? ',' : '');
       }
 
       // 查找下一个非隐藏token

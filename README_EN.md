@@ -24,9 +24,19 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 # Version update introduction
 
-> Last updated: 2025-04-14
+> Last updated: 2025-04-15
 
-> 0.0.38 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.39 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+>
+> 1. Fixed the node running error problem and fixed some known bugs
+>
+> 2. Modify the Lora heap node. You can operate Lora heap directly on the node
+>
+
+<details>
+<summary>Click here for more updates from the past</summary>
+
+> 0.0.38 Public Beta Version 2025-04-14
 >
 > 1. Fixed some known bugs
 >
@@ -36,9 +46,6 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 >
 > 4. The shortcut button of Lora heap is added to the node, and the information of Lora heap of the node can be displayed directly by clicking it
 >
-
-<details>
-<summary>Click here for more updates from the past</summary>
 
 > 0.0.37 Public Beta Version 2025-04-13
 >

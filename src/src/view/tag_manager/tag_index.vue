@@ -532,7 +532,7 @@ const editGroup = (group) => {
 const saveCategory = () => {
   if (categoryType.value === 'primary') {
     if (!currentCategory.value.name) {
-      alert(t('tagManager.categoryNameRequired'))
+      message({ type: "warn", str: 'tagManager.categoryNameRequired' });
       return
     }
 
@@ -582,7 +582,7 @@ const saveCategory = () => {
     }
   } else {
     if (!currentGroup.value.name) {
-      alert(t('tagManager.groupNameRequired'))
+      message({ type: "warn", str: 'tagManager.groupNameRequired' });
       return
     }
 
@@ -694,7 +694,7 @@ const editTag = (tag) => {
 // 保存标签
 const saveTag = () => {
   if (!currentTag.value.text || !currentTag.value.desc) {
-    alert(t('tagManager.textRequired'))
+    message({ type: "warn", str: 'tagManager.textRequired' });
     return
   }
 

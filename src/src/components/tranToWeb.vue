@@ -30,6 +30,7 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DraggableWindow from '@/components/DraggableWindow.vue'
 import { windowManager } from '@/utils/windowManager'
+import message from "@/utils/message";
 
 const emit = defineEmits(['close', 'update'])
 const { t } = useI18n()
@@ -208,16 +209,16 @@ const copyToClipboard = async () => {
         const blob = new Blob([htmlContent.value], { type: 'text/html' });
         const clipboardItem = new ClipboardItem({ 'text/html': blob });
         await navigator.clipboard.write([clipboardItem]);
-        alert(t('utils.copySuccess'));
+        message({ type: "warn", str: 'utils.copySuccess' });
     } catch (err) {
         console.error('Failed to copy file:', err);
         // 回退到文本复制方式
         try {
             await navigator.clipboard.writeText(htmlContent.value);
-            alert(t('utils.copySuccess'));
+            message({ type: "success", str: 'utils.copySuccess' });
         } catch (textErr) {
             console.error('Failed to copy text:', textErr);
-            alert(t('utils.copyFailed'));
+            message({ type: "warn", str: 'utils.copyFailed' });
         }
     }
 }

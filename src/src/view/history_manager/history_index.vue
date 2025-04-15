@@ -476,7 +476,7 @@ const closeDeleteDialog = () => {
 // 保存标签
 const saveTag = () => {
     if (!currentTag.value.tag) {
-        alert(t('history.dialog.tag_placeholder'))
+        message({ type: "warn", str: 'history.dialog.tag_placeholder' });
         return
     }
 
