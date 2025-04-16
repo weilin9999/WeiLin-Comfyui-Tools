@@ -218,8 +218,15 @@ app.registerExtension({
           }
         }
 
+        // 保存原有的onRemoved函数
+        const originalOnRemoved = this.onRemoved;
         // 节点被删除事件
         this.onRemoved = () => {
+          // 调用原有的onRemoved函数
+          if (originalOnRemoved) {
+            originalOnRemoved.apply(this);
+          }
+          
           // 元素被销毁 事件发送更新元素
           if (nodeData.name === "WeiLinPromptUI" ||
             nodeData.name === "WeiLinPromptUIWithoutLora") {
