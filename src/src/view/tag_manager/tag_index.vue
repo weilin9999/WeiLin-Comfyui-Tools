@@ -2,46 +2,46 @@
   <div class="tag-manager">
     <!-- 顶部工具栏 -->
     <div class="toolbar">
-     <div class="toolbar-top">
-      <button class="refresh-btn" @click="refreshTags">
-        <svg viewBox="0 0 24 24" width="16" height="16" class="refresh-icon">
-          <path
-            d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" />
-        </svg>
-      </button>
+      <div class="toolbar-top">
+        <button class="refresh-btn" @click="refreshTags">
+          <svg viewBox="0 0 24 24" width="16" height="16" class="refresh-icon">
+            <path
+              d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" />
+          </svg>
+        </button>
 
-      <div class="search-container">
-        <input type="text" v-model="searchQuery" :placeholder="t('tagManager.searchPlaceholder')" class="search-input"
-          ref="searchInput" @input="isSearching = searchQuery.trim().length > 0" />
-        <!-- 搜索结果 -->
-        <div v-if="isSearching" class="search-results" :style="searchResultsStyle">
-          <div v-if="searchResults.length === 0" class="no-results">
-            {{ t('tagManager.noResults') }}
-          </div>
-          <div v-else v-for="result in searchResults" :key="`${result.type}-${result.item.name || result.item.text}`"
-            class="search-result-item" @click="navigateToResult(result)">
-            <div class="result-content">
-              <span class="result-text">
-                {{ result.item.name || result.item.text }}
-              </span>
-              <span class="result-path">
-                {{ result.path.join(' > ') }}
-              </span>
+        <div class="search-container">
+          <input type="text" v-model="searchQuery" :placeholder="t('tagManager.searchPlaceholder')" class="search-input"
+            ref="searchInput" @input="isSearching = searchQuery.trim().length > 0" />
+          <!-- 搜索结果 -->
+          <div v-if="isSearching" class="search-results" :style="searchResultsStyle">
+            <div v-if="searchResults.length === 0" class="no-results">
+              {{ t('tagManager.noResults') }}
+            </div>
+            <div v-else v-for="result in searchResults" :key="`${result.type}-${result.item.name || result.item.text}`"
+              class="search-result-item" @click="navigateToResult(result)">
+              <div class="result-content">
+                <span class="result-text">
+                  {{ result.item.name || result.item.text }}
+                </span>
+                <span class="result-path">
+                  {{ result.path.join(' > ') }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
+
+        <button class="import-btn" @click="showImportDialog">
+          {{ t('tagManager.importTags') }}
+        </button>
+
       </div>
-     </div>
 
       <!-- 高级设置 -->
       <div class="group-edit-mode">
         <label>
-          <input 
-            type="checkbox" 
-            v-model="isAutoAddSearchTag" 
-            :true-value="1" 
-            :false-value="0"
-          />
+          <input type="checkbox" v-model="isAutoAddSearchTag" :true-value="1" :false-value="0" />
           {{ t('tagManager.autoAddSearchTag') }}
         </label>
       </div>
@@ -52,22 +52,27 @@
       <!-- 一级分类 tabs -->
       <div class="tabs-wrapper primary-tabs">
         <div class="tabs-scroll">
-          <div v-for="(category,index) in categories" :key="'Tabss-'+index" class="tab-item"
+          <div v-for="(category, index) in categories" :key="'Tabss-' + index" class="tab-item"
             :class="{ active: selectedCategory?.name === category.name }" :style="{
               backgroundColor: selectedCategory?.name === category.name ? 'var(--primary-color)' : category.color,
               color: selectedCategory?.name === category.name ? '#ffffff' : getContrastColor(category.color)
-            }" @click="selectCategory(category)"
-            @mouseenter="showTabActions(index)"
+            }" @click="selectCategory(category)" @mouseenter="showTabActions(index)"
             @mouseleave="hideTabActions(index)">
             <span class="tab-text">{{ category.name }}</span>
-            <div class="tab-actions" v-if="hoverTabsActionFrist=='TabID-'+index">
-              <button class="action-btn edit" @click.stop="editCategory(category)">
+            <div class="tab-actions" v-if="hoverTabsActionFrist == 'TabID-' + index">
+              <button class="action-btn edit" @click.stop="editCategory(category)" :title="t('tagManager.edit')">
                 <svg viewBox="0 0 24 24" class="action-icon">
                   <path
                     d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
                 </svg>
               </button>
-              <button class="action-btn delete" @click.stop="deleteCategory(category)">
+              <button class="action-btn share" @click.stop="shareCategory(category)" :title="t('tagManager.share')">
+                <svg viewBox="0 0 24 24" class="action-icon">
+                  <path
+                    d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z" />
+                </svg>
+              </button>
+              <button class="action-btn delete" @click.stop="deleteCategory(category)" :title="t('tagManager.delete')">
                 <svg viewBox="0 0 24 24" class="action-icon">
                   <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
                 </svg>
@@ -81,13 +86,8 @@
 
           <div class="group-edit-mode">
             <label>
-              <input 
-                type="checkbox" 
-                v-model="editGroupCategroy" 
-                :true-value="1" 
-                :false-value="0"
-              />
-              {{ editGroupCategroy == 1 ? t('tagManager.exitEditMode'): t('tagManager.editGroupMode') }}
+              <input type="checkbox" v-model="editGroupCategroy" :true-value="1" :false-value="0" />
+              {{ editGroupCategroy == 1 ? t('tagManager.exitEditMode') : t('tagManager.editGroupMode') }}
             </label>
           </div>
 
@@ -97,22 +97,21 @@
       <!-- 分组 tabs -->
       <div class="tabs-wrapper group-tabs" v-if="selectedCategory">
         <div class="tabs-scroll">
-          <div v-for="(group,index) in selectedCategory.groups" :key="'TabsSw-'+index" class="tab-item"
+          <div v-for="(group, index) in selectedCategory.groups" :key="'TabsSw-' + index" class="tab-item"
             :class="{ active: selectedGroup?.name === group.name }" :style="{
               backgroundColor: selectedGroup?.name === group.name ? 'var(--primary-color)' : group.color,
               color: selectedGroup?.name === group.name ? '#ffffff' : getContrastColor(group.color)
-            }" @click="selectGroup(group)"
-             @mouseenter="showTabActionsGroup(index)"
-             @mouseleave="hideTabActionsGroup(index)">
+            }" @click="selectGroup(group)" @mouseenter="showTabActionsGroup(index)"
+            @mouseleave="hideTabActionsGroup(index)">
             <span class="tab-text">{{ group.name }}</span>
-            <div class="tab-actions" v-if="hoverTabsActionSecond == 'TabID-'+index">
-              <button class="action-btn edit" @click.stop="editGroup(group)">
+            <div class="tab-actions" v-if="hoverTabsActionSecond == 'TabID-' + index">
+              <button class="action-btn edit" @click.stop="editGroup(group)" :title="t('tagManager.edit')">
                 <svg viewBox="0 0 24 24" class="action-icon">
                   <path
                     d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
                 </svg>
               </button>
-              <button class="action-btn delete" @click.stop="deleteGroup(group)">
+              <button class="action-btn delete" @click.stop="deleteGroup(group)" :title="t('tagManager.delete')">
                 <svg viewBox="0 0 24 24" class="action-icon">
                   <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
                 </svg>
@@ -125,13 +124,8 @@
           </button>
           <div class="group-edit-mode">
             <label>
-              <input 
-                type="checkbox" 
-                v-model="editGroupTabs" 
-                :true-value="1" 
-                :false-value="0"
-              />
-              {{ editGroupTabs == 1 ? t('tagManager.exitEditMode'): t('tagManager.editGroupMode') }}
+              <input type="checkbox" v-model="editGroupTabs" :true-value="1" :false-value="0" />
+              {{ editGroupTabs == 1 ? t('tagManager.exitEditMode') : t('tagManager.editGroupMode') }}
             </label>
           </div>
         </div>
@@ -147,11 +141,25 @@
             <span class="plus-icon">+</span>
             {{ t('tagManager.addTag') }}
           </button>
+
+          <!-- 批量分享按钮 -->
+          <button v-if="isShareTagAction" class="share-selected-btn" @click="shareSelectedTags"
+            :disabled="!selectedTags.length">
+            {{ t('tagManager.shareSelected') }}
+          </button>
+          <button v-else class="share-btn" @click="shareTagAction" :disabled="!selectedGroup">
+            {{ t('tagManager.batchShare') }}
+          </button>
+          <button v-if="isShareTagAction" class="cancel-delete-btn" @click="cancelShareAction">
+            {{ t('tagManager.cancelShare') }}
+          </button>
+
+          <!-- 批量删除功能 -->
           <button v-if="isDeleteTagAction" class="delete-btn" @click="deleteSelectedTags"
             :disabled="!selectedTags.length">
             {{ t('tagManager.deleteSelected') }}
           </button>
-          <button v-else class="has-delete-action-btn" @click="deleteTagAction" :disabled="!selectedGroup">
+          <button v-else class="delete-action-btn" @click="deleteTagAction" :disabled="!selectedGroup">
             {{ t('tagManager.hasDeleteAction') }}
           </button>
           <button v-if="isDeleteTagAction" class="cancel-delete-btn" @click="cancelDeleteAction">
@@ -161,7 +169,8 @@
       </div>
 
       <div class="tags-grid" v-if="selectedGroup">
-        <div v-for="tag in currentTags" :key="'tag-grid-'+tag.id_index" :class="highlightedTagId === tag.id_index ? 'tag-wrapper highlight':'tag-wrapper'">
+        <div v-for="tag in currentTags" :key="'tag-grid-' + tag.id_index"
+          :class="highlightedTagId === tag.id_index ? 'tag-wrapper highlight' : 'tag-wrapper'">
           <div class="tag-content" @click="handleTagClick(tag)">
             <div class="tag-main" :style="{ backgroundColor: tag.color || 'transparent' }">
               {{ tag.desc }}
@@ -186,7 +195,7 @@
             </div>
             <div class="tag-desc">{{ tag.text }}</div>
           </div>
-          <input v-if="isDeleteTagAction" type="checkbox" v-model="selectedTags" :value="tag.id_index"
+          <input v-if="isSelectTagAction" type="checkbox" v-model="selectedTags" :value="tag.id_index"
             class="tag-checkbox" />
         </div>
       </div>
@@ -327,6 +336,8 @@
       </div>
     </div>
 
+    <ImportTagDialog ref="importTagDialogItem" />
+
   </div>
 </template>
 
@@ -336,6 +347,8 @@ import { useI18n } from 'vue-i18n'
 import { tagsApi } from '@/api/tags'
 import message from '@/utils/message'
 import { useTagStore } from '@/stores/tagStore';
+import ImportTagDialog from "./import_tag.vue";
+import yaml from 'js-yaml';
 
 const tagStore = useTagStore();
 const { t } = useI18n()
@@ -350,7 +363,8 @@ const isEditingCategory = ref(false)
 const isEditingTag = ref(false)
 const categoryType = ref('primary') // 'primary' 或 'group'
 const selectedTags = ref([]); // 用于存储选中的标签ID
-const isDeleteTagAction = ref(false)
+const isSelectTagAction = ref(false)
+import { uuidv7 } from "uuidv7";
 
 const hoverTabsActionFrist = ref('None');
 const hoverTabsActionSecond = ref('None');
@@ -365,6 +379,11 @@ const showMoveDialog = ref(false);
 const moveTargetTagId = ref(null);
 const movePosition = ref('before');
 const currentMoveTagId = ref(null);
+
+// 批量删除
+const isDeleteTagAction = ref(false);
+// 批量分享
+const isShareTagAction = ref(false);
 
 const props = defineProps({
   tagManager: {
@@ -456,7 +475,7 @@ onMounted(() => {
   window.addEventListener('message', handleMessage)
   window.addEventListener('keydown', handleKeydown) // 监听键盘事件
   categories.value = tagStore.categories
-  if (categories.value.length <= 0 ){
+  if (categories.value.length <= 0) {
     getTagsList()
   }
 })
@@ -478,14 +497,14 @@ const currentTags = computed(() => {
 const selectCategory = (category) => {
   selectedCategory.value = category
   selectedGroup.value = null
-  isDeleteTagAction.value = false
+  isSelectTagAction.value = false
   selectedTags.value = []
 }
 
 // 选择分组
 const selectGroup = (group) => {
   selectedGroup.value = group
-  isDeleteTagAction.value = false
+  isSelectTagAction.value = false
   selectedTags.value = []
 }
 
@@ -902,7 +921,7 @@ const navigateToResult = (result) => {
         selectCategory(category)
         selectGroup(group)
 
-        if (isAutoAddSearchTag.value == 1){
+        if (isAutoAddSearchTag.value == 1) {
           // 发送消息通知
           window.postMessage({
             type: 'weilin_prompt_ui_insertTag',
@@ -1082,6 +1101,36 @@ const confirmDelete = async () => {
 }
 
 
+// 分享整个一级目录
+const shareCategory = (category) => {
+  // 生成一级分类SQL
+  const groupSql = `INSERT OR REPLACE INTO "tag_groups" ("name", "color", "create_time", "p_uuid") VALUES ('${category.name.replace(/'/g, "''")}', '${category.color}', ${category.create_time}, '${category.p_uuid}');`;
+
+  // 生成二级分类和标签SQL
+  const tagSqls = [];
+  category.groups.forEach(group => {
+    const subGroupSql = `INSERT OR REPLACE INTO "tag_subgroups" ("name", "color", "create_time", "p_uuid", "g_uuid") VALUES ('${group.name.replace(/'/g, "''")}', '${group.color}', ${group.create_time}, '${group.p_uuid}', '${group.g_uuid}');`;
+    tagSqls.push(subGroupSql);
+
+    group.tags.forEach(tag => {
+      const tagSql = `INSERT OR REPLACE INTO "tag_tags" ("text", "desc", "color", "create_time", "g_uuid", "t_uuid") VALUES ('${tag.text.replace(/'/g, "''")}', '${tag.desc.replace(/'/g, "''")}', '${tag.color}', ${tag.create_time}, '${tag.g_uuid}', '${uuidv7()}');`;
+      tagSqls.push(tagSql);
+    });
+  });
+
+  // 合并所有SQL语句
+  const sqlContent = [groupSql, ...tagSqls].join('\n');
+
+  // 创建下载链接
+  const blob = new Blob([sqlContent], { type: 'text/sql' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `${category.name}_export_${Date.now()}.sql`;
+  link.click();
+
+  message({ type: "success", str: 'tagManager.outputSuccess' });
+};
+
 // 打开移动对话框
 const openMoveDialog = (tag) => {
   currentMoveTagId.value = tag.id_index;
@@ -1115,10 +1164,12 @@ const availableTags = computed(() => {
 
 
 const deleteTagAction = () => {
+  isSelectTagAction.value = true
   isDeleteTagAction.value = true
 }
 
 const cancelDeleteAction = () => {
+  isSelectTagAction.value = false
   isDeleteTagAction.value = false
   selectedTags.value = []
 }
@@ -1131,6 +1182,47 @@ const deleteSelectedTags = () => {
   itemToDelete.value = {}
   showDeleteDialog.value = true
 };
+
+
+const shareTagAction = () => {
+  isSelectTagAction.value = true
+  isShareTagAction.value = true
+}
+
+const cancelShareAction = () => {
+  isSelectTagAction.value = false
+  isShareTagAction.value = false
+  selectedTags.value = []
+}
+
+const shareSelectedTags = () => {
+  if (selectedTags.value.length === 0) {
+    message({ type: "warn", str: 'tagManager.noTagsSelected' });
+    return;
+  }
+
+  // 获取选中的标签
+  const selectedTagItems = selectedGroup.value.tags.filter(tag =>
+    selectedTags.value.includes(tag.id_index)
+  );
+
+  // 生成YAML内容
+  const yamlContent = {};
+  selectedTagItems.forEach(tag => {
+    yamlContent[tag.text] = tag.desc;
+  });
+
+  // 创建下载链接
+  const blob = new Blob([yaml.dump(yamlContent)], { type: 'text/yaml' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `selected_tags_export_${Date.now()}.yaml`;
+  link.click();
+
+  message({ type: "success", str: 'tagManager.outputSuccess' });
+  cancelShareAction();
+};
+
 
 // 关闭删除对话框
 const closeDeleteDialog = () => {
@@ -1203,8 +1295,8 @@ const handleKeydown = (event) => {
 }
 
 const showTabActions = (index) => {
-  if (editGroupCategroy.value == 1){
-    hoverTabsActionFrist.value = 'TabID-'+index;
+  if (editGroupCategroy.value == 1) {
+    hoverTabsActionFrist.value = 'TabID-' + index;
   }
 };
 
@@ -1213,14 +1305,19 @@ const hideTabActions = (index) => {
 };
 
 const showTabActionsGroup = (index) => {
-  if (editGroupTabs.value == 1){
-    hoverTabsActionSecond.value = 'TabID-'+index;
+  if (editGroupTabs.value == 1) {
+    hoverTabsActionSecond.value = 'TabID-' + index;
   }
 };
 
 const hideTabActionsGroup = (index) => {
   hoverTabsActionSecond.value = 'None';
 };
+
+const importTagDialogItem = ref()
+const showImportDialog = () => {
+  importTagDialogItem.value.open()
+}
 
 </script>
 
@@ -1698,19 +1795,9 @@ const hideTabActionsGroup = (index) => {
   opacity: 0.9;
 }
 
-.has-delete-action-btn {
-  background: var(--weilin-prompt-ui-primary-color);
-  border: none;
-  color: white;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.3s ease;
-}
-
-.has-delete-action-btn:hover {
-  opacity: 0.9;
+.delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .cancel-delete-btn {
@@ -2018,5 +2105,91 @@ const hideTabActionsGroup = (index) => {
   box-shadow: 0 0 8px rgba(255, 123, 2, 0.6);
   transform: scale(1.05);
   transition: all 0.3s ease;
+}
+
+/* 添加按钮样式 */
+.import-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid var(--weilin-prompt-ui-border-color);
+  border-radius: 4px;
+  background-color: var(--weilin-prompt-ui-primary-color);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.import-btn:hover {
+  opacity: 0.9;
+}
+
+.import-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--weilin-prompt-ui-secondary-bg);
+}
+
+
+.share-btn {
+  background: var(--weilin-prompt-ui-primary-color);
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.share-btn:hover {
+  opacity: 0.9;
+}
+
+.share-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+.delete-action-btn{
+  background: var(--weilin-prompt-ui-primary-color);
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.delete-action-btn:hover {
+  opacity: 0.9;
+}
+
+.delete-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.share-selected-btn {
+  background: var(--weilin-prompt-ui-success-color);
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.share-selected-btn:hover {
+  opacity: 0.9;
+}
+
+.share-selected-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

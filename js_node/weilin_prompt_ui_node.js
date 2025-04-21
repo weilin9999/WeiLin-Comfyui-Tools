@@ -427,6 +427,7 @@ function hideWidgetForGood(node, widget, suffix = '') {
   widget.computeSize = () => [0, -4] // -4 is due to the gap litegraph adds between widgets automatically
   widget.type = "converted-widget" + suffix
 
+  widget.element.style.display = 'none'
   // widget.serializeValue = () => {
   //     // Prevent serializing the widget if we have no input linked
   //     const w = node.inputs?.find((i) => i.widget?.name === widget.name);

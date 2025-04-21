@@ -57,12 +57,12 @@ async def batch_delete_group_tags(id_indices):
 
 async def add_new_node_group(key, color):
     # 检查 name 是否已经存在
-    query = 'SELECT COUNT(*) FROM tag_groups WHERE name = ?'
-    result = await fetch_one('tags',query, (key,))
-    if result == None:
-        return {"code": 500}
-    if result[0] > 0:
-        return {"code": 201}
+    # query = 'SELECT COUNT(*) FROM tag_groups WHERE name = ?'
+    # result = await fetch_one('tags',query, (key,))
+    # if result == None:
+    #     return {"code": 500}
+    # if result[0] > 0:
+    #     return {"code": 201}
 
     query = '''
         INSERT INTO tag_groups (name, color, create_time, p_uuid)
@@ -73,12 +73,12 @@ async def add_new_node_group(key, color):
 
 async def add_new_group(key, group_key, color, p_uuid):
     # 检查 name 是否已经存在
-    query = 'SELECT COUNT(*) FROM tag_subgroups WHERE name = ?'
-    result = await fetch_one('tags',query, (group_key,))
-    if result == None:
-        return {"code": 500}
-    if result[0] > 0:
-        return {"code": 201}
+    # query = 'SELECT COUNT(*) FROM tag_subgroups WHERE name = ?'
+    # result = await fetch_one('tags',query, (group_key,))
+    # if result == None:
+    #     return {"code": 500}
+    # if result[0] > 0:
+    #     return {"code": 201}
 
     query = '''
         INSERT INTO tag_subgroups (group_id, name, color, create_time, p_uuid, g_uuid)
@@ -89,12 +89,12 @@ async def add_new_group(key, group_key, color, p_uuid):
 
 async def edit_node_group(id_index, new_key, new_color):
     # 检查 name 是否已经存在
-    query = 'SELECT COUNT(*) FROM tag_groups WHERE name = ? AND id_index != ?'
-    result = await fetch_one('tags',query, (new_key, id_index))
-    if result == None:
-        return {"code": 500}
-    if result[0] > 0:
-        return {"code": 201}
+    # query = 'SELECT COUNT(*) FROM tag_groups WHERE name = ? AND id_index != ?'
+    # result = await fetch_one('tags',query, (new_key, id_index))
+    # if result == None:
+    #     return {"code": 500}
+    # if result[0] > 0:
+    #     return {"code": 201}
 
     query = '''
         UPDATE tag_groups
@@ -106,12 +106,12 @@ async def edit_node_group(id_index, new_key, new_color):
 
 async def edit_child_node_group(id_index, new_key, new_color):
     # 检查 name 是否已经存在
-    query = 'SELECT COUNT(*) FROM tag_subgroups WHERE name = ? AND id_index != ?'
-    result = await fetch_one('tags',query, (new_key, id_index))
-    if result == None:
-        return {"code": 500}
-    if result[0] > 0:
-        return {"code": 201}
+    # query = 'SELECT COUNT(*) FROM tag_subgroups WHERE name = ? AND id_index != ?'
+    # result = await fetch_one('tags',query, (new_key, id_index))
+    # if result == None:
+    #     return {"code": 500}
+    # if result[0] > 0:
+    #     return {"code": 201}
 
     query = '''
         UPDATE tag_subgroups
@@ -244,3 +244,73 @@ async def get_group_tags():
     
     # 返回列表形式的结果
     return list(result.values())
+
+async def get_groups_list():
+    query = '''
+        SELECT 
+            g.id_index as group_id, g.name as group_name, g.color as group_color, 
+            g.create_time as group_create_time, g.p_uuid as group_p_uuid,
+            sg.id_index as subgroup_id, sg.name as subgroup_name, sg.color as subgroup_color,
+            sg.create_time as subgroup_create_time, sg.g_uuid as subgroup_g_uuid, sg.p_uuid as subgroup_p_uuid
+        FROM tag_groups g
+        LEFT JOIN tag_subgroups sg ON g.p_uuid = sg.p_uuid
+        ORDER BY g.create_time ASC, sg.create_time ASC
+    '''
+    data = await fetch_all('tags', query)
+    
+    # 使用字典存储结果，提高查找效率
+    result = {}
+    
+    for row in data:
+        # 解包数据
+        group_data = {
+            'id_index': row[0],
+            'name': row[1],
+            'color': row[2],
+            'create_time': row[3],
+            'p_uuid': row[4],
+            'groups': []
+        }
+        
+        subgroup_data = {
+            'id_index': row[5],
+            'name': row[6],
+            'color': row[7],
+            'create_time': row[8],
+            'g_uuid': row[9],
+            'p_uuid': row[10]
+        }
+        
+        # 处理组数据
+        if group_data['p_uuid'] not in result:
+            result[group_data['p_uuid']] = group_data
+        
+        # 处理子组数据
+        if subgroup_data['g_uuid']:
+            result[group_data['p_uuid']]['groups'].append(subgroup_data)
+    
+    # 返回列表形式的结果
+    return list(result.values())
+
+
+def run_sql_text(sql_array):
+    conn = sqlite3.connect(tags_db_path)
+    cursor = conn.cursor()
+    
+    try:
+        # 开始事务
+        cursor.execute('BEGIN')
+        # 执行所有SQL语句
+        for sql in sql_array:
+            cursor.execute(sql)
+        # 提交事务
+        conn.commit()
+        print("SQL执行成功")
+        return {"code": 200, "message": "SQL执行成功"}
+    except Exception as e:
+        # 回滚事务
+        conn.rollback()
+        print(f"SQL执行失败: {str(e)}")
+        return {"code": 500, "message": f"SQL执行失败: {str(e)}"}
+    finally:
+        conn.close()

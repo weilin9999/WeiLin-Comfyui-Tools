@@ -322,6 +322,27 @@ async def _move_tag(request):
 
     return web.json_response({"info": result})
 
+@PromptServer.instance.routes.post(baseUrl+"prompt/get_groups_list")
+async def _get_groups_list(request):
+    try:
+        result = await get_groups_list()
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+    return web.json_response({"info": result})
+
+@PromptServer.instance.routes.post(baseUrl+"prompt/run_sql_text")
+async def _run_sql_text(request):
+    data = await request.json()
+    try:
+        result = run_sql_text(data['sql'])
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+    return web.json_response(result)
+
 # =====================================================================================================
 
 # ================================= 历史记录功能 =================================

@@ -24,15 +24,24 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 # Version update introduction
 
-> Last updated: 2025-04-16
+> Last updated: 2025-04-22
 
-> 0.0.41 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.42 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
 >
 > 1. Fixed some known bugs
+>
+> 2. New feature: Batch import Tag function
+>
+> 3. New features: Tag sharing and batch sharing functions
 >
 
 <details>
 <summary>Click here for more updates from the past</summary>
+
+> 0.0.41 Public Beta Version 2025-04-16
+>
+> 1. Fixed some known bugs
+>
 
 > 0.0.40 Public Beta Version 2025-04-15
 >

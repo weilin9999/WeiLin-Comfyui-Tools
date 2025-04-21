@@ -134,5 +134,25 @@ export const tagsApi = {
             method: 'post',
             data: {...data,lang:savedLocale}
         })
-    }
+    },
+
+    // 获取选择的标签列表
+    getTagsGroupList: async () => {
+        return await request({
+            url: '/prompt/get_groups_list',
+            method: 'post',
+        })
+    },
+
+    // 执行SQL数组脚本
+    runSQLToServer: async (arr) => {
+        return await request({
+            url: '/prompt/run_sql_text',
+            method: 'post',
+            timeout: 0,
+            data: {
+                sql: arr
+            }
+        })
+    },
 } 

@@ -3,7 +3,7 @@
     <Transition :name="`${prefix}dialog-fade`">
       <div v-if="modelValue" :class="`${prefix}dialog-overlay`"  @click="handleOverlayClick">
         <Transition :name="`${prefix}dialog-slide`">
-          <div :class="`${prefix}dialog`" @click.stop>
+          <div :style="{ 'width': width  }" :class="`${prefix}dialog`" @click.stop>
             <div :class="`${prefix}dialog-header`">
               <h3 :class="`${prefix}dialog-title`">{{ title }}</h3>
               <button :class="`${prefix}dialog-close`" @click="close">
@@ -37,6 +37,10 @@ const props = defineProps({
   closeOnClickOverlay: {
     type: Boolean,
     default: false
+  },
+  width: {
+    type: String,
+    default: '60%'
   }
 })
 
