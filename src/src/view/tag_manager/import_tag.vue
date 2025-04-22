@@ -192,6 +192,7 @@ function handleTXTUpload(event) {
         };
         reader.readAsText(file);
     }
+    event.target.value = '';
 }
 
 function handleJSONUpload(event) {
@@ -217,6 +218,7 @@ function handleJSONUpload(event) {
         };
         reader.readAsText(file);
     }
+    event.target.value = '';
 }
 
 function handleYAMLUpload(event) {
