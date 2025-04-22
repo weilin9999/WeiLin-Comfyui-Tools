@@ -26,7 +26,7 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 > Last updated: 2025-04-22
 
-> 0.0.44 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.45 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
 >
 > 1. Fixed some known bugs
 >
@@ -34,7 +34,8 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 >
 > 3. New addition: Record the height of the input box. Each time it is opened, it will maintain the height of the previous state
 >
-
+> 4. Fixed the issue of incomplete loading of the Lora manager
+>
 
 <details>
 <summary>Click here for more updates from the past</summary>

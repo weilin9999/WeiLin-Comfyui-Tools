@@ -126,7 +126,7 @@ const totalPages = computed(() => {
       return Math.ceil(valuesArray.length / pageSize.value)
     }
   } else {
-    const rootFolder = selectFolder.value["/"]
+    const rootFolder = selectFolder.value[currentSubCategory.value]
     if (rootFolder) {
       const valuesArray = Object.values(rootFolder)
       return Math.ceil(valuesArray.length / pageSize.value)
@@ -240,6 +240,7 @@ const selectCategory = (category) => {
     selectFolder.value = folderList.value[category]
     const rootFolder = selectFolder.value
     if (rootFolder) {
+      hasLoadedAll.value = false
       currentPage.value = 1 // 重置页码
       const valuesArray = Object.values(rootFolder)
       // 根据当前页码获取对应的50条数据
@@ -255,6 +256,7 @@ const selectCategory = (category) => {
     selectFolder.value = folderList.value[category]
     const rootFolder = selectFolder.value["/"]
     if (rootFolder) {
+      hasLoadedAll.value = false
       currentPage.value = 1 // 重置页码
       const valuesArray = Object.values(rootFolder)
       // 根据当前页码获取对应的50条数据
@@ -273,6 +275,7 @@ const selectSecondCategory = (subCategory) => {
     paginatedLoraList.value = []
     const rootFolder = selectFolder.value[currentSubCategory.value]
     if (rootFolder) {
+      hasLoadedAll.value = false
       currentPage.value = 1 // 重置页码
       const valuesArray = Object.values(rootFolder)
       // 根据当前页码获取对应的50条数据
