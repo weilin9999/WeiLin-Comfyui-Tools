@@ -47,17 +47,17 @@
                     style="display: none;" />
             </div>
             <div style="margin-bottom: 16px;">
-                <input :readonly="isSelectGroup" v-model="groupName" :placeholder="t('importDialog.pleaseMainCeb')" />
-                <button :disabled="isSelectGroup" @click="generateGroupSQL">{{ t('importDialog.setMainCeb') }}</button>
-                <input readonly style="width: 300px;margin-left: 10px;" v-model="mainClassUUID"
+                <input  v-model="groupName" :placeholder="t('importDialog.pleaseMainCeb')" />
+                <button  @click="generateGroupSQL">{{ t('importDialog.setMainCeb') }}</button>
+                <input style="width: 300px;margin-left: 10px;" v-model="mainClassUUID"
                     :placeholder="t('importDialog.pleaseMainCebUuid')" />
             </div>
             <div style="margin-bottom: 16px;">
-                <input :readonly="isSelectGroup" v-model="subGroupName"
+                <input v-model="subGroupName"
                     :placeholder="t('importDialog.pleaseSubGroup')" />
-                <button :disabled="isSelectGroup" @click="generateSubGroupSQL">{{ t('importDialog.setSubCeb')
+                <button @click="generateSubGroupSQL">{{ t('importDialog.setSubCeb')
                     }}</button>
-                <input readonly style="width: 300px;margin-left: 10px" v-model="subGroupUUID"
+                <input style="width: 300px;margin-left: 10px" v-model="subGroupUUID"
                     :placeholder="t('importDialog.pleaseSubGroupUuid')" />
             </div>
             <div style="margin-bottom: 16px;">
@@ -108,7 +108,7 @@
 
 <script setup>
 import Dialog from '@/components/Dialog.vue'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { uuidv7 } from "uuidv7";
 import message from '@/utils/message'
@@ -144,11 +144,9 @@ const outPutName = ref('')
 const yamlFileInput = ref(null)
 
 function triggerYAMLUpload() {
-    if (!isSelectGroup.value) {
-        if (groupSql.value.length <= 0 || subGroupSql.value.length <= 0) {
-            message({ type: "warn", str: 'importDialog.pleaseFullRequest' });
-            return
-        }
+    if (groupSql.value.length <= 0 || subGroupSql.value.length <= 0) {
+        message({ type: "warn", str: 'importDialog.pleaseFullRequest' });
+        return
     }
     yamlFileInput.value.click();
 }
@@ -248,6 +246,7 @@ function handleYAMLUpload(event) {
 }
 
 function handleFileUpload(event) {
+    cleanAll();
     const file = event.target.files[0];
     if (file) {
         const reader = new FileReader();
@@ -286,21 +285,17 @@ function handleFileUpload(event) {
 }
 
 function triggerTXTUpload() {
-    if (!isSelectGroup.value) {
-        if (groupSql.value.length <= 0 || subGroupSql.value.length <= 0) {
-            message({ type: "warn", str: 'importDialog.pleaseFullRequest' });
-            return
-        }
+    if (groupSql.value.length <= 0 || subGroupSql.value.length <= 0) {
+        message({ type: "warn", str: 'importDialog.pleaseFullRequest' });
+        return
     }
     txtFileInput.value.click();
 }
 
 function triggerJSONUpload() {
-    if (!isSelectGroup.value) {
-        if (groupSql.value.length <= 0 || subGroupSql.value.length <= 0) {
-            message({ type: "warn", str: 'importDialog.pleaseFullRequest' });
-            return
-        }
+    if (groupSql.value.length <= 0 || subGroupSql.value.length <= 0) {
+        message({ type: "warn", str: 'importDialog.pleaseFullRequest' });
+        return
     }
     jsonFileInput.value.click();
 }
@@ -464,6 +459,10 @@ const getTagsList = () => {
 
 const sureToImportTags = async () => {
     if (isSelectGroup.value) {
+        if (groupSql.value.length <= 0 || subGroupSql.value.length <= 0) {
+            message({ type: "warn", str: 'importDialog.pleaseFullRequest' });
+            return
+        }
         const sqlContent = [...tagGroups.value]
         // console.log(sqlContent)
         await runSQLToServer(sqlContent)
@@ -477,6 +476,35 @@ const sureToImportTags = async () => {
         // console.log(sqlContent)
     }
 }
+
+watch(groupSql, (newVal, oldVal) => {
+  if (!newVal || newVal === oldVal) return;
+  // 提取 p_uuid（最后一个单引号包裹的内容）
+  const newPUuid = newVal.match(/'([^']+)'\s*\)\s*;?$/)?.[1];
+  const oldPUuid = oldVal?.match(/'([^']+)'\s*\)\s*;?$/)?.[1];
+
+  if (newPUuid && oldPUuid && subGroupSql.value) {
+    // 只替换原有 oldPUuid 为 newPUuid
+    subGroupSql.value = subGroupSql.value.replace(
+      new RegExp(`'${oldPUuid}'`, 'g'),
+      `'${newPUuid}'`
+    );
+  }
+});
+
+
+watch(subGroupSql, (newVal, oldVal) => {
+  if (!newVal || newVal === oldVal) return;
+  // 提取 g_uuid（最后一个单引号包裹的内容）
+  const newGUuid = newVal.match(/'([^']+)'\s*\)\s*;?$/)?.[1];
+  const oldGUuid = oldVal?.match(/'([^']+)'\s*\)\s*;?$/)?.[1];
+  if (newGUuid && oldGUuid && tagGroups.value.length > 0) {
+    // 只替换原有 oldGUuid 为 newGUuid
+    tagGroups.value = tagGroups.value.map(sql =>
+      sql.replace(new RegExp(`'${oldGUuid}'`, 'g'), `'${newGUuid}'`)
+    );
+  }
+});
 
 defineExpose({
     open: () => {

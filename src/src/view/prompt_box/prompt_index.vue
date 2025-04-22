@@ -356,7 +356,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onBeforeUpdate, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, watch, onBeforeUpdate, onMounted, onUnmounted, onBeforeUnmount, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import SettingDialog from './components/setting_dialog.vue'
@@ -1545,13 +1545,43 @@ const toggleLoraManager = () => {
   showLoraManager.value = !showLoraManager.value
 }
 
+const resizeObserver = ref(null)
+
+const handleTextareaResize = () => {
+  if (inputAreaRef.value) {
+    const height = inputAreaRef.value.clientHeight
+    localStorage.setItem('weilinPromptTextAreaHeight', height)
+  }
+}
 
 // 添加消息监听
 onMounted(() => {
   document.addEventListener('click', handleClickOutside);
   window.addEventListener('message', handleMessage)
   initTranslate()
+
+  // 恢复保存的高度
+  const savedHeight = localStorage.getItem('weilinPromptTextAreaHeight')
+  if (savedHeight && inputAreaRef.value) {
+    inputAreaRef.value.style.height = `${savedHeight}px`
+  }
+  
+  // 添加ResizeObserver监听
+  resizeObserver.value = new ResizeObserver(() => {
+    handleTextareaResize()
+  })
+  
+  if (inputAreaRef.value) {
+    resizeObserver.value.observe(inputAreaRef.value)
+  }
 })
+
+onBeforeUnmount(() => {
+  if (resizeObserver.value) {
+    resizeObserver.value.disconnect()
+  }
+})
+
 
 // 组件卸载时清理事件监听
 onUnmounted(() => {

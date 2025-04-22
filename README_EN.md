@@ -26,7 +26,20 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 > Last updated: 2025-04-22
 
-> 0.0.42 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.43 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+>
+> 1. Fixed some known bugs
+>
+> 2. New features: Batch import Tag function (Some logical issues have been fixed and some new functions have been optimized)
+>
+> 3. New addition: Record the height of the input box. Each time it is opened, it will maintain the height of the previous state
+>
+
+
+<details>
+<summary>Click here for more updates from the past</summary>
+
+> 0.0.42 Public Beta Version 2025-04-22
 >
 > 1. Fixed some known bugs
 >
@@ -34,9 +47,6 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 >
 > 3. New features: Tag sharing and batch sharing functions
 >
-
-<details>
-<summary>Click here for more updates from the past</summary>
 
 > 0.0.41 Public Beta Version 2025-04-16
 >
