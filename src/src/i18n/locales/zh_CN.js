@@ -87,6 +87,13 @@ export default {
             inputTestTranslaterPlaceholder: "请输入要翻译的内容",
             outPutTestTranslaterPlaceholder: "翻译结果将显示在这里",
             errorPrompt: "读取节点提示词失败！",
+            setting_auto_complete_limit: "补全提示设置",
+            show_auto_limit: "显示补全提示数量",
+            showAutoLimitPlaceholder: "请输入要显示的数量",
+            settingAutoCompleteWidth: "设置补全提示框宽度",
+            settingAutoCompleteWidthPlaceholder: "请输入宽度",
+            settingAutoCompleteHeight: "设置补全提示框最大高度",
+            settingAutoCompleteHeightPlaceholder: "请输入最大高度",
         },
     },
     controls: {

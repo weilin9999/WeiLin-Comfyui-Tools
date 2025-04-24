@@ -610,9 +610,9 @@
 /* 自动补全容器 */
 .autocomplete-container {
     position: absolute;
-    z-index: 1000;
-    width: 300px;
-    max-height: 300px;
+    z-index: 12000;
+    width: 450px;
+    max-height: 350px;
     overflow-y: auto;
     background-color: var(--background-color);
     border: 1px solid var(--border-color);
@@ -621,6 +621,8 @@
     padding: 8px 0;
     margin-top: 4px;
     background-color: var(--weilin-prompt-ui-primary-bg);
+    /* 添加最大宽度限制 */
+    max-width: calc(100% - 16px);
 }
 
 /* 关闭按钮 */
@@ -648,10 +650,11 @@
 /* 自动补全项 */
 .autocomplete-item {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     padding: 8px 12px;
     cursor: pointer;
     transition: background-color 0.2s ease;
+    align-items: center;
 }
 
 .autocomplete-item:hover {
@@ -667,6 +670,7 @@
 
 /* 标签样式 */
 .tag {
+    width: 65%;
     font-weight: 500;
     color: var(--weilin-prompt-ui-primary-text);
     font-size: 14px;
@@ -674,10 +678,11 @@
 
 /* 描述样式 */
 .desc {
+    width: 35%;
+    padding-left: 20px;
     color: var(--weilin-prompt-ui-primary-text);
-    font-size: 12px;
-    margin-top: 4px;
-    padding: 10px;
+    font-size: 14px;
+    box-sizing: border-box;
 }
 
 /* 中间翻译区域 */

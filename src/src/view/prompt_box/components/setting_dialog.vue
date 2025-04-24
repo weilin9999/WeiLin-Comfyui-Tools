@@ -5,6 +5,9 @@
         <ul>
           <li :class="{ active: selectedSetting === 'translator' }" @click="selectSetting('translator')">{{
     t('promptBox.settings.translator') }}</li>
+          <li :class="{ active: selectedSetting === 'setting_auto_complete_limit' }"
+            @click="selectSetting('setting_auto_complete_limit')">{{
+    t('promptBox.settings.setting_auto_complete_limit') }}</li>
           <li :class="{ active: selectedSetting === 'setting_floating_ball' }"
             @click="selectSetting('setting_floating_ball')">{{
     t('promptBox.settings.setting_floating_ball') }}</li>
@@ -142,6 +145,38 @@
 
           </div>
         </div>
+
+        <div v-if="selectedSetting === 'setting_auto_complete_limit'">
+          <h3>{{ t('promptBox.settings.setting_auto_complete_limit') }}</h3>
+          <div class="floating-ball-settings">
+            <!-- 补全显示条数 -->
+            <div class="setting-item">
+              <label>{{ t('promptBox.settings.show_auto_limit') }}</label>
+              <input type="number" v-model.number="saveAutoCompleteLimit" min="1" max="99999999" style="width: 100px;"
+                :placeholder="t('promptBox.settings.showAutoLimitPlaceholder')" />
+            </div>
+
+            <!-- 设置补全提示框宽度 -->
+            <div class="setting-item">
+              <label>{{ t('promptBox.settings.settingAutoCompleteWidth') }}</label>
+              <input type="number" v-model.number="saveAutoCompleteWidth" min="5" style="width: 100px;"
+                :placeholder="t('promptBox.settings.settingAutoCompleteWidthPlaceholder')" />
+            </div>
+
+             <!-- 设置补全提示框最大高度 -->
+            <div class="setting-item">
+              <label>{{ t('promptBox.settings.settingAutoCompleteHeight') }}</label>
+              <input type="number" v-model.number="saveAutoCompleteHeight" min="5" style="width: 100px;"
+                :placeholder="t('promptBox.settings.settingAutoCompleteHeightPlaceholder')" />
+            </div>
+
+            <!-- 保存按钮 -->
+            <button class="save-button" @click="saveAutoCompleteSetting">
+              {{ t('promptBox.settings.save') }}
+            </button>
+          </div>
+        </div>
+
         <div v-if="selectedSetting === 'setting_floating_ball'">
           <h3>{{ t('promptBox.settings.setting_floating_ball') }}</h3>
           <div class="floating-ball-settings">
@@ -338,6 +373,7 @@ import Dialog from '@/components/Dialog.vue'
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { translatorApi } from '@/api/translator'
+import { autocompleteApi } from '@/api/autocomplete'
 import message from '@/utils/message'
 import { languageApi } from '@/api/language'
 import { openaiApi } from '@/api/openai'
@@ -386,8 +422,15 @@ const hasTranslaterPackage = ref(false)
 const testTranslaterInputText = ref('')
 const testTranslaterOutputText = ref('')
 
+const saveAutoCompleteLimit = ref(25)
+const saveAutoCompleteWidth = ref(localStorage.getItem('weilin_prompt_ui_auto_box_width') || 450);
+const saveAutoCompleteHeight = ref(localStorage.getItem('weilin_prompt_ui_auto_box_height') || 350);
+
 const selectSetting = (setting) => {
   selectedSetting.value = setting
+  if (setting == "setting_auto_complete_limit"){
+    getAutoCompleteSetting();
+  }
 }
 
 const confirmTranslator = () => {
@@ -689,6 +732,27 @@ const checkTranskatePackagesState = () => {
     message({ type: "warn", str: 'message.getTranslaterFail' });
   })
 };
+
+
+const getAutoCompleteSetting = async () => {
+  await autocompleteApi.getAutocompleteLimit().then(res => {
+    saveAutoCompleteLimit.value = res.data
+  }).catch(err => {
+    console.error(err)
+    message({ type: "warn", str: 'message.networkError' });
+  })
+};
+
+const saveAutoCompleteSetting = async () => {
+  await autocompleteApi.updateAutocompleteLimit(saveAutoCompleteLimit.value).then(res => {
+    message({ type: "success", str: 'message.saveSuccess' });
+    localStorage.setItem('weilin_prompt_ui_auto_box_width', saveAutoCompleteWidth.value);
+    localStorage.setItem('weilin_prompt_ui_auto_box_height', saveAutoCompleteHeight.value);
+  }).catch(err => {
+    console.error(err)
+    message({ type: "warn", str: 'message.networkError' });
+  })
+}
 
 // 初始化时加载设置
 onMounted(() => {

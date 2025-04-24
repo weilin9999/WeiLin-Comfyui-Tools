@@ -7,7 +7,7 @@ from .prompt_api.tags_manager import *
 from .history.history_contl import *
 from .history.collect_history_contl import *
 from .fast_autocomplete.autocomplete import fuzzy_search
-from .user_init.user_init import read_init_file, set_user_lang, get_translate_setting,update_translate_setting,get_translate_settings,update_translate_settings
+from .user_init.user_init import read_init_file, set_user_lang, get_translate_setting,update_translate_setting,get_translate_settings,update_translate_settings,get_auto_limit_setting,update_auto_limit_setting
 from .translate.local_translate import translate_phrase
 from .translate.api_translate import installTranslateApi,applyTranslateApi,translateText
 from .cloud_warehouse.warehouse import get_main_warehouse,get_warehouse_tree
@@ -511,12 +511,34 @@ async def _autocomplete(request):
     data = await request.json()
     query = data.get('query', '')
     try:
-        results = await fuzzy_search(query)
+        limit = get_auto_limit_setting() # 获取设置的参数信息
+        results = await fuzzy_search(query, limit)
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
 
     return web.json_response({"data": results})
+
+@PromptServer.instance.routes.post(baseUrl+"get/setting/get_auto_limit_setting")
+async def _get_auto_limit_setting(request):
+    try:
+        limit = get_auto_limit_setting() # 获取设置的参数信息
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+    return web.json_response({"data": limit})
+
+@PromptServer.instance.routes.post(baseUrl+"update/setting/update_auto_limit_setting")
+async def _update_auto_limit_setting(request):
+    data = await request.json()
+    try:
+        update_auto_limit_setting(data.get('limit')) # 获取设置的参数信息
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+    return web.json_response({"info": 'ok'})
 # =====================================================================================================
 
 # ================================= OpenAI 功能 =================================

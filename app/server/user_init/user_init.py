@@ -50,6 +50,7 @@ default_settings = {
     "translate_service": "alibaba",
     "translate_source_lang": "en",
     "translate_target_lang": "zh",
+    "show_auto_limit": 25,
 }
 
 def read_init_file():
@@ -132,6 +133,26 @@ def update_translate_settings(service=None, source_lang=None, target_lang=None):
     if target_lang is not None:
         data['translate_target_lang'] = target_lang
         
+    with open(init_file_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+    return True
+
+def get_auto_limit_setting():
+    """获取show_auto_limit参数，如果不存在则添加默认值"""
+    data = read_init_file() or {}
+    
+    # 如果不存在show_auto_limit参数，则添加默认值
+    if 'show_auto_limit' not in data:
+        data['show_auto_limit'] = 25
+        with open(init_file_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+    
+    return data['show_auto_limit']
+
+def update_auto_limit_setting(new_setting: int):
+    """更新show_auto_limit参数"""
+    data = read_init_file() or {}
+    data['show_auto_limit'] = new_setting
     with open(init_file_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
     return True

@@ -1,6 +1,6 @@
 from ..dao.dao import fetch_all
 
-async def fuzzy_search(query):
+async def fuzzy_search(query, limit=10):
     """模糊查询，先查询 tag_tags 表，然后查询 danbooru_tag 表，按匹配度排序"""
     results = []
 
@@ -19,7 +19,7 @@ async def fuzzy_search(query):
         FROM tag_tags
         WHERE text LIKE ? OR desc LIKE ?
         ORDER BY match_score DESC
-        LIMIT 10
+        LIMIT ?
     '''
     tag_tags_results = await fetch_all('tags', tag_tags_query, (
         query,                # 完全匹配
@@ -29,7 +29,8 @@ async def fuzzy_search(query):
         f'{query}%',          # 描述前缀匹配
         f'%{query}%',         # 描述包含匹配
         f'%{query}%',         # WHERE条件
-        f'%{query}%'          # WHERE条件
+        f'%{query}%',          # WHERE条件
+        limit                 # 限制返回条数
     ))
     
     for result in tag_tags_results:
@@ -42,8 +43,8 @@ async def fuzzy_search(query):
         })
 
     # 如果结果不足十个，继续查询 danbooru_tag 表
-    if len(results) < 10:
-        remaining_limit = 10 - len(results)
+    if len(results) < limit:
+        remaining_limit = limit - len(results)
         danbooru_tag_query = '''
             SELECT tag, translate, NULL AS color, color_id,
                    CASE 
@@ -89,4 +90,4 @@ async def fuzzy_search(query):
         if "match_score" in result:
             del result["match_score"]
             
-    return results[:10]
+    return results[:limit]

@@ -121,8 +121,8 @@
 
         <div class="action-item">
           <button class="tag-manager-btn" @click="openBilibili" :title="t('controls.tutorialVideo')">
-            <svg t="1745234292993" class="tag-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
-              p-id="1496" width="128" height="128">
+            <svg t="1745234292993" class="tag-icon" viewBox="0 0 1024 1024" version="1.1"
+              xmlns="http://www.w3.org/2000/svg" p-id="1496" width="128" height="128">
               <path
                 d="M204.288 63.488c-8.704 8.192-16.896 20.48-18.944 26.624-3.584 11.776 12.8 62.464 20.48 62.464S235.52 176.128 235.52 184.32c0 16.384-17.92 26.112-47.104 26.112-34.816 0-104.448 27.648-128.512 51.2-9.216 8.704-26.112 33.792-37.888 56.32L0 358.4v469.504l21.504 40.448c24.576 47.616 35.84 59.392 82.944 84.992l40.96 22.528h722.944l40.96-19.968c51.712-24.576 72.704-45.056 95.744-94.72l17.92-38.4v-231.424l0.512-231.424-17.92-36.352c-9.216-20.48-28.16-47.104-42.496-59.904-31.232-30.208-86.528-54.272-122.368-54.272-54.272 0-65.024-22.528-26.624-57.856 20.48-18.432 23.04-25.088 23.04-45.568 0-19.968-3.584-28.16-16.896-41.984-9.216-9.216-22.528-16.896-29.696-16.896-11.776 0-34.304 9.216-40.448 16.896-1.536 1.536-35.84 35.328-75.776 74.24l-73.216 71.168-83.456-0.512c-45.568 0-88.064-2.56-93.696-4.608-5.632-2.56-38.4-31.232-72.704-65.024C249.856 40.448 235.008 32.256 204.288 63.488z m652.8 262.656c5.12 0.512 19.968 9.216 31.744 20.48l21.504 19.968 1.536 217.088c1.024 197.12 0.512 218.112-8.704 236.032-14.336 27.136-34.816 40.448-65.536 41.984-14.336 0.512-173.568 0.512-353.28 0l-326.144-1.536-45.056-45.056V373.248l20.992-22.528c15.872-17.92 25.6-23.552 41.984-25.088 16.384-1.024 634.88-0.512 680.96 0.512z"
                 p-id="1497"></path>
@@ -138,19 +138,28 @@
 
       </div>
 
-      <!-- 输入框区域 -->
-      <!-- 移除事件 @change="finishPromptPutItHistory" -->
-      <textarea v-model="inputText" class="input-area" @input="handleInput" :placeholder="t('promptBox.placeholder')"
-        @keydown="handleKeydown" @blur="onBlur" rows="6" ref="inputAreaRef"></textarea>
+      <div style="position: relative;">
+        <!-- 输入框区域 -->
+        <!-- 移除事件 @change="finishPromptPutItHistory" -->
+        <textarea v-model="inputText" class="input-area" @input="handleInput" :placeholder="t('promptBox.placeholder')"
+          @keydown="handleKeydown" @blur="onBlur" rows="6" ref="inputAreaRef"></textarea>
 
-      <!-- 自动补全窗口 -->
-      <div v-if="showAutocomplete" class="autocomplete-container" ref="autocompleteContainerRef">
-        <button class="close-autocomplete-btn" @click.stop="closeAutocomplete">×</button>
-        <div v-for="(item, index) in autocompleteResults" :key="index" class="autocomplete-item"
-          :class="{ selected: index === selectedAutocompleteIndex }" @click.stop="selectAutocomplete(index, $event)">
-          <span class="tag">{{ item.text }}</span>
-          <span class="desc">{{ item.desc }}</span>
+        <!-- 自动补全窗口 -->
+        <div class="autocomplete-container" ref="autocompleteContainerRef"
+          :style="{ top: `${autocompletePosition.top}px`,
+             left: `${autocompletePosition.left}px`, 
+             display: showAutocomplete ? 'block' : 'none',
+             width: `${saveAutoCompleteWidth}px`,
+             maxHeight: `${saveAutoCompleteHeight}px` }">
+          <button class="close-autocomplete-btn" @click.stop="closeAutocomplete">×</button>
+          <div v-for="(item, index) in autocompleteResults" :key="index" class="autocomplete-item"
+            :class="{ selected: index === selectedAutocompleteIndex }" @click.stop="selectAutocomplete(index, $event)"
+            :ref="el => { if (el && index === selectedAutocompleteIndex) selectedItemRef = el }">
+            <span class="tag">{{ item.text }}</span>
+            <span class="desc">{{ item.desc }}</span>
+          </div>
         </div>
+
       </div>
 
       <div class="prompt-input-translate-area">
@@ -377,7 +386,7 @@ const { t } = useI18n()
 
 const autocompleteContainerRef = ref()
 const inputAreaRef = ref()
-
+const autocompletePosition = ref({ top: 0, left: 0 })
 
 const props = defineProps({
   promptManager: {
@@ -413,6 +422,10 @@ const loraOpen = ref(false)
 const showAutocomplete = ref(false);
 const autocompleteResults = ref([]);
 const selectedAutocompleteIndex = ref(0);
+const selectedItemRef = ref(null);
+const saveAutoCompleteWidth = ref(localStorage.getItem('weilin_prompt_ui_auto_box_width') || 450);
+const saveAutoCompleteHeight = ref(localStorage.getItem('weilin_prompt_ui_auto_box_height') || 350);
+
 
 const translateText = ref('')
 
@@ -660,18 +673,93 @@ const replaceTagsWithDesc = (text, tagMap) => {
   });
 };
 
+
+let debounceTimer = null;
+const calculateAutocompletePosition = async () => {
+  if (debounceTimer) {
+    clearTimeout(debounceTimer);
+  }
+  debounceTimer = setTimeout(async () => {
+    if (!inputAreaRef.value) return;
+
+    const textarea = inputAreaRef.value;
+    const cursorPos = textarea.selectionStart;
+    // console.log(textarea,cursorPos)
+
+    // 确保自动补全窗口已经渲染
+    await nextTick();
+
+    // 创建镜像元素计算光标位置
+    const text = textarea.value.substring(0, cursorPos);
+    const mirror = document.createElement('div');
+    mirror.style.position = 'absolute';
+    mirror.style.top = '0';
+    mirror.style.left = '0';
+    mirror.style.visibility = 'hidden';
+    mirror.style.whiteSpace = 'pre-wrap';
+    mirror.style.wordWrap = 'break-word';
+    mirror.style.width = window.getComputedStyle(textarea).width;
+    mirror.style.font = window.getComputedStyle(textarea).font;
+    mirror.style.padding = window.getComputedStyle(textarea).padding;
+
+    const textNode = document.createTextNode(text);
+    const cursorNode = document.createElement('span');
+    cursorNode.textContent = '|';
+
+    mirror.appendChild(textNode);
+    mirror.appendChild(cursorNode);
+    textarea.parentNode.appendChild(mirror);
+
+    // 获取光标相对于父容器的位置
+    const cursorRect = cursorNode.getBoundingClientRect();
+    const parentRect = textarea.parentNode.getBoundingClientRect();
+
+    // 计算初始位置
+    let top = cursorRect.top - parentRect.top + cursorRect.height;
+    let left = cursorRect.left - parentRect.left;
+
+    // 等待DOM更新完成
+    await nextTick();
+
+    if (autocompleteContainerRef.value) {
+      const autocompleteWidth = autocompleteContainerRef.value.offsetWidth;
+      const textareaWidth = textarea.offsetWidth;
+      const textareaLeft = textarea.getBoundingClientRect().left - parentRect.left;
+
+      // 检查右边界
+      if (left + autocompleteWidth > textareaLeft + textareaWidth) {
+        left = textareaLeft + textareaWidth - autocompleteWidth;
+      }
+
+      // 检查左边界
+      if (left < textareaLeft) {
+        left = textareaLeft;
+      }
+
+      // 确保不会超出父容器
+      left = Math.max(0, Math.min(left, parentRect.width - autocompleteWidth));
+    }
+
+    // 清理临时元素
+    textarea.parentNode.removeChild(mirror);
+
+    autocompletePosition.value = { top, left };
+    debounceTimer = null;
+  }, 50); // 50ms防抖
+};
+
 // 添加一个 ref 用于存储定时器
 const historyTimer = ref(null);
 
 const handleInput = (event) => {
   if (!event?.target) return;
 
+  if (!inputAreaRef.value) return
+
   // 获取原始输入值和光标位置
   const originalValue = event.target.value;
   const cursorPosition = event.target.selectionStart;
   const cursorEnd = event.target.selectionEnd;
-
-
 
 
   // 1. 首先处理格式转换
@@ -742,6 +830,7 @@ const handleInput = (event) => {
   while (wordStart > 0 && !/[,\s]/.test(textBeforeCursor[wordStart - 1])) {
     wordStart--;
   }
+
 
   const currentWord = textBeforeCursor.substring(wordStart, newCursorPosition).trim();
 
@@ -1554,23 +1643,40 @@ const handleTextareaResize = () => {
   }
 }
 
+const setupCursorTracking = () => {
+  const textarea = inputAreaRef.value;
+  if (!textarea) return;
+
+  // 添加光标位置变化监听
+  textarea.addEventListener('keyup', updateAutocompletePosition);
+  textarea.addEventListener('click', updateAutocompletePosition);
+  textarea.addEventListener('input', updateAutocompletePosition);
+};
+
+const updateAutocompletePosition = () => {
+  if (showAutocomplete.value) {
+    calculateAutocompletePosition();
+  }
+};
+
 // 添加消息监听
 onMounted(() => {
   document.addEventListener('click', handleClickOutside);
   window.addEventListener('message', handleMessage)
   initTranslate()
+  setupCursorTracking()
 
   // 恢复保存的高度
   const savedHeight = localStorage.getItem('weilinPromptTextAreaHeight')
   if (savedHeight && inputAreaRef.value) {
     inputAreaRef.value.style.height = `${savedHeight}px`
   }
-  
+
   // 添加ResizeObserver监听
   resizeObserver.value = new ResizeObserver(() => {
     handleTextareaResize()
   })
-  
+
   if (inputAreaRef.value) {
     resizeObserver.value.observe(inputAreaRef.value)
   }
@@ -1590,6 +1696,12 @@ onUnmounted(() => {
     clearTimeout(historyTimer.value);
   }
   window.removeEventListener('message', handleMessage)
+  const textarea = inputAreaRef.value;
+  if (textarea) {
+    textarea.removeEventListener('keyup', updateAutocompletePosition);
+    textarea.removeEventListener('click', updateAutocompletePosition);
+    textarea.removeEventListener('input', updateAutocompletePosition);
+  }
 })
 
 // 处理消息
@@ -1764,11 +1876,16 @@ const triggerAutocomplete = (inputValue) => {
     // 优化匹配逻辑
     const lowerInput = trimmedInput.toLowerCase();
 
-    autocompleteApi.getAutocomplete(String(lowerInput)).then(res => {
+    autocompleteApi.getAutocomplete(String(lowerInput)).then(async (res) => {
       autocompleteResults.value = res.data
       // 更新补全结果
-      showAutocomplete.value = autocompleteResults.value.length > 0;
-      selectedAutocompleteIndex.value = 0; // 重置选中索引
+      await calculateAutocompletePosition();
+      setTimeout(() => {
+        saveAutoCompleteWidth.value = localStorage.getItem('weilin_prompt_ui_auto_box_width')
+        saveAutoCompleteHeight.value = localStorage.getItem('weilin_prompt_ui_auto_box_height')
+        showAutocomplete.value = autocompleteResults.value.length > 0;
+        selectedAutocompleteIndex.value = 0; // 重置选中索引
+      }, 50)
     })
 
   } catch (error) {
@@ -1783,17 +1900,45 @@ const handleKeydown = (event) => {
     if (event.key === 'ArrowDown') {
       event.preventDefault();
       selectedAutocompleteIndex.value = Math.min(selectedAutocompleteIndex.value + 1, autocompleteResults.value.length - 1);
+      scrollToSelectedItem();
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
       selectedAutocompleteIndex.value = Math.max(selectedAutocompleteIndex.value - 1, 0);
+      scrollToSelectedItem();
     } else if (event.key === 'Tab' || event.key === 'Enter') {
       event.preventDefault();
       selectAutocomplete(selectedAutocompleteIndex.value);
     } else if (event.key === 'Escape') {
       event.preventDefault();
-      showAutocomplete.value = false;
+      closeAutocomplete();
     }
   }
+};
+
+// 添加滚动到选中项的函数
+const scrollToSelectedItem = () => {
+  nextTick(() => {
+    if (selectedItemRef.value && autocompleteContainerRef.value) {
+      const container = autocompleteContainerRef.value;
+      const selectedItem = selectedItemRef.value;
+      
+      // 获取容器和选中项的位置信息
+      const containerRect = container.getBoundingClientRect();
+      const selectedRect = selectedItem.getBoundingClientRect();
+      
+      // 判断选中项是否在可视区域内
+      const isAbove = selectedRect.top < containerRect.top;
+      const isBelow = selectedRect.bottom > containerRect.bottom;
+      
+      if (isAbove) {
+        // 如果选中项在可视区域上方，滚动到顶部
+        container.scrollTop = container.scrollTop + (selectedRect.top - containerRect.top);
+      } else if (isBelow) {
+        // 如果选中项在可视区域下方，滚动到底部
+        container.scrollTop = container.scrollTop + (selectedRect.bottom - containerRect.bottom);
+      }
+    }
+  });
 };
 
 const selectAutocomplete = (index, event) => {
