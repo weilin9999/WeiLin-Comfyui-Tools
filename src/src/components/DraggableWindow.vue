@@ -85,19 +85,20 @@ onMounted(() => {
    if (props.position) {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
+    const minLeftSpace = 100; // 左侧保留的最小空间
     
     // 边界检测
     let x = props.position.x;
     let y = props.position.y;
     
-    // 确保左侧不超出边界
-    x = Math.max(50, x);
-    // 确保右侧不超出边界
-    x = Math.min(x, viewportWidth - (props.size?.width || currentSize.value.width));
+    // 确保左侧保留至少窗口宽度100px的位置
+    x = Math.max(minLeftSpace - (props.size?.width || currentSize.value.width), x);
+    // 确保右侧保留最少100px的位置
+    x = Math.min(x, viewportWidth - 100);
     // 确保顶部不超出边界
     y = Math.max(50, y);
-    // 确保底部不超出边界
-    y = Math.min(y, viewportHeight - (props.size?.height || currentSize.value.height));
+    // 确保底部保留最少100px的位置
+    y = Math.min(y, viewportHeight - 100);
     
     currentPosition.value = { x, y };
   }
@@ -126,18 +127,19 @@ const handleDrag = (event) => {
   if (isDragging.value) {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
+    const minLeftSpace = 100; // 左侧保留的最小空间
     
     let newX = event.clientX - dragOffset.value.x;
     let newY = event.clientY - dragOffset.value.y;
     
-    // 确保左侧不超出边界
-    newX = Math.max(50, newX);
-    // 确保右侧不超出边界
-    newX = Math.min(newX, viewportWidth - currentSize.value.width);
+    // 确保左侧保留至少窗口宽度100px的位置
+    newX = Math.max(minLeftSpace - currentSize.value.width, newX);
+    // 确保右侧保留最少100px的位置
+    newX = Math.min(newX, viewportWidth - 100);
     // 确保顶部不超出边界
     newY = Math.max(50, newY);
-    // 确保底部不超出边界
-    newY = Math.min(newY, viewportHeight - currentSize.value.height);
+    // 确保底部保留最少100px的位置
+    newY = Math.min(newY, viewportHeight - 100);
     
     const newPosition = {
       x: newX,

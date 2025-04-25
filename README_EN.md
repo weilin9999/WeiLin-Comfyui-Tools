@@ -26,7 +26,7 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 > Last updated: 2025-04-25
 
-> 0.0.47 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.48 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
 >
 > 1. New auxiliary functions have been added, which limit the movement range of the window to prevent it from exceeding the visible range, and the floating ball also restricts the movement range
 >
