@@ -1,25 +1,28 @@
 <template>
     <!-- 悬浮球 -->
-    <div class="weilin_prompt_ui_floating-ball" :style="ballStyle[i - 1]" 
-         @mouseenter="handleMouseEnter(i - 1)" 
-         @mouseleave="handleMouseLeave(i - 1)"
-         @mousedown="startDrag($event, i - 1)" 
-         @mouseup="stopDrag($event, i - 1)" 
-         v-for="i in savedFloatingBallCount" 
-         :key="'floating-ball-' + i">
-      <div class="weilin_prompt_ui_ball-content" @click="handleClick">
-        <slot></slot>
-      </div>
-      <!-- 目录 -->
-      <div v-if="showMenu[i - 1]" class="weilin_prompt_ui_menu-container" @mousedown.stop>
-        <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item1')">{{ t('floatingBall.promptBox') }}</div>
-        <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item2')">{{ t('floatingBall.tagManager') }}</div>
-        <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item3')">{{ t('floatingBall.loraManager') }}</div>
-        <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item4')">{{ t('floatingBall.aiWindow') }}</div>
-        <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item6')">{{ t('floatingBall.openNodeListWindow') }}</div>
-        <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item7')">{{ t('floatingBall.tranToWeb') }}</div>
-        <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item5')">{{ t('floatingBall.restoreWindow') }}</div>
-      </div>
+    <div class="weilin_prompt_ui_floating-ball" :style="ballStyle[i - 1]" @mouseenter="handleMouseEnter(i - 1)"
+        @mouseleave="handleMouseLeave(i - 1)" @mousedown="startDrag($event, i - 1)" @mouseup="stopDrag($event, i - 1)"
+        v-for="i in savedFloatingBallCount" :key="'floating-ball-' + i">
+        <div class="weilin_prompt_ui_ball-content" @click="handleClick">
+            <slot></slot>
+        </div>
+        <!-- 目录 -->
+        <div v-if="showMenu[i - 1]" class="weilin_prompt_ui_menu-container" @mousedown.stop>
+            <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item1')">{{ t('floatingBall.promptBox')
+                }}</div>
+            <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item2')">{{
+                t('floatingBall.tagManager') }}</div>
+            <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item3')">{{
+                t('floatingBall.loraManager') }}</div>
+            <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item4')">{{ t('floatingBall.aiWindow')
+                }}</div>
+            <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item6')">{{
+                t('floatingBall.openNodeListWindow') }}</div>
+            <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item7')">{{ t('floatingBall.tranToWeb')
+                }}</div>
+            <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item5')">{{
+                t('floatingBall.restoreWindow') }}</div>
+        </div>
     </div>
 
     <tranToWeb ref="tranToWebRef" />
@@ -59,43 +62,88 @@ const ballStyle = ref([]);
 for (let i = 0; i < savedFloatingBallCount.value; i++) {
     showMenu.value[i] = false;
     isDragging.value[i] = false;
+
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const ballSize = savedFloatingBallSize.value;
+    const spacing = 10; // 球之间的间距
+
+    // 计算每行能放多少个球
+    const ballsPerRow = Math.floor(viewportWidth / (ballSize + spacing));
+
+    // 计算当前球的行和列
+    const row = Math.floor(i / ballsPerRow);
+    const col = i % ballsPerRow;
+
+    // 计算初始位置
+    let x = 20 + col * (ballSize + spacing);
+    let y = viewportHeight - 100 - row * (ballSize + spacing);
+
+    // 边界检查
+    x = Math.max(0, x);
+    x = Math.min(x, viewportWidth - ballSize);
+    y = Math.max(0, y);
+    y = Math.min(y, viewportHeight - ballSize);
+
     ballPosition.value[i] = {
-        x: 20 + i * (savedFloatingBallSize.value + 10), // 增加间距
-        y: window.innerHeight - 100,
-        width: savedFloatingBallSize.value + 'px',
-        height: savedFloatingBallSize.value + 'px'
+        x: x,
+        y: y,
+        width: ballSize + 'px',
+        height: ballSize + 'px'
     };
     ballStyle.value[i] = {
         left: `${ballPosition.value[i].x}px`,
         top: `${ballPosition.value[i].y}px`,
-        width: `${savedFloatingBallSize.value}px`,
-        height: `${savedFloatingBallSize.value}px`,
+        width: `${ballSize}px`,
+        height: `${ballSize}px`,
     }
 }
 
 // 开始拖拽
 const startDrag = (event, i) => {
-  // 判断点击是否在悬浮球本体或其直接子元素上
-  const target = event.target;
-  if (target.closest('.weilin_prompt_ui_floating-ball')) {
-    isDragging.value[i] = true;
-    document.addEventListener('mousemove', (e) => onDrag(e, i));
-    document.addEventListener('mouseup', (e) => stopDrag(e, i));
-  }
+    // 判断点击是否在悬浮球本体或其直接子元素上
+    const target = event.target;
+    if (target.closest('.weilin_prompt_ui_floating-ball')) {
+        isDragging.value[i] = true;
+        document.addEventListener('mousemove', (e) => onDrag(e, i));
+        document.addEventListener('mouseup', (e) => stopDrag(e, i));
+    }
 };
 
 // 拖拽中
 const onDrag = (event, i) => {
-  if (isDragging.value[i]) {
-    ballPosition.value[i].x = event.clientX - savedFloatingBallSize.value / 2;
-    ballPosition.value[i].y = event.clientY - savedFloatingBallSize.value / 2;
-    ballStyle.value[i] = {
-      left: `${ballPosition.value[i].x}px`,
-      top: `${ballPosition.value[i].y}px`,
-      width: `${savedFloatingBallSize.value}px`,
-      height: `${savedFloatingBallSize.value}px`,
-    };
-  }
+    if (isDragging.value[i]) {
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const ballSize = savedFloatingBallSize.value;
+
+        // 计算新位置并确保不超出边界
+        let newX = event.clientX - ballSize / 2;
+        let newY = event.clientY - ballSize / 2;
+
+        // 确保左侧不超出边界
+        newX = Math.max(0, newX);
+        // 确保右侧不超出边界
+        newX = Math.min(newX, viewportWidth - ballSize);
+        // 确保顶部不超出边界
+        newY = Math.max(0, newY);
+        // 确保底部不超出边界
+        newY = Math.min(newY, viewportHeight - ballSize);
+
+        ballPosition.value[i] = {
+            x: newX,
+            y: newY,
+            width: ballSize + 'px',
+            height: ballSize + 'px'
+        };
+
+        ballStyle.value[i] = {
+            left: `${ballPosition.value[i].x}px`,
+            top: `${ballPosition.value[i].y}px`,
+            width: `${ballSize}px`,
+            height: `${ballSize}px`,
+        };
+    }
 };
 
 // 停止拖拽
@@ -163,17 +211,40 @@ const handleMessage = (event) => {
         for (let i = 0; i < savedFloatingBallCount.value; i++) {
             showMenu.value[i] = false;
             isDragging.value[i] = false;
+
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const ballSize = savedFloatingBallSize.value;
+            const spacing = 10; // 球之间的间距
+
+            // 计算每行能放多少个球
+            const ballsPerRow = Math.floor(viewportWidth / (ballSize + spacing));
+
+            // 计算当前球的行和列
+            const row = Math.floor(i / ballsPerRow);
+            const col = i % ballsPerRow;
+
+            // 计算初始位置
+            let x = 20 + col * (ballSize + spacing);
+            let y = viewportHeight - 100 - row * (ballSize + spacing);
+
+            // 边界检查
+            x = Math.max(0, x);
+            x = Math.min(x, viewportWidth - ballSize);
+            y = Math.max(0, y);
+            y = Math.min(y, viewportHeight - ballSize);
+
             ballPosition.value[i] = {
-                x: 20 + i * (savedFloatingBallSize.value + 10),
-                y: window.innerHeight - 100,
-                width: savedFloatingBallSize.value + 'px',
-                height: savedFloatingBallSize.value + 'px'
+                x: x,
+                y: y,
+                width: ballSize + 'px',
+                height: ballSize + 'px'
             };
             ballStyle.value[i] = {
                 left: `${ballPosition.value[i].x}px`,
                 top: `${ballPosition.value[i].y}px`,
-                width: `${savedFloatingBallSize.value}px`,
-                height: `${savedFloatingBallSize.value}px`,
+                width: `${ballSize}px`,
+                height: `${ballSize}px`,
             }
         }
     }

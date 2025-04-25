@@ -24,9 +24,17 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 # Version update introduction
 
-> Last updated: 2025-04-24
+> Last updated: 2025-04-25
 
-> 0.0.46 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.47 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+>
+> 1. New auxiliary functions have been added, which limit the movement range of the window to prevent it from exceeding the visible range, and the floating ball also restricts the movement range
+>
+
+<details>
+<summary>Click here for more updates from the past</summary>
+
+> 0.0.46 Public Beta Version 2025-04-24
 >
 > 1. Fixed some known bugs
 >
@@ -34,10 +42,6 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 >   * In the Settings, you can set the number of displayed items and the size of the completion box
 >   * The completion box can now move along with the input position
 >
-
-<details>
-<summary>Click here for more updates from the past</summary>
-
 
 > 0.0.45 Public Beta Version 2025-04-22
 >

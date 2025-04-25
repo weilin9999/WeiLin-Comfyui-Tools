@@ -81,13 +81,30 @@ const handleScroll = () => {
 
 // 在组件挂载时初始化位置和大小
 onMounted(() => {
-  // 设置初始位置
-  if (props.position) {
-    currentPosition.value = { ...props.position }
+   // 设置初始位置
+   if (props.position) {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    // 边界检测
+    let x = props.position.x;
+    let y = props.position.y;
+    
+    // 确保左侧不超出边界
+    x = Math.max(50, x);
+    // 确保右侧不超出边界
+    x = Math.min(x, viewportWidth - (props.size?.width || currentSize.value.width));
+    // 确保顶部不超出边界
+    y = Math.max(50, y);
+    // 确保底部不超出边界
+    y = Math.min(y, viewportHeight - (props.size?.height || currentSize.value.height));
+    
+    currentPosition.value = { x, y };
   }
+  
   // 设置初始大小
   if (props.size) {
-    currentSize.value = { ...props.size }
+    currentSize.value = { ...props.size };
   }
 })
 
@@ -107,12 +124,28 @@ const startDrag = (event) => {
 
 const handleDrag = (event) => {
   if (isDragging.value) {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    let newX = event.clientX - dragOffset.value.x;
+    let newY = event.clientY - dragOffset.value.y;
+    
+    // 确保左侧不超出边界
+    newX = Math.max(50, newX);
+    // 确保右侧不超出边界
+    newX = Math.min(newX, viewportWidth - currentSize.value.width);
+    // 确保顶部不超出边界
+    newY = Math.max(50, newY);
+    // 确保底部不超出边界
+    newY = Math.min(newY, viewportHeight - currentSize.value.height);
+    
     const newPosition = {
-      x: event.clientX - dragOffset.value.x,
-      y: event.clientY - dragOffset.value.y
-    }
-    currentPosition.value = newPosition
-    emit('update:position', newPosition)
+      x: newX,
+      y: newY
+    };
+    
+    currentPosition.value = newPosition;
+    emit('update:position', newPosition);
   }
 }
 
