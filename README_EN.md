@@ -26,13 +26,15 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 > Last updated: 2025-04-28
 
-> 0.0.51 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.52 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
 >
 > 1. New feature: Within the Lora detailed interface, you can customize your own fields
 >
 > 2. New feature: When the mouse hoses over a Lora card within the plugin (non-node) UI, the basic information of Lora can be displayed
 >
 > 3. Fixed the known bugs
+>
+> 4. When Lora acquires data from C Station, it can also obtain the cover at the same time
 >
 
 <details>

@@ -4,7 +4,6 @@ import folder_paths
 from PIL import Image
 import base64
 from io import BytesIO
-import requests
 import asyncio
 import concurrent.futures
 from tqdm import tqdm
@@ -26,27 +25,6 @@ filters = [
     'metadata',
 ]
 
-def download_image(url, filename, directory):
-    try:
-        # 安全处理文件名
-        filename = filename.encode('utf-8', 'ignore').decode('utf-8')
-        _, ext = os.path.splitext(url)
-        filename, _ = os.path.splitext(filename)
-        filepath = os.path.join(directory, f"{filename}{ext}")
-
-        try:
-            resp = requests.get(url, stream=True)
-            resp.raise_for_status()
-            with open(filepath, 'wb') as f:
-                for chunk in resp.iter_content(chunk_size=4096):
-                    f.write(chunk)
-        except Exception as e:
-            print(e)
-            if os.path.exists(filepath):
-                os.remove(filepath)
-
-    except Exception as e:
-        print(f"文件名处理错误: {e}")
 
 def prepare_lora_item_data(item_path, auto_fetch=False):
     lora_path = folder_paths.get_full_path("loras", item_path)
@@ -65,9 +43,9 @@ def prepare_lora_item_data(item_path, auto_fetch=False):
     if auto_fetch:
         if len(info_data['images']) == 0: # 无数据
             info_data = asyncio.run(get_model_info(item_path, maybe_fetch_civitai=True, maybe_fetch_metadata=True, light=False))
-        if len(info_data['images']) != 0 and item_path not in info_data['images'][0]['url']: # 未设置封面
-            url = next(filter(lambda x: x['type'] == 'image', info_data['images']), {}).get('url')
-            download_image(url=url, filename=file_name, directory=os.path.dirname(lora_path))
+        # if len(info_data['images']) != 0 and item_path not in info_data['images'][0]['url']: # 未设置封面
+        #     url = next(filter(lambda x: x['type'] == 'image', info_data['images']), {}).get('url')
+        #     download_image(url=url, filename=file_name, directory=os.path.dirname(lora_path))
 
     item = {
             "basename": item_path,

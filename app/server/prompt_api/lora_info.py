@@ -252,6 +252,11 @@ async def get_model_info(file: str,
     if file_hash is not None:
       info_data['sha256'] = file_hash
       should_save = True
+  
+  if len(info_data['images']) != 0 and file not in info_data['images'][0]['url']: # 未设置封面
+    file_name = os.path.basename(file)
+    url = next(filter(lambda x: x['type'] == 'image', info_data['images']), {}).get('url')
+    download_image(url=url, filename=file_name, directory=os.path.dirname(file_path))
 
   if should_save:
     if 'trainedWords' in info_data:
@@ -263,8 +268,31 @@ async def get_model_info(file: str,
 
     # If we're saving, then the UI is likely waiting to see if the refreshed data is coming in.
     # await PromptServer.instance.send("weilin-refreshed-lora-info", {"data": info_data})
+  
 
   return info_data
+
+def download_image(url, filename, directory):
+    try:
+        # 安全处理文件名
+        filename = filename.encode('utf-8', 'ignore').decode('utf-8')
+        _, ext = os.path.splitext(url)
+        filename, _ = os.path.splitext(filename)
+        filepath = os.path.join(directory, f"{filename}{ext}")
+
+        try:
+            resp = requests.get(url, stream=True)
+            resp.raise_for_status()
+            with open(filepath, 'wb') as f:
+                for chunk in resp.iter_content(chunk_size=4096):
+                    f.write(chunk)
+        except Exception as e:
+            print(e)
+            if os.path.exists(filepath):
+                os.remove(filepath)
+
+    except Exception as e:
+        print(f"文件名处理错误: {e}")
 
 
 def _merge_metadata(info_data: dict, data_meta: dict) -> bool:
