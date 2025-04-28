@@ -142,10 +142,9 @@ class WeiLinPromptUI:
                 print("模型权重strength_model：",strength_model,"文本权重strength_clip：",strength_clip)
 
                 # 安全处理文件名中的特殊字符
-                lora_name = str_lora_item["lora"].encode('unicode_escape').decode('utf-8')  # 处理unicode字符
-                lora_name = lora_name.replace('\\', '/').replace('"', '\\"')  # 统一路径和转义引号
-                lora_name = ''.join(c for c in lora_name if c.isprintable())  # 移除不可打印字符
-                lora_path = folder_paths.get_full_path("loras", lora_name)
+                lora_path = folder_paths.get_full_path("loras", str_lora_item["lora"])
+                if lora_path == None:
+                    raise ValueError(f"无法找到Lora文件: {str_lora_item["lora"]}")
                 print("加载Lora lora_path:",lora_path)
                 lora = None
                 if self.loaded_loraA is not None:
@@ -227,10 +226,9 @@ class WeiLinPromptUIOnlyLoraStack:
                 print("模型权重strength_model：",strength_model,"文本权重strength_clip：",strength_clip)
 
                 # 安全处理文件名中的特殊字符
-                lora_name = str_lora_item["lora"].encode('unicode_escape').decode('utf-8')  # 处理unicode字符
-                lora_name = lora_name.replace('\\', '/').replace('"', '\\"')  # 统一路径和转义引号
-                lora_name = ''.join(c for c in lora_name if c.isprintable())  # 移除不可打印字符
-                lora_path = folder_paths.get_full_path("loras", lora_name)
+                lora_path = folder_paths.get_full_path("loras", str_lora_item["lora"])
+                if lora_path == None:
+                    raise ValueError(f"无法找到Lora文件: {str_lora_item["lora"]}")
                 print("加载Lora lora_path:",lora_path)
                 lora = None
                 if self.loaded_loraA is not None:
