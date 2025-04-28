@@ -141,10 +141,9 @@ class WeiLinPromptUI:
                 strength_clip = float(str_lora_item["text_encoder_weight"])
                 print("模型权重strength_model：",strength_model,"文本权重strength_clip：",strength_clip)
 
-                # 安全处理文件名中的特殊字符
                 lora_path = folder_paths.get_full_path("loras", str_lora_item["lora"])
                 if lora_path == None:
-                    raise ValueError(f"无法找到Lora文件: {str_lora_item["lora"]}")
+                    raise ValueError(f'无法找到Lora文件: {str_lora_item["lora"]}')
                 print("加载Lora lora_path:",lora_path)
                 lora = None
                 if self.loaded_loraA is not None:
@@ -225,10 +224,9 @@ class WeiLinPromptUIOnlyLoraStack:
                 strength_clip = float(str_lora_item["text_encoder_weight"])
                 print("模型权重strength_model：",strength_model,"文本权重strength_clip：",strength_clip)
 
-                # 安全处理文件名中的特殊字符
                 lora_path = folder_paths.get_full_path("loras", str_lora_item["lora"])
                 if lora_path == None:
-                    raise ValueError(f"无法找到Lora文件: {str_lora_item["lora"]}")
+                    raise ValueError(f'无法找到Lora文件: {str_lora_item["lora"]}')
                 print("加载Lora lora_path:",lora_path)
                 lora = None
                 if self.loaded_loraA is not None:
