@@ -20,7 +20,9 @@
       </div>
       <div :class="`${prefix}lora-body`">
         <div :class="`${prefix}lora-list`">
-          <div v-for="lora in selectedLoras" :key="lora.name" class="lora-item" :class="{ 'hidden-lora': lora.hidden }">
+          <div v-for="lora in selectedLoras" ref="loraStackItemRef" :key="lora.name" class="lora-item"
+            :class="{ 'hidden-lora': lora.hidden }" @mouseover="(e) => handleMouseHover(lora.lora, e)"
+            @mouseleave="handleMouseLeave">
             <div class="lora-info">
               <div class="lora-header">
                 <span class="lora-name" :title="lora.name">{{ lora.name }}</span>
@@ -52,12 +54,11 @@
               <div class="lora-weights">
                 <div class="weight-item">
                   <label>{{ t('loraManager.modelWeight') }}</label>
-                  <input type="number" v-model="lora.weight" class="lora-weight" min="0" max="2" step="0.1" />
+                  <input type="number" v-model="lora.weight" class="lora-weight" step="0.1" />
                 </div>
                 <div class="weight-item">
                   <label>{{ t('loraManager.textEncoderWeight') }}</label>
-                  <input type="number" v-model="lora.text_encoder_weight" class="lora-weight" min="0" max="2"
-                    step="0.1" />
+                  <input type="number" v-model="lora.text_encoder_weight" class="lora-weight" step="0.1" />
                 </div>
               </div>
 
@@ -79,17 +80,30 @@
         </div>
       </div>
     </div>
+
     <loraDetail ref="loraDetailLoraStackRef" />
+    <LoraCard ref="loraCardItem" v-if="showCard" :fileNmae="hoveFileName" :paddingLeft="paddingLeftValue"
+      :paddingTop="paddingTopValue" @cardLeave="handleEnterLeave" @cardenter="handEnterCard" />
+
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import loraDetail from '@/view/lora_manager/lora_detail.vue'
+import LoraCard from '@/view/lora_manager/lora_card.vue'
 
 const prefix = "weilin_prompt_ui_"
 const { t } = useI18n()
+const showCard = ref(false)
+const hoveFileName = ref('')
+const paddingLeftValue = ref(100)
+const paddingTopValue = ref(0)
+const loraStackItemRef = ref()
+const isEnterCatd = ref(false)
+const isHovering = ref(false);
+const loraCardItem = ref()
 
 const props = defineProps({
   isOpen: {
@@ -103,6 +117,63 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'update:selectedLoras'])
+
+
+const handleMouseHover = (fileName, event) => {
+  isHovering.value = true;
+  if (hoveFileName.value === fileName && showCard.value) return;
+
+  const hoveredCard = event.currentTarget;
+  const cardRect = hoveredCard.getBoundingClientRect();
+  const viewportHeight = window.innerHeight;
+  const cardWidth = 680;
+
+  let position = {
+    left: cardRect.left + (cardRect.width - cardWidth) / 2,
+    top: cardRect.top + cardRect.height + 10
+  };
+
+  if (position.top + 310 > viewportHeight) {
+    position.top = cardRect.top - 310;
+  }
+
+  position.left = Math.max(10, Math.min(position.left, window.innerWidth - cardWidth - 10));
+  position.top = Math.max(10, Math.min(position.top, viewportHeight - 310));
+
+  paddingLeftValue.value = position.left;
+  paddingTopValue.value = position.top;
+
+  showCard.value = true;
+  hoveFileName.value = fileName;
+  console.log(fileName)
+  nextTick(() => {
+    loraCardItem.value.refresh()
+  })
+}
+
+const handleMouseLeave = () => {
+  isHovering.value = false;
+  setTimeout(() => {
+    if (!isEnterCatd.value && !isHovering.value) {
+      showCard.value = false;
+      hoveFileName.value = "";
+      isEnterCatd.value = false;
+    }
+  }, 200)
+}
+
+const handEnterCard = () => {
+  // console.log("enter")
+  isEnterCatd.value = true;
+  isHovering.value = true;
+}
+
+const handleEnterLeave = () => {
+  showCard.value = false;
+  hoveFileName.value = "";
+  isEnterCatd.value = false;
+}
+
 
 // 打开Lora管理器
 const openLoraManager = () => {
@@ -283,8 +354,10 @@ defineExpose({
 }
 
 .hidden-lora {
-  background: rgba(255, 200, 200, 0.2) !important; /* 淡红色背景 */
-  border-color: rgba(255, 150, 150, 0.5) !important; /* 可选：淡红色边框 */
+  background: rgba(255, 200, 200, 0.2) !important;
+  /* 淡红色背景 */
+  border-color: rgba(255, 150, 150, 0.5) !important;
+  /* 可选：淡红色边框 */
 }
 
 .lora-header {

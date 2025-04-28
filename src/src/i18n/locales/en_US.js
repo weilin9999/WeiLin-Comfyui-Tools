@@ -109,6 +109,7 @@ export default {
         github: "Github Home",
         shareCloudData: 'Share Cloud Data',
         tutorialVideo: "Tutorial Video",
+        sponsor: "Sponsor Me",
     },
     theme: {
         toggle: 'Switch Theme'
@@ -143,6 +144,9 @@ export default {
         baseModel: "Base Model",
         skipClip: "Clip Skip",
         seeLoraRaw: "LoraRaw",
+        addDiyFiled: "Add DIY Filed",
+        getCivitData: "Get Civitai Data",
+        copy: "Copy",
     },
     common: {
         confirmDelete: "Confirm Delete",

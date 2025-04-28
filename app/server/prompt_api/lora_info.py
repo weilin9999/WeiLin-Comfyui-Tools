@@ -50,7 +50,16 @@ def image_upload(post, image_save_function=None):
 
 def get_param(request, param, default=None):
   """Gets a param from a request."""
-  return request.rel_url.query[param] if param in request.rel_url.query else default
+  # return request.rel_url.query[param] if param in request.rel_url.query else default
+  if param in request.rel_url.query:
+      value = request.rel_url.query[param]
+      try:
+          # 尝试URL解码特殊字符
+          import urllib.parse
+          return urllib.parse.unquote(value)
+      except:
+          return value
+  return default
 
 def is_param_falsy(request, param):
   """Determines if a param is explicitly 0 or false."""
@@ -66,6 +75,11 @@ def path_exists(path):
 
 def get_folder_path(file: str, model_type="loras"):
   """Gets the file path ensuring it exists."""
+  try:
+    import urllib.parse
+    file = urllib.parse.unquote(file)
+  except:
+    pass
   file_path = folder_paths.get_full_path(model_type, file)
   if file_path and not path_exists(file_path):
     file_path = os.path.abspath(file_path)
@@ -78,6 +92,7 @@ async def get_loras_info_response(request, maybe_fetch_civitai=False, maybe_fetc
   """Gets lora info for all or a single lora"""
   api_response = {'status': 200}
   lora_file = get_param(request, 'file')
+
   if get_param(request, 'light') is not None:
     light = is_param_falsy(request, 'light')
   else:
@@ -508,6 +523,35 @@ def save_model_info(file: str, info_data, model_type="loras"):
   try_info_path = f'{file_path}.weilin-info.json'
   save_json_file(try_info_path, info_data)
 
+async def remove_user_diy_fields(file: str, fields_to_remove, model_type="loras"):
+    """
+    从模型的user_diy_fields中删除指定字段
+    
+    参数:
+        file: 模型文件名
+        fields_to_remove: 要删除的字段名，可以是字符串或字符串列表
+        model_type: 模型类型，默认为"loras"
+    """
+    info_data = await get_model_info(file, model_type=model_type, default={})
+    
+    if 'user_diy_fileds' not in info_data:  # 修正拼写错误
+      return False
+
+    if isinstance(fields_to_remove, str):
+      fields_to_remove = [fields_to_remove]
+    
+    # print(fields_to_remove)
+    removed = False
+    for field in fields_to_remove:
+      if field in info_data['user_diy_fileds']:
+        # print(f'删除字段: {field}')
+        del info_data['user_diy_fileds'][field]
+        removed = True
+    
+    if removed:
+      save_model_info(file, info_data, model_type=model_type)
+    
+    return removed
 
 
 def get_dict_value(data: dict, dict_key: str, default=None):

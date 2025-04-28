@@ -111,11 +111,11 @@ function renderLoraItem(seed, index, lora) {
         <div class="lora-weights">
             <div class="weight-item">
                 <label>${getSystemLanguage() === 'zh' ? '模型权重' : 'Model Weight'}</label>
-                <input id="model-weight-${seed}-${index}" type="number" class="lora-weight" min="0" max="2" step="0.1" value="${lora.weight}">
+                <input id="model-weight-${seed}-${index}" type="number" class="lora-weight" step="0.1" value="${lora.weight}">
             </div>
             <div class="weight-item">
                 <label>${getSystemLanguage() === 'zh' ? '文本编码器权重' : 'Text Encoder Weight'}</label>
-                <input id="text-encoder-weight-${seed}-${index}" type="number" class="lora-weight" min="0" max="2" step="0.1" value="${lora.text_encoder_weight}">
+                <input id="text-encoder-weight-${seed}-${index}" type="number" class="lora-weight" step="0.1" value="${lora.text_encoder_weight}">
             </div>
         </div>
         <div class="lora-footer">

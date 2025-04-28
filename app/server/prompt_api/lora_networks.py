@@ -27,24 +27,40 @@ filters = [
 ]
 
 def download_image(url, filename, directory):
-    _, ext = os.path.splitext(url)
-    filename, _ = os.path.splitext(filename)
-    filepath = os.path.join(directory, f"{filename}{ext}")
     try:
-        resp = requests.get(url, stream=True)
-        resp.raise_for_status()
-        with open(filepath, 'wb') as f:
-             for chunk in resp.iter_content(chunk_size=4096):
-                 f.write(chunk)
+        # 安全处理文件名
+        filename = filename.encode('utf-8', 'ignore').decode('utf-8')
+        _, ext = os.path.splitext(url)
+        filename, _ = os.path.splitext(filename)
+        filepath = os.path.join(directory, f"{filename}{ext}")
+
+        try:
+            resp = requests.get(url, stream=True)
+            resp.raise_for_status()
+            with open(filepath, 'wb') as f:
+                for chunk in resp.iter_content(chunk_size=4096):
+                    f.write(chunk)
+        except Exception as e:
+            print(e)
+            if os.path.exists(filepath):
+                os.remove(filepath)
+
     except Exception as e:
-        print(e)
-        if os.path.exists(filepath):
-            os.remove(filepath)
+        print(f"文件名处理错误: {e}")
 
 def prepare_lora_item_data(item_path, auto_fetch=False):
     lora_path = folder_paths.get_full_path("loras", item_path)
-    [model_name, model_extension] = os.path.splitext(item_path)
-    file_name = os.path.basename(item_path)
+    try:
+        # 安全处理文件名，避免特殊字符问题
+        item_path = item_path.encode('utf-8', 'ignore').decode('utf-8')
+        [model_name, model_extension] = os.path.splitext(item_path)
+        file_name = os.path.basename(item_path)
+    except Exception as e:
+        print(f"文件名处理错误: {e}")
+        model_name = os.path.splitext(os.path.basename(item_path))[0]
+        model_extension = os.path.splitext(item_path)[1]
+        file_name = os.path.basename(item_path)
+
     info_data = asyncio.run(get_model_info(item_path, light=True))
     if auto_fetch:
         if len(info_data['images']) == 0: # 无数据

@@ -139,13 +139,13 @@ class WeiLinPromptUI:
                 # print(loar_sim_path,str_n_arr)
                 strength_model = float(str_lora_item["weight"])
                 strength_clip = float(str_lora_item["text_encoder_weight"])
-                print("strength_model：",strength_model,"strength_clip：",strength_clip)
-                if strength_clip<=0.0:
-                    strength_clip = 0
-                if strength_model <= 0.0:
-                    strength_model = 0.5
+                print("模型权重strength_model：",strength_model,"文本权重strength_clip：",strength_clip)
 
-                lora_path = folder_paths.get_full_path("loras", str_lora_item["lora"])
+                # 安全处理文件名中的特殊字符
+                lora_name = str_lora_item["lora"].encode('unicode_escape').decode('utf-8')  # 处理unicode字符
+                lora_name = lora_name.replace('\\', '/').replace('"', '\\"')  # 统一路径和转义引号
+                lora_name = ''.join(c for c in lora_name if c.isprintable())  # 移除不可打印字符
+                lora_path = folder_paths.get_full_path("loras", lora_name)
                 print("加载Lora lora_path:",lora_path)
                 lora = None
                 if self.loaded_loraA is not None:
@@ -224,13 +224,13 @@ class WeiLinPromptUIOnlyLoraStack:
                 # print(loar_sim_path,str_n_arr)
                 strength_model = float(str_lora_item["weight"])
                 strength_clip = float(str_lora_item["text_encoder_weight"])
-                print("strength_model：",strength_model,"strength_clip：",strength_clip)
-                if strength_clip<=0.0:
-                    strength_clip = 0
-                if strength_model <= 0.0:
-                    strength_model = 0.5
+                print("模型权重strength_model：",strength_model,"文本权重strength_clip：",strength_clip)
 
-                lora_path = folder_paths.get_full_path("loras", str_lora_item["lora"])
+                # 安全处理文件名中的特殊字符
+                lora_name = str_lora_item["lora"].encode('unicode_escape').decode('utf-8')  # 处理unicode字符
+                lora_name = lora_name.replace('\\', '/').replace('"', '\\"')  # 统一路径和转义引号
+                lora_name = ''.join(c for c in lora_name if c.isprintable())  # 移除不可打印字符
+                lora_path = folder_paths.get_full_path("loras", lora_name)
                 print("加载Lora lora_path:",lora_path)
                 lora = None
                 if self.loaded_loraA is not None:

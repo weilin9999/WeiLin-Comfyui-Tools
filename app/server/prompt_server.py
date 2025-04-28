@@ -99,6 +99,22 @@ async def _api_save_lora_data(request):
         api_response['data'] = info_data
     return web.json_response(api_response)
 
+@PromptServer.instance.routes.post(baseUrl+'lorainfo/api/delete/loras/info/filed')
+async def _remove_user_diy_fields(request):
+    """Delete data to a lora by name. """
+    api_response = {'status': 200}
+    lora_file = get_param(request, 'file')
+    if lora_file is None:
+        api_response['status'] = '404'
+        api_response['error'] = 'No Lora found at path'
+    else:
+        data = await request.json()
+        # print(post.get("json"))
+        await remove_user_diy_fields(lora_file, data["json"])
+        info_data = await get_model_info(lora_file)
+        api_response['data'] = info_data
+    return web.json_response(api_response)
+
 
 @PromptServer.instance.routes.get(baseUrl+'lorainfo/api/loras/info')
 async def _api_get_loras_info(request):

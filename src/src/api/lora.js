@@ -73,7 +73,18 @@ export const loraApi = {
       })
   },
 
-   // 获取Lora文件夹列表
+  // 删除Lora信息字段
+  postLoraDelet: async (file,json) => {
+    return await request({
+        url: "/lorainfo/api/delete/loras/info/filed?file="+file,
+        method: 'post',
+        data: {
+          json: json,
+        },
+      })
+  },
+
+  // 获取Lora文件夹列表
   getLoraFolderList: async () => {
     return await request({
       url: '/get_lora_folder_list',

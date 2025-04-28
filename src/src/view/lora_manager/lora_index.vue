@@ -51,8 +51,8 @@
 
       <div :class="`${prefix}lora-list`"
         style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px;">
-        <div v-for="lora in paginatedLoraList" :key="lora.file_path" :class="`${prefix}lora-card`"
-          @click="openLoraDetail(lora)"
+        <div v-for="lora in paginatedLoraList" :key="lora.file_path" :class="`${prefix}lora-card`" ref="loraCardRef"
+          @click="openLoraDetail(lora)" @mouseover="(e) => handleMouseHover(lora.name, e)" @mouseleave="handleMouseLeave"
           style="display: flex; flex-direction: column; min-height: 200px; cursor: pointer;">
           <div :class="`${prefix}lora-preview`"
             style="flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden;width: 100%;">
@@ -66,15 +66,17 @@
               </svg>
             </div>
           </div>
-          <div :class="`${prefix}lora-name`" style="padding: 8px; text-align: center; 
-         word-break: break-word; 
-         white-space: normal;
-         display: -webkit-box;
-         -webkit-line-clamp: 2;
-         -webkit-box-orient: vertical;
-         overflow: hidden;
-         min-height: 40px;
-         line-height: 1.2;">
+          <div :class="`${prefix}lora-name`" style="padding: 8px; text-align: center;
+            word-break: break-word;
+            white-space: normal;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 40px;
+            max-height: 40px; /* 添加固定高度 */
+            line-height: 1.2;
+            text-overflow: ellipsis;"> <!-- 添加文本溢出省略号 -->
             {{ retLoraName(lora) }}
           </div>
         </div>
@@ -93,6 +95,9 @@
     </div>
 
     <loraDetail ref="loraDetailRef" />
+    <LoraCard ref="loraCardItem" v-if="showCard" :fileNmae="hoveFileName" :paddingLeft="paddingLeftValue" :paddingTop="paddingTopValue"
+      @cardLeave="handleEnterLeave" @cardenter="handEnterCard" />
+
   </div>
 </template>
 
@@ -102,6 +107,7 @@ import { useI18n } from 'vue-i18n'
 import { loraApi } from '@/api/lora'
 import loraDetail from './lora_detail.vue'
 import message from "@/utils/message"
+import LoraCard from './lora_card.vue'
 
 const prefix = "weilin_prompt_ui_"
 const { t } = useI18n()
@@ -114,6 +120,14 @@ const currentSubCategory = ref('')
 const intervalId = ref(null)
 const searchQuery = ref('')
 const scrollContainer = ref(null)
+const showCard = ref(false)
+const hoveFileName = ref('')
+const paddingLeftValue = ref(100)
+const paddingTopValue = ref(0)
+const loraCardRef = ref()
+const isEnterCatd = ref(false)
+const isHovering = ref(false);
+const loraCardItem = ref()
 
 // 分页相关
 const currentPage = ref(1)
@@ -135,13 +149,70 @@ const totalPages = computed(() => {
   }
 })
 
+const handEnterCard = () => {
+  // console.log("enter")
+  isEnterCatd.value = true;
+  isHovering.value = true;
+}
+const handleMouseHover = (fileName, event) => {
+  isHovering.value = true;
+  if (hoveFileName.value === fileName && showCard.value) return;
+
+  const hoveredCard = event.currentTarget;
+  const cardRect = hoveredCard.getBoundingClientRect();
+  const viewportHeight = window.innerHeight;
+  const cardWidth = 680; // LoraCard的宽度
+
+  // 计算最佳显示位置 - 居中显示
+  let position = {
+    left: cardRect.left + (cardRect.width - cardWidth) / 2, // 居中计算
+    top: cardRect.top + cardRect.height + 10 // 默认在下方显示
+  };
+
+  // 检查底部空间是否足够
+  if (position.top + 310 > viewportHeight) {
+    // 底部空间不足，改为在上方显示
+    position.top = cardRect.top - 310;
+  }
+
+  // 确保不会超出视窗边界
+  position.left = Math.max(10, Math.min(position.left, window.innerWidth - cardWidth - 10));
+  position.top = Math.max(10, Math.min(position.top, viewportHeight - 310));
+
+  paddingLeftValue.value = position.left;
+  paddingTopValue.value = position.top;
+
+  showCard.value = true;
+  hoveFileName.value = fileName;
+  nextTick(() => {
+    loraCardItem.value.refresh()
+  })
+}
+
+
+const handleMouseLeave = () => {
+  isHovering.value = false;
+  setTimeout(() => {
+    if (!isEnterCatd.value && !isHovering.value) {
+      showCard.value = false;
+      hoveFileName.value = "";
+      isEnterCatd.value = false;
+    }
+  }, 200)
+}
+
+const handleEnterLeave = () => {
+  showCard.value = false;
+  hoveFileName.value = "";
+  isEnterCatd.value = false;
+}
 
 const folderList = ref([])
 const selectFolder = ref([])
 const seed = ref('')
 const actionAct = ref(0)
 
-const openSetSeed = (action,newSeed) => {
+const openSetSeed = (action, newSeed) => {
   actionAct.value = action
   seed.value = newSeed
 }
@@ -442,7 +513,7 @@ const selectLora = (lora) => {
         loraWorks: lora.local_info?.loraWorks ? lora.local_info.loraWorks : '',
       }
     }, '*')
-  }else if (actionAct.value === 1) {
+  } else if (actionAct.value === 1) {
     window.postMessage({
       type: 'weilin_prompt_ui_selectLora_stack_' + seed.value,
       lora: {
@@ -750,6 +821,7 @@ defineExpose({
   transition: all 0.3s ease;
   overflow: hidden;
   aspect-ratio: 1/1.3;
+  /* position: relative; */
   /* 保持卡片比例 */
 }
 

@@ -112,7 +112,8 @@ export default {
         aiChat: 'AI对话',
         github: "Github主页",
         shareCloudData: '共享云数据',
-        tutorialVideo: "教程视频"
+        tutorialVideo: "教程视频",
+        sponsor: "赞助我",
     },
     theme: {
         toggle: '切换主题'
@@ -177,6 +178,9 @@ export default {
         baseModel: "基础模型",
         skipClip: "跳过层",
         seeLoraRaw: "查看LoraRaw",
+        addDiyFiled: "添加自定义字段",
+        getCivitData: "获取Civitai信息",
+        copy: "复制",
     },
     tagManager: {
         "deletePrimaryCategoryConfirm": "确定要删除分类 {name} 吗？",

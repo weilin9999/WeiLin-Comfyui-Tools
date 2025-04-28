@@ -24,15 +24,24 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 # Version update introduction
 
-> Last updated: 2025-04-25
+> Last updated: 2025-04-28
 
-> 0.0.48 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.49 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
 >
-> 1. New auxiliary functions have been added, which limit the movement range of the window to prevent it from exceeding the visible range, and the floating ball also restricts the movement range
+> 1. New feature: Within the Lora detailed interface, you can customize your own fields
+>
+> 2. New feature: When the mouse hoses over a Lora card within the plugin (non-node) UI, the basic information of Lora can be displayed
+>
+> 3. Fixed the known bugs
 >
 
 <details>
 <summary>Click here for more updates from the past</summary>
+
+> 0.0.48 Public Beta Version 2025-04-25
+>
+> 1. New auxiliary functions have been added, which limit the movement range of the window to prevent it from exceeding the visible range, and the floating ball also restricts the movement range
+>
 
 > 0.0.46 Public Beta Version 2025-04-24
 >

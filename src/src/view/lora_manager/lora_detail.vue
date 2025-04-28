@@ -4,104 +4,162 @@
         @update:position="updatePosition('loraDetail', $event)" @update:size="updateSize('loraDetail', $event)"
         @active="windowManager.setActiveWindow('loraDetail')" @close="closeWindow('loraDetail')">
         <template #default>
-            <div class="lora-detail__content">
+            <div class="lora-detail__content" ref="loraContent">
+
                 <div v-if="loading" class="lora-detail__loading">
                     <svg viewBox="0 0 24 24" width="24" height="24" class="is-rotating">
                         <path d="M12 4V2C6.48 2 2 6.48 2 12H4C4 7.58 7.58 4 12 4Z" />
                     </svg>
                 </div>
 
-                <template v-else>
-                    <div class="lora-detail__body">
-                        <!-- 标题 -->
-                        <div class="lora-detail__title">Lora 信息</div>
+                <div class="lora-detail__body">
+                    <!-- 标题 -->
+                    <div class="lora-detail__title">Lora 信息</div>
 
-                        <!-- 标签区域 -->
-                        <ul class="lora-detail__tags">
-                            <li v-if="loraInfo.type" class="lora-detail__tag"
-                                :class="`-type-${loraInfo.type.toLowerCase()}`" :title="t('lora.type')">
-                                {{ loraInfo.type }}
-                            </li>
-                            <li v-if="loraInfo.baseModel" class="lora-detail__tag"
-                                :class="`-basemodel-${loraInfo.baseModel.toLowerCase()}`" :title="t('lora.baseModel')">
-                                {{ loraInfo.baseModel }}
-                            </li>
-                        </ul>
+                    <!-- 标签区域 -->
+                    <ul class="lora-detail__tags">
+                        <li v-if="loraInfo.type" class="lora-detail__tag"
+                            :class="`-type-${loraInfo.type.toLowerCase()}`" :title="t('lora.type')">
+                            {{ loraInfo.type }}
+                        </li>
+                        <li v-if="loraInfo.baseModel" class="lora-detail__tag"
+                            :class="`-basemodel-${loraInfo.baseModel.toLowerCase()}`" :title="t('lora.baseModel')">
+                            {{ loraInfo.baseModel }}
+                        </li>
+                    </ul>
 
-                        <!-- 信息表格 -->
-                        <table class="lora-detail__table">
-                            <tbody>
-                                <!-- 文件信息 -->
-                                <tr>
-                                    <td class="label">{{ t('lora.file') }}</td>
-                                    <td colspan="2">{{ loraInfo.file }}</td>
-                                    <td colspan="3">
-                                        <button class="fetch-btn" @click="openLoraRaw(loraInfo.raw.metadata)">
-                                            {{ t('lora.seeLoraRaw') }}
+                    <!-- 信息表格 -->
+                    <table class="lora-detail__table">
+                        <tbody>
+                            <!-- 文件信息 -->
+                            <tr>
+                                <td class="label">{{ t('lora.file') }}</td>
+                                <td colspan="2">{{ loraInfo.file }}</td>
+                                <td colspan="3">
+                                    <button class="fetch-btn" @click="openLoraRaw(loraInfo.raw.metadata)">
+                                        {{ t('lora.seeLoraRaw') }}
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Hash值 -->
+                            <tr>
+                                <td class="label">{{ t('lora.hash') }}</td>
+                                <td colspan="2" class="hash">{{ loraInfo.sha256 }}</td>
+                            </tr>
+
+                            <!-- Civitai链接 -->
+                            <tr>
+                                <td class="label">{{ t('lora.civitai') }}</td>
+                                <td colspan="2">
+                                    <template v-if="civitaiLink">
+                                        <a :href="civitaiLink" target="_blank" class="civitai-link">
+                                            <svg viewBox="0 0 24 24" width="16" height="16" class="civitai-icon">
+                                                <path
+                                                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-4H8l4-7v4h3l-4 7z" />
+                                            </svg>
+                                            <span>{{ t('lora.viewOnCivitai') }}</span>
+                                        </a>
+                                        <button style="margin-left: 10px;" class="refresh-btn" @click="refreshLoraInfo">
+                                            {{ t('lora.getCivitData') }}
                                         </button>
-                                    </td>
-                                </tr>
+                                    </template>
+                                    <template v-else-if="isCivitaiNotFound">
+                                        <div class="not-found">
+                                            <i>{{ t('lora.modelNotFound') }}</i>
+                                            <svg viewBox="0 0 24 24" width="16" height="16" class="help-icon"
+                                                :title="t('lora.modelNotFoundTip')">
+                                                <path
+                                                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z" />
+                                            </svg>
+                                        </div>
+                                    </template>
+                                    <template v-else>
+                                        <button class="fetch-btn" @click="refreshLoraInfo">
+                                            {{ t('lora.fetchFromCivitai') }}
+                                        </button>
+                                    </template>
+                                </td>
+                            </tr>
 
-                                <!-- Hash值 -->
-                                <tr>
-                                    <td class="label">{{ t('lora.hash') }}</td>
-                                    <td colspan="2" class="hash">{{ loraInfo.sha256 }}</td>
-                                </tr>
+                            <!-- 名称(可编辑) -->
+                            <tr :class="{ 'is-editing': isEditing.name }">
+                                <td class="label">
+                                    {{ t('lora.name') }}
+                                    <svg viewBox="0 0 24 24" width="16" height="16" class="help-icon"
+                                        :title="t('lora.nameTip')">
+                                        <path
+                                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z" />
+                                    </svg>
+                                </td>
+                                <td>
+                                    <input v-if="isEditing.name" v-model="editValues.name" type="text"
+                                        @keyup.enter="saveEdit('name')" @keyup.esc="cancelEdit('name')"
+                                        ref="nameInput" />
+                                    <span v-else class="text">{{ loraInfo.name }}</span>
+                                </td>
+                                <td class="actions">
+                                    <button style="fill: #ffffff;" class="edit-btn" @click="toggleEdit('name')">
+                                        <svg viewBox="0 0 24 24" width="16" height="16">
+                                            <path v-if="isEditing.name"
+                                                d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+                                            <path v-else
+                                                d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                                        </svg>
+                                    </button>
+                                </td>
+                            </tr>
 
-                                <!-- Civitai链接 -->
-                                <tr>
-                                    <td class="label">{{ t('lora.civitai') }}</td>
-                                    <td colspan="2">
-                                        <template v-if="civitaiLink">
-                                            <a :href="civitaiLink" target="_blank" class="civitai-link">
-                                                <svg viewBox="0 0 24 24" width="16" height="16" class="civitai-icon">
-                                                    <path
-                                                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-4H8l4-7v4h3l-4 7z" />
-                                                </svg>
-                                                <span>{{ t('lora.viewOnCivitai') }}</span>
-                                            </a>
-                                            <button class="refresh-btn" @click="refreshLoraInfo">
-                                                {{ t('common.refresh') }}
-                                            </button>
-                                        </template>
-                                        <template v-else-if="isCivitaiNotFound">
-                                            <div class="not-found">
-                                                <i>{{ t('lora.modelNotFound') }}</i>
-                                                <svg viewBox="0 0 24 24" width="16" height="16" class="help-icon"
-                                                    :title="t('lora.modelNotFoundTip')">
-                                                    <path
-                                                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z" />
-                                                </svg>
-                                            </div>
-                                        </template>
-                                        <template v-else>
-                                            <button class="fetch-btn" @click="refreshLoraInfo">
-                                                {{ t('lora.fetchFromCivitai') }}
-                                            </button>
-                                        </template>
-                                    </td>
-                                </tr>
+                            <!-- 基础模型 -->
+                            <tr>
+                                <td class="label">{{ t('lora.baseModel') }}</td>
+                                <td colspan="2">{{
+                                    !loraInfo.baseModelFile && !loraInfo.baseModelFile
+                                        ? ""
+                                        : (loraInfo.baseModel || "") +
+                                        (loraInfo.baseModelFile
+                                            ? `
+                                    (${loraInfo.baseModelFile})`
+                                            : "")
+                                }}</td>
+                            </tr>
 
-                                <!-- 名称(可编辑) -->
-                                <tr :class="{ 'is-editing': isEditing.name }">
+                            <!-- 跳过层 -->
+                            <tr>
+                                <td class="label">{{ t('lora.skipClip') }}</td>
+                                <td colspan="2">{{
+                                    (_t =
+                                        (_s = loraInfo.raw) === null || _s === void 0
+                                            ? void 0
+                                            : _s.metadata) === null || _t === void 0
+                                        ? void 0
+                                        : _t.ss_clip_skip
+                                }}</td>
+                            </tr>
+
+
+                            <!-- 其他可编辑字段 -->
+                            <template v-for="field in editableFields" :key="field.key">
+                                <tr :class="{ 'is-editing': isEditing[field.key] }">
                                     <td class="label">
-                                        {{ t('lora.name') }}
-                                        <svg viewBox="0 0 24 24" width="16" height="16" class="help-icon"
-                                            :title="t('lora.nameTip')">
+                                        {{ field.label }}
+                                        <svg v-if="field.tip" viewBox="0 0 24 24" width="16" height="16"
+                                            class="help-icon" :title="field.tip">
                                             <path
                                                 d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z" />
                                         </svg>
                                     </td>
                                     <td>
-                                        <input v-if="isEditing.name" v-model="editValues.name" type="text"
-                                            @keyup.enter="saveEdit('name')" @keyup.esc="cancelEdit('name')"
-                                            ref="nameInput" />
-                                        <span v-else class="text">{{ loraInfo.name }}</span>
+                                        <input v-if="isEditing[field.key]" v-model="editValues[field.key]"
+                                            :type="field.type || 'text'" @keyup.enter="saveEdit(field.key)"
+                                            @keyup.esc="cancelEdit(field.key)" />
+                                        <span v-else class="text">{{ loraInfo[field.key] }}</span>
                                     </td>
                                     <td class="actions">
-                                        <button class="edit-btn" @click="toggleEdit('name')">
-                                            <svg viewBox="0 0 24 24" width="16" height="16">
-                                                <path v-if="isEditing.name"
+                                        <button class="edit-btn" @click="toggleEdit(field.key)"
+                                            :title="t('promptBox.settings.edit')">
+                                            <svg style="fill: #ffffff;" viewBox="0 0 24 24" width="16" height="16">
+                                                <path v-if="isEditing[field.key]"
                                                     d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
                                                 <path v-else
                                                     d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
@@ -109,168 +167,147 @@
                                         </button>
                                     </td>
                                 </tr>
+                            </template>
 
-                                <!-- 基础模型 -->
-                                <tr>
-                                    <td class="label">{{ t('lora.baseModel') }}</td>
-                                    <td colspan="2">{{
-                                        !loraInfo.baseModelFile && !loraInfo.baseModelFile
-                                            ? ""
-                                            : (loraInfo.baseModel || "") +
-                                            (loraInfo.baseModelFile
-                                                ? `
-                                        (${loraInfo.baseModelFile})`
-                                                : "")
-                                    }}</td>
-                                </tr>
-
-                                <!-- 跳过层 -->
-                                <tr>
-                                    <td class="label">{{ t('lora.skipClip') }}</td>
-                                    <td colspan="2">{{
-                                        (_t =
-                                            (_s = loraInfo.raw) === null || _s === void 0
-                                                ? void 0
-                                                : _s.metadata) === null || _t === void 0
-                                            ?void 0
-                                        : _t.ss_clip_skip
-                                        }}</td>
-                                </tr>
-
-
-                                <!-- 其他可编辑字段 -->
-                                <template v-for="field in editableFields" :key="field.key">
-                                    <tr :class="{ 'is-editing': isEditing[field.key] }">
-                                        <td class="label">
-                                            {{ field.label }}
-                                            <svg v-if="field.tip" viewBox="0 0 24 24" width="16" height="16"
-                                                class="help-icon" :title="field.tip">
-                                                <path
-                                                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z" />
-                                            </svg>
-                                        </td>
-                                        <td>
-                                            <input v-if="isEditing[field.key]" v-model="editValues[field.key]"
-                                                :type="field.type || 'text'" @keyup.enter="saveEdit(field.key)"
-                                                @keyup.esc="cancelEdit(field.key)" />
-                                            <span v-else class="text">{{ loraInfo[field.key] }}</span>
-                                        </td>
-                                        <td class="actions">
-                                            <button class="edit-btn" @click="toggleEdit(field.key)">
-                                                <svg viewBox="0 0 24 24" width="16" height="16">
-                                                    <path v-if="isEditing[field.key]"
-                                                        d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
-                                                    <path v-else
-                                                        d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
-                                                </svg>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </template>
-
-                                <!-- 训练词 -->
-                                <tr v-if="trainedWords.length">
+                            <!-- 用户自定义的字段 -->
+                            <template v-for="(field, key) in userEditFields" :key="key">
+                                <tr :class="{ 'is-editing': isEditing[key] }">
                                     <td class="label">
-                                        {{ t('lora.trainedWords') }}
-                                        <svg viewBox="0 0 24 24" width="16" height="16" class="help-icon"
-                                            :title="t('lora.trainedWordsTip')">
-                                            <path
-                                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z" />
-                                        </svg>
-                                        <div v-if="selectedWords.length" class="word-selection">
-                                            {{ t('lora.selectedWords', { count: selectedWords.length }) }}
-                                            <button class="copy-btn" @click="copySelectedWords">
-                                                {{ t('common.copy') }}
-                                            </button>
-                                        </div>
+                                        <input v-if="isEditing[key]" v-model="field.label" type="text" />
+                                        <span v-else>{{ field.label }}</span>
                                     </td>
-                                    <td colspan="2">
-                                        <ul class="word-list">
-                                            <li v-for="(word, index) in isCollapsed ? trainedWords.slice(0, 10) : trainedWords"
-                                                :key="'words-' + index" class="word-item"
-                                                :class="{ 'is-selected': isWordSelected(word.word), 'is-hidden': isCollapsed && index >= 10 }"
-                                                @click="toggleWordSelection(word.word)">
-                                                <span>{{ word.word }}</span>
-                                                <svg v-if="word.civitai" viewBox="0 0 24 24" width="16" height="16"
-                                                    class="civitai-icon">
-                                                    <path
-                                                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-4H8l4-7v4h3l-4 7z" />
-                                                </svg>
-                                                <small v-if="word.count != null">{{ word.count }}</small>
-                                            </li>
-                                            <li v-if="trainedWords.length > 10" class="toggle-btn"
-                                                @click="toggleCollapse">
-                                                {{ isCollapsed ? t('common.showMore') : t('common.showLess') }}
-                                            </li>
-                                        </ul>
+                                    <td>
+                                        <input v-if="isEditing[key]" v-model="editValues[key]"
+                                            :type="field.type || 'text'" @keyup.enter="saveEdit(key)"
+                                            @keyup.esc="cancelEdit(key)" />
+                                        <span v-else class="text">{{ loraInfo.user_diy_fileds ?
+                                            loraInfo.user_diy_fileds[key]?.value : '' }}</span>
+                                    </td>
+                                    <td class="actions">
+                                        <button class="edit-btn" @click="toggleEdit(key)"
+                                            :title="t('promptBox.settings.edit')">
+                                            <svg style="fill: #ffffff;" viewBox="0 0 24 24" width="16" height="16">
+                                                <path v-if="isEditing[key]"
+                                                    d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+                                                <path v-else
+                                                    d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                                            </svg>
+                                        </button>
+                                        <button style="margin-left: 5px;color: #f87171;" @click="removeField(key)"
+                                            class="edit-btn" :title="t('promptBox.settings.delete')">{{
+                                            t('promptBox.settings.delete') }}</button>
                                     </td>
                                 </tr>
+                            </template>
 
-                            </tbody>
-                        </table>
+                            <!-- 添加字段按钮 -->
+                            <div class="field-management">
+                                <button @click="addField" class="add-btn" :title="t('lora.addDiyFiled')">{{
+                                    t('lora.addDiyFiled') }}</button>
+                            </div>
 
-                        <!-- 图片 -->
-                        <ul class="lora-detail__images" v-if="loraInfo.images?.length">
-                            <li v-for="(img, index) in loraInfo.images" :key="index" class="lora-detail__image-item">
-                                <figure>
-                                    <div class="image-wrapper">
-                                        <div class="image-action" @click="saveLoraImg(img.url)">
-                                            设置为Lora封面
-                                        </div>
-                                        <img :src="img.url" />
+
+                            <!-- 训练词 -->
+                            <tr v-if="trainedWords.length">
+                                <td class="label">
+                                    {{ t('lora.trainedWords') }}
+                                    <svg viewBox="0 0 24 24" width="16" height="16" class="help-icon"
+                                        :title="t('lora.trainedWordsTip')">
+                                        <path
+                                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z" />
+                                    </svg>
+                                    <div v-if="selectedWords.length" class="word-selection">
+                                        {{ t('lora.selectedWords', { count: selectedWords.length }) }}
+                                        <button class="copy-btn" @click="copySelectedWords">
+                                            {{ t('common.copy') }}
+                                        </button>
                                     </div>
+                                </td>
+                                <td colspan="2">
+                                    <ul class="word-list">
+                                        <li v-for="(word, index) in isCollapsed ? trainedWords.slice(0, 10) : trainedWords"
+                                            :key="'words-' + index" class="word-item"
+                                            :class="{ 'is-selected': isWordSelected(word.word), 'is-hidden': isCollapsed && index >= 10 }"
+                                            @click="toggleWordSelection(word.word)">
+                                            <span>{{ word.word }}</span>
+                                            <svg v-if="word.civitai" viewBox="0 0 24 24" width="16" height="16"
+                                                class="civitai-icon">
+                                                <path
+                                                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-4H8l4-7v4h3l-4 7z" />
+                                            </svg>
+                                            <small v-if="word.count != null">{{ word.count }}</small>
+                                        </li>
+                                        <li v-if="trainedWords.length > 10" class="toggle-btn" @click="toggleCollapse">
+                                            {{ isCollapsed ? t('common.showMore') : t('common.showLess') }}
+                                        </li>
+                                    </ul>
+                                </td>
+                            </tr>
 
-                                    <figcaption class="image-info">
-                                        <span v-if="img.civitaiUrl" class="info-item">
-                                            <a :href="img.civitaiUrl" target="_blank" class="civitai-link">
-                                                C站 civitai
-                                                <svg viewBox="0 0 24 24" width="16" height="16">
-                                                    <path
-                                                        d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" />
-                                                </svg>
-                                            </a>
-                                        </span>
+                        </tbody>
+                    </table>
 
-                                        <span v-if="img.seed" class="info-item">
-                                            <label>种子 seed</label>
-                                            {{ img.seed }}
-                                        </span>
+                    <!-- 图片 -->
+                    <ul class="lora-detail__images" v-if="loraInfo.images?.length">
+                        <li v-for="(img, index) in loraInfo.images" :key="index" class="lora-detail__image-item">
+                            <figure>
+                                <div class="image-wrapper">
+                                    <div class="image-action" @click="saveLoraImg(img.url)">
+                                        设置为Lora封面
+                                    </div>
+                                    <img :src="img.url" />
+                                </div>
 
-                                        <span v-if="img.steps" class="info-item">
-                                            <label>步数 steps</label>
-                                            {{ img.steps }}
-                                        </span>
+                                <figcaption class="image-info">
+                                    <span v-if="img.civitaiUrl" class="info-item">
+                                        <a :href="img.civitaiUrl" target="_blank" class="civitai-link">
+                                            C站 civitai
+                                            <svg viewBox="0 0 24 24" width="16" height="16">
+                                                <path
+                                                    d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" />
+                                            </svg>
+                                        </a>
+                                    </span>
 
-                                        <span v-if="img.cfg" class="info-item">
-                                            <label>引导系数 cfg</label>
-                                            {{ img.cfg }}
-                                        </span>
+                                    <span v-if="img.seed" class="info-item">
+                                        <label>种子 seed</label>
+                                        {{ img.seed }}
+                                    </span>
 
-                                        <span v-if="img.sampler" class="info-item">
-                                            <label>采样器 sampler</label>
-                                            {{ img.sampler }}
-                                        </span>
+                                    <span v-if="img.steps" class="info-item">
+                                        <label>步数 steps</label>
+                                        {{ img.steps }}
+                                    </span>
 
-                                        <span v-if="img.model" class="info-item">
-                                            <label>基础模型 model</label>
-                                            {{ img.model }}
-                                        </span>
+                                    <span v-if="img.cfg" class="info-item">
+                                        <label>引导系数 cfg</label>
+                                        {{ img.cfg }}
+                                    </span>
 
-                                        <span v-if="img.positive" class="info-item">
-                                            <label>正向提示词 positive</label>
-                                            {{ img.positive }}
-                                        </span>
+                                    <span v-if="img.sampler" class="info-item">
+                                        <label>采样器 sampler</label>
+                                        {{ img.sampler }}
+                                    </span>
 
-                                        <span v-if="img.negative" class="info-item">
-                                            <label>反向提示词 negative</label>
-                                            {{ img.negative }}
-                                        </span>
-                                    </figcaption>
-                                </figure>
-                            </li>
-                        </ul>
-                    </div>
-                </template>
+                                    <span v-if="img.model" class="info-item">
+                                        <label>基础模型 model</label>
+                                        {{ img.model }}
+                                    </span>
+
+                                    <span v-if="img.positive" class="info-item">
+                                        <label>正向提示词 positive</label>
+                                        {{ img.positive }}
+                                    </span>
+
+                                    <span v-if="img.negative" class="info-item">
+                                        <label>反向提示词 negative</label>
+                                        {{ img.negative }}
+                                    </span>
+                                </figcaption>
+                            </figure>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </template>
     </DraggableWindow>
@@ -292,6 +329,10 @@ const { t } = useI18n()
 const loading = ref(false)
 const loraInfo = ref({})
 const isOpen = ref(false)
+const loraContent = ref()
+
+
+const userEditFields = ref({}) // 用户自定义字段
 
 const STORAGE_PREFIX = 'weilin_tools_'
 
@@ -430,6 +471,42 @@ const editableFields = [
 ]
 
 
+
+// 添加字段方法修改为：
+const addField = () => {
+    const newKey = `custom_${Date.now()}`
+    if (!loraInfo.value.user_diy_fileds) {
+        loraInfo.value.user_diy_fileds = {}
+    }
+
+    // 以对象形式存储字段
+    userEditFields.value[newKey] = {
+        label: '新字段',
+        type: 'text'
+    }
+
+    // 使用结构化存储方式
+    loraInfo.value.user_diy_fileds[newKey] = {
+        label: '新字段',
+        value: ''
+    }
+    editValues.value[newKey] = ''
+    saveEdit(newKey)
+}
+
+// 删除字段方法修改为：
+const removeField = async (key) => {
+    delete userEditFields.value[key]
+    delete editValues.value[key]
+    if (loraInfo.value?.user_diy_fileds?.[key]) {
+        delete loraInfo.value.user_diy_fileds[key]
+        // console.log('Deleted field:', key, 'from user_diy_fileds:', loraInfo.value.user_diy_fileds)
+    }
+    await nextTick(async () => {
+        await deleteInfo(key)
+    })
+}
+
 // 初始化
 const init = () => {
     fileURL.value = loraInfo.value.name;
@@ -487,6 +564,8 @@ const init = () => {
                         : "";
                 editValues.value.loraWorksValue = loraInfo.value.loraWorks;
 
+                userEditFields.value = loraInfo.value.user_diy_fileds;
+
                 loading.value = false;
             });
         })
@@ -543,15 +622,57 @@ const trainedWords = computed(() => {
 
 // 方法
 const refreshLoraInfo = async () => {
+    const scrollPosition = loraContent.value?.scrollTop || 0
     loading.value = true;
     loraApi
         .getLoraRefresh({ file: fileURL.value })
         .then((res) => {
             // console.log(res.data.data)
             loraInfo.value = res.data;
+
+            nextTick(function () {
+                var _j, _k, _u, _v, _w;
+                loraInfo.value.name =
+                    loraInfo.value.name ||
+                    ((_k =
+                        (_j = loraInfo.value.raw) === null || _j === void 0
+                            ? void 0
+                            : _j.metadata) === null || _k === void 0
+                        ? void 0
+                        : _k.ss_output_name === void 0
+                            ? _k["modelspec.title"]
+                            : _k.ss_output_name) ||
+                    "";
+                editValues.value.nameValue = loraInfo.value.name;
+                loraInfo.value.strengthMin =
+                    (_u = loraInfo.value.strengthMin) !== null && _u !== void 0
+                        ? _u
+                        : "";
+                editValues.value.minValue = loraInfo.value.strengthMin;
+                loraInfo.value.strengthMax =
+                    (_v = loraInfo.value.strengthMax) !== null && _v !== void 0
+                        ? _v
+                        : "";
+                editValues.value.maxValue = loraInfo.value.strengthMax;
+                loraInfo.value.userNote =
+                    (_w = loraInfo.value.userNote) !== null && _w !== void 0
+                        ? _w
+                        : "";
+                editValues.value.notesValue = loraInfo.value.userNote;
+
+                loading.value = false;
+            });
+
             nextTick(function () {
                 loading.value = false;
             });
+
+            // 恢复滚动位置
+            if (loraContent.value) {
+                loraContent.value.scrollTop = scrollPosition
+            }
+
+            message({ type: "success", str: 'message.dataLoaded' });
         })
         .catch((err) => {
             message({ type: "warn", str: 'message.networkError' });
@@ -569,7 +690,12 @@ const toggleEdit = (field) => {
 
 const startEdit = (field) => {
     isEditing.value[field] = true
-    editValues.value[field] = loraInfo.value[field]
+    // 区分普通字段和自定义字段
+    if (field in userEditFields.value) {
+        editValues.value[field] = loraInfo.value.user_diy_fileds?.[field]?.value || ''
+    } else {
+        editValues.value[field] = loraInfo.value[field]
+    }
     // 自动聚焦输入框
     nextTick(() => {
         if (field === 'name' && nameInput.value) {
@@ -578,9 +704,24 @@ const startEdit = (field) => {
     })
 }
 
-const saveEdit = (field) => {
-    saveInfo({ [field]: editValues.value[field] })
-    isEditing.value[field] = false
+const saveEdit = (fieldKey) => {
+    const isCustomField = fieldKey in userEditFields.value
+
+    if (isCustomField) {
+        if (!loraInfo.value.user_diy_fileds) {
+            loraInfo.value.user_diy_fileds = {}
+        }
+        // 更新自定义字段的值
+        loraInfo.value.user_diy_fileds[fieldKey] = {
+            label: userEditFields.value[fieldKey].label,
+            value: editValues.value[fieldKey]
+        }
+    } else {
+        loraInfo.value[fieldKey] = editValues.value[fieldKey]
+    }
+
+    saveInfo(loraInfo.value)
+    isEditing.value[fieldKey] = false
 }
 
 const cancelEdit = (field) => {
@@ -589,6 +730,8 @@ const cancelEdit = (field) => {
 }
 
 const saveInfo = (param) => {
+    const scrollPosition = loraContent.value?.scrollTop || 0
+    // console.log(scrollPosition)
     loading.value = true;
     loraApi
         .postLoraSave(fileURL.value, param)
@@ -626,9 +769,75 @@ const saveInfo = (param) => {
                 editValues.value.notesValue = loraInfo.value.userNote;
 
                 loading.value = false;
+
+                nextTick(function () {
+                    // 恢复滚动位置
+                    if (loraContent.value) {
+                        loraContent.value.scrollTop = scrollPosition
+                    }
+                });
             });
 
             message({ type: "success", str: 'message.saveSuccess' });
+        })
+        .catch((err) => {
+            message({ type: "warn", str: 'message.networkError' });
+            // console.log(err)
+            loading.value = false;
+        });
+}
+
+
+const deleteInfo = async (param) => {
+    const scrollPosition = loraContent.value?.scrollTop || 0
+    // console.log(scrollPosition)
+    loading.value = true;
+    await loraApi
+        .postLoraDelet(fileURL.value, param)
+        .then((res) => {
+            // console.log(res.data.data)
+            loraInfo.value = res.data;
+            nextTick(function () {
+                var _j, _k, _u, _v, _w;
+                loraInfo.value.name =
+                    loraInfo.value.name ||
+                    ((_k =
+                        (_j = loraInfo.value.raw) === null || _j === void 0
+                            ? void 0
+                            : _j.metadata) === null || _k === void 0
+                        ? void 0
+                        : _k.ss_output_name === void 0
+                            ? _k["modelspec.title"]
+                            : _k.ss_output_name) ||
+                    "";
+                editValues.value.nameValue = loraInfo.value.name;
+                loraInfo.value.strengthMin =
+                    (_u = loraInfo.value.strengthMin) !== null && _u !== void 0
+                        ? _u
+                        : "";
+                editValues.value.minValue = loraInfo.value.strengthMin;
+                loraInfo.value.strengthMax =
+                    (_v = loraInfo.value.strengthMax) !== null && _v !== void 0
+                        ? _v
+                        : "";
+                editValues.value.maxValue = loraInfo.value.strengthMax;
+                loraInfo.value.userNote =
+                    (_w = loraInfo.value.userNote) !== null && _w !== void 0
+                        ? _w
+                        : "";
+                editValues.value.notesValue = loraInfo.value.userNote;
+
+                loading.value = false;
+
+                nextTick(function () {
+                    // 恢复滚动位置
+                    if (loraContent.value) {
+                        loraContent.value.scrollTop = scrollPosition
+                    }
+                });
+            });
+
+            message({ type: "success", str: 'message.deleteSuccess' });
         })
         .catch((err) => {
             message({ type: "warn", str: 'message.networkError' });
@@ -716,7 +925,12 @@ const toggleCollapse = () => {
 }
 
 .lora-detail__loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
     height: 100%;
+    z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -744,8 +958,11 @@ const toggleCollapse = () => {
 }
 
 .lora-detail__table td.actions {
-    width: 40px;
+    width: 130px;
     text-align: right;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 }
 
 /* 标签样式 */
