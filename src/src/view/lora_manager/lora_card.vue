@@ -136,7 +136,7 @@
                                 <td class="actions">
                                     <button class="copy-btn" @click="copyToClipboard(loraInfo[field.key])"
                                         :title="t('lora.copy')">
-                                        <svg style="fill: #ffffff;" viewBox="0 0 24 24" width="16" height="16">
+                                        <svg class="svg-icon" viewBox="0 0 24 24" width="16" height="16">
                                             <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
                                         </svg>
                                         {{ t('lora.copy') }}
@@ -159,7 +159,7 @@
                                 <td class="actions">
                                     <button class="copy-btn" @click="copyToClipboard(loraInfo.user_diy_fileds[key]?.value)"
                                         :title="t('lora.copy')">
-                                        <svg style="fill: #ffffff;" viewBox="0 0 24 24" width="16" height="16">
+                                        <svg class="svg-icon" viewBox="0 0 24 24" width="16" height="16">
                                             <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
                                         </svg>
                                         {{ t('lora.copy') }}
@@ -780,6 +780,11 @@ defineExpose({
     justify-content: center;
 }
 
+
+.svg-icon {
+    fill: var(--weilin-prompt-ui-primary-text);
+}
+
 .lora-detail__body {
     height: 100%;
 }
@@ -830,7 +835,7 @@ defineExpose({
 .copy-btn {
     padding: 6px 12px;
     border-radius: 4px;
-    border: 1px solid var(--weilin-prompt-ui-border);
+    border: 1px solid var(--weilin-prompt-ui-border-color);
     background: var(--weilin-prompt-ui-button-bg);
     color: var(--weilin-prompt-ui-button-text);
     cursor: pointer;
@@ -848,9 +853,9 @@ defineExpose({
 input {
     width: 100%;
     padding: 8px;
-    border: 1px solid var(--weilin-prompt-ui-border);
     border-radius: 4px;
-    background: var(--weilin-prompt-ui-input-bg);
+    border: 1px solid var(--weilin-prompt-ui-border-color);
+    background-color: var(--weilin-prompt-ui-input-bg);
     color: var(--weilin-prompt-ui-input-text);
 }
 
@@ -951,7 +956,7 @@ input:focus {
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     transition: transform 0.3s ease;
 }
 

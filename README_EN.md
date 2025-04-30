@@ -24,9 +24,19 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 # Version update introduction
 
-> Last updated: 2025-04-28
+> Last updated: 2025-04-30
 
-> 0.0.52 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.53 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+>
+> 1. Feature optimization: Fixed the issue that Lora details button style could not be seen in daytime mode
+>
+> 2. Repair the issues [#14](https://github.com/weilin9999/WeiLin-Comfyui-Tools/issues/14#issuecomment-2840561525) When the first line has only one Tag, a newline is triggered without the trailing comma
+>
+
+<details>
+<summary>Click here for more updates from the past</summary>
+
+> 0.0.52 Public Beta Version Last updated: 2025-04-28
 >
 > 1. New feature: Within the Lora detailed interface, you can customize your own fields
 >
@@ -36,9 +46,6 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 >
 > 4. When Lora acquires data from C Station, it can also obtain the cover at the same time
 >
-
-<details>
-<summary>Click here for more updates from the past</summary>
 
 > 0.0.48 Public Beta Version 2025-04-25
 >

@@ -338,7 +338,8 @@ export default {
         jsonErrorMesg: "JSON文件格式错误",
         pleaseAddSub: "请先添加二级分类",
         pleaseAddMainCeb: "请先添加一级分类",
-        pleaseSelectGroup: "请选择完整的分组路径"
+        pleaseSelectGroup: "请选择完整的分组路径",
+        isLoadingPleaseWait: "正在执行中，请查看后台进度",
     },
     history: {
         "title": "历史记录",

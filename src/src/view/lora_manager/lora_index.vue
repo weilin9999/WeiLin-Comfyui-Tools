@@ -57,7 +57,7 @@
           <div :class="`${prefix}lora-preview`"
             style="flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden;width: 100%;">
             <img v-if="lora.preview" :src="lora.preview" :alt="lora.model_name" :title="lora.model_name" loading="lazy"
-              style="width: 100%; height: 100%; object-fit: cover; min-height: 150px;" />
+              style="width: 100%; height: 100%; object-fit: contain; min-height: 150px;" />
             <div v-else :class="`${prefix}no-preview`"
               style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; min-height: 150px;">
               <svg viewBox="0 0 24 24" width="24" height="24">
@@ -375,8 +375,8 @@ const getAllLoraList = async () => {
   }
 
   try {
+    message({ type: "success", str: 'message.isLoadingPleaseWait' })
     await loraApi.getAllLoraList()
-
     // 每秒调用一次 getAllLoraStatus
     intervalId.value = setInterval(async () => {
       await getAllLoraStatus()
@@ -589,6 +589,7 @@ defineExpose({
   flex-direction: column;
   gap: 8px;
   padding-bottom: 16px;
+  padding-top: 5px;
 }
 
 .weilin_prompt_ui_lora-item {
@@ -624,7 +625,7 @@ defineExpose({
 .weilin_prompt_ui_lora-preview img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .weilin_prompt_ui_no-preview {
@@ -823,6 +824,12 @@ defineExpose({
   aspect-ratio: 1/1.3;
   /* position: relative; */
   /* 保持卡片比例 */
+}
+
+.weilin_prompt_ui_lora-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--weilin-prompt-ui-shadow-color);
+  border: 1px solid var(--weilin-prompt-ui-primary-color-hover);
 }
 
 .weilin_prompt_ui_lora-preview {

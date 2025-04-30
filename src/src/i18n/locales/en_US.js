@@ -322,7 +322,8 @@ export default {
         jsonErrorMesg: "The format of the JSON file is incorrect",
         pleaseAddSub: "Please add the secondary classification first",
         pleaseAddMainCeb: "Please add the first-level category first",
-        pleaseSelectGroup: "Please select the complete grouping path"
+        pleaseSelectGroup: "Please select the complete grouping path",
+        isLoadingPleaseWait: "It is being executed. Please check the progress in the background",
     },
     cloudWindow:{
         "windowTitle": "Share Cloud Window",

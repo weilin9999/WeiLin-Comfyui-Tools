@@ -99,8 +99,8 @@
                                     <span v-else class="text">{{ loraInfo.name }}</span>
                                 </td>
                                 <td class="actions">
-                                    <button style="fill: #ffffff;" class="edit-btn" @click="toggleEdit('name')">
-                                        <svg viewBox="0 0 24 24" width="16" height="16">
+                                    <button class="edit-btn" @click="toggleEdit('name')">
+                                        <svg class="svg-icon" viewBox="0 0 24 24" width="16" height="16">
                                             <path v-if="isEditing.name"
                                                 d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
                                             <path v-else
@@ -158,7 +158,7 @@
                                     <td class="actions">
                                         <button class="edit-btn" @click="toggleEdit(field.key)"
                                             :title="t('promptBox.settings.edit')">
-                                            <svg style="fill: #ffffff;" viewBox="0 0 24 24" width="16" height="16">
+                                            <svg class="svg-icon" viewBox="0 0 24 24" width="16" height="16">
                                                 <path v-if="isEditing[field.key]"
                                                     d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
                                                 <path v-else
@@ -186,7 +186,7 @@
                                     <td class="actions">
                                         <button class="edit-btn" @click="toggleEdit(key)"
                                             :title="t('promptBox.settings.edit')">
-                                            <svg style="fill: #ffffff;" viewBox="0 0 24 24" width="16" height="16">
+                                            <svg class="svg-icon" viewBox="0 0 24 24" width="16" height="16">
                                                 <path v-if="isEditing[key]"
                                                     d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
                                                 <path v-else
@@ -564,7 +564,9 @@ const init = () => {
                         : "";
                 editValues.value.loraWorksValue = loraInfo.value.loraWorks;
 
-                userEditFields.value = loraInfo.value.user_diy_fileds;
+                if (loraInfo.value.user_diy_fileds){
+                    userEditFields.value = loraInfo.value.user_diy_fileds;
+                }
 
                 loading.value = false;
             });
@@ -631,7 +633,7 @@ const refreshLoraInfo = async () => {
             loraInfo.value = res.data;
 
             nextTick(function () {
-                var _j, _k, _u, _v, _w;
+                var _j, _k, _u, _v, _w, _x;
                 loraInfo.value.name =
                     loraInfo.value.name ||
                     ((_k =
@@ -660,6 +662,16 @@ const refreshLoraInfo = async () => {
                         : "";
                 editValues.value.notesValue = loraInfo.value.userNote;
 
+                loraInfo.value.loraWorks =
+                    (_x = loraInfo.value.loraWorks) !== null && _x !== void 0
+                        ? _x
+                        : "";
+                editValues.value.loraWorksValue = loraInfo.value.loraWorks;
+
+                if (loraInfo.value.user_diy_fileds){
+                    userEditFields.value = loraInfo.value.user_diy_fileds;
+                }
+
                 loading.value = false;
             });
 
@@ -681,6 +693,7 @@ const refreshLoraInfo = async () => {
 }
 
 const toggleEdit = (field) => {
+    // console.log('toggleEdit', isEditing.value)
     if (isEditing.value[field]) {
         saveEdit(field)
     } else {
@@ -705,6 +718,9 @@ const startEdit = (field) => {
 }
 
 const saveEdit = (fieldKey) => {
+    // console.log('saveEdit', fieldKey)
+
+    // console.log(userEditFields.value)
     const isCustomField = fieldKey in userEditFields.value
 
     if (isCustomField) {
@@ -739,7 +755,7 @@ const saveInfo = (param) => {
             // console.log(res.data.data)
             loraInfo.value = res.data;
             nextTick(function () {
-                var _j, _k, _u, _v, _w;
+                var _j, _k, _u, _v, _w, _x;
                 loraInfo.value.name =
                     loraInfo.value.name ||
                     ((_k =
@@ -767,6 +783,16 @@ const saveInfo = (param) => {
                         ? _w
                         : "";
                 editValues.value.notesValue = loraInfo.value.userNote;
+
+                loraInfo.value.loraWorks =
+                    (_x = loraInfo.value.loraWorks) !== null && _x !== void 0
+                        ? _x
+                        : "";
+                editValues.value.loraWorksValue = loraInfo.value.loraWorks;
+
+                if (loraInfo.value.user_diy_fileds){
+                    userEditFields.value = loraInfo.value.user_diy_fileds;
+                }
 
                 loading.value = false;
 
@@ -798,7 +824,7 @@ const deleteInfo = async (param) => {
             // console.log(res.data.data)
             loraInfo.value = res.data;
             nextTick(function () {
-                var _j, _k, _u, _v, _w;
+                var _j, _k, _u, _v, _w, _x;
                 loraInfo.value.name =
                     loraInfo.value.name ||
                     ((_k =
@@ -826,6 +852,16 @@ const deleteInfo = async (param) => {
                         ? _w
                         : "";
                 editValues.value.notesValue = loraInfo.value.userNote;
+
+                loraInfo.value.loraWorks =
+                    (_x = loraInfo.value.loraWorks) !== null && _x !== void 0
+                        ? _x
+                        : "";
+                editValues.value.loraWorksValue = loraInfo.value.loraWorks;
+
+                if (loraInfo.value.user_diy_fileds){
+                    userEditFields.value = loraInfo.value.user_diy_fileds;
+                }
 
                 loading.value = false;
 
@@ -924,6 +960,10 @@ const toggleCollapse = () => {
     color: var(--weilin-prompt-ui-primary-text);
 }
 
+.svg-icon {
+    fill: var(--weilin-prompt-ui-primary-text);
+}
+
 .lora-detail__loading {
     position: absolute;
     top: 0;
@@ -986,7 +1026,7 @@ const toggleCollapse = () => {
 .copy-btn {
     padding: 6px 12px;
     border-radius: 4px;
-    border: 1px solid var(--weilin-prompt-ui-border);
+    border: 1px solid var(--weilin-prompt-ui-border-color);
     background: var(--weilin-prompt-ui-button-bg);
     color: var(--weilin-prompt-ui-button-text);
     cursor: pointer;
@@ -1004,9 +1044,9 @@ const toggleCollapse = () => {
 input {
     width: 100%;
     padding: 8px;
-    border: 1px solid var(--weilin-prompt-ui-border);
     border-radius: 4px;
-    background: var(--weilin-prompt-ui-input-bg);
+    border: 1px solid var(--weilin-prompt-ui-border-color);
+    background-color: var(--weilin-prompt-ui-input-bg);
     color: var(--weilin-prompt-ui-input-text);
 }
 
@@ -1107,7 +1147,7 @@ input:focus {
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     transition: transform 0.3s ease;
 }
 
