@@ -65,8 +65,13 @@ class WeiLinPromptUI:
     def __init__(self):
         self.loaded_loraA = None
 
+    def IS_CHANGED(self, auto_random, **kwargs):
+        if auto_random:
+            return float("nan")
+        return auto_random
+    
     @classmethod
-    def INPUT_TYPES(s):
+    def INPUT_TYPES(self):
         return {
             "required": {
                 "positive": ("STRING", {
@@ -74,6 +79,7 @@ class WeiLinPromptUI:
                     "default": "",
                     "placeholder": placeholder_text,
                 }),
+                "auto_random": ("BOOLEAN", {"default": False}),
             },
             "optional": {
                 "lora_str": ("STRING", {
@@ -91,6 +97,11 @@ class WeiLinPromptUI:
                     "default": "",
                     "placeholder": "temp prompt words",
                 }),
+                "random_template": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "placeholder": "random template path name",
+                }),
                 "opt_text": (ANY, {"default": ""}),
                 "opt_clip": ("CLIP", ),
                 "opt_model": ("MODEL",),
@@ -105,12 +116,12 @@ class WeiLinPromptUI:
     # FUNCTION = "encode"
     FUNCTION = "load_lora_ing"
 
-    # OUTPUT_NODE = False
+    OUTPUT_NODE = True
 
     CATEGORY = node_name_text
 
     # 加载Lora
-    def load_lora_ing(self, positive="",lora_str="",temp_str="",temp_lora_str="", opt_text="", opt_clip=None, opt_model=None):
+    def load_lora_ing(self, positive="", auto_random=False, lora_str="", temp_str="", temp_lora_str="",random_template="", opt_text="", opt_clip=None, opt_model=None):
         model_lora_secondA = opt_model
         clip_lora_secondA = opt_clip
 
@@ -132,6 +143,19 @@ class WeiLinPromptUI:
         if len(lora_str) > 0:
             json_object = json.loads(lora_str)
             lora_list = json_object
+        
+        if auto_random:
+            if len(random_template) > 0:
+                # 随机Tag获取
+                random_tag = go_run_node_auto_random_tag(random_template)
+                if len(random_tag["random_tags"]) > 0:
+                    positive = random_tag["random_tags"]
+                    self.positive = positive
+                    if len(opt_text) > 0:
+                        text_dec = opt_text +", "+positive
+                    else:
+                        text_dec = positive
+                
 
         # 当模型不为空时
         if opt_model != None and lora_list != None:
@@ -163,8 +187,9 @@ class WeiLinPromptUI:
             tokensA = clip_lora_secondA.tokenize(text_dec)
             outputA = clip_lora_secondA.encode_from_tokens(tokensA, return_pooled=True, return_dict=True)
             condA = outputA.pop("cond")
-            return (text_dec,[[condA, outputA]], clip_lora_secondA, model_lora_secondA)
-        return (text_dec, clip_lora_secondA, clip_lora_secondA, model_lora_secondA)
+            return {"ui": {"positive": [str(positive)]}, "result":  (text_dec,[[condA, outputA]], clip_lora_secondA, model_lora_secondA,)}
+        
+        return {"ui": {"positive": [str(positive)]}, "result":  (text_dec, clip_lora_secondA, clip_lora_secondA, model_lora_secondA,)}
         # return (model_lora_second, clip_lora_second)
 
 
@@ -175,7 +200,7 @@ class WeiLinPromptUIOnlyLoraStack:
         self.loaded_loraA = None
 
     @classmethod
-    def INPUT_TYPES(s):
+    def INPUT_TYPES(self):
         return {
             "required": {
                 "clip": ("CLIP", ),
@@ -252,8 +277,13 @@ class WeiLinPromptUIWithoutLora:
     def __init__(self):
         pass
 
+    def IS_CHANGED(self, auto_random, **kwargs):
+        if auto_random:
+            return float("nan")
+        return auto_random
+    
     @classmethod
-    def INPUT_TYPES(s):
+    def INPUT_TYPES(self):
         return {
             "required": {
                 "positive": ("STRING", {
@@ -261,6 +291,7 @@ class WeiLinPromptUIWithoutLora:
                     "default": "",
                     "placeholder": placeholder_text,
                 }),
+                "auto_random": ("BOOLEAN", {"default": False}),
             },
             "optional": {
                 "temp_str": ("STRING", {
@@ -268,19 +299,29 @@ class WeiLinPromptUIWithoutLora:
                     "default": "",
                     "placeholder": "temp prompt words",
                 }),
+                "random_template": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "placeholder": "random template path name",
+                }),
                 "opt_text": (ANY, {"default": ""}),
                 "opt_clip": ("CLIP", ),
-            }
+            },
+            "hidden": {
+                "unique_id": "UNIQUE_ID",
+                "extra_pnginfo": "EXTRA_PNGINFO",
+            },
         }
 
     RETURN_TYPES = ("STRING", "CONDITIONING", "CLIP", )
     RETURN_NAMES = ("STRING", "CONDITIONING", "CLIP", )
-
     FUNCTION = "encode"
+    OUTPUT_NODE = True
 
     CATEGORY = node_name_text
 
-    def encode(self, positive="", temp_str="", opt_text="", opt_clip=None):
+    def encode(self, positive="", auto_random=False, temp_str="", random_template="",
+     opt_text="", opt_clip=None, unique_id=None, extra_pnginfo=None):
         text_dec = ""
         if is_json(positive):
             json_object = json.loads(positive)
@@ -293,12 +334,23 @@ class WeiLinPromptUIWithoutLora:
                 text_dec = opt_text +", "+positive
             else:
                 text_dec = positive
+
+        if auto_random:
+            if len(random_template) > 0:
+                # 随机Tag获取
+                random_tag = go_run_node_auto_random_tag(random_template)
+                if len(random_tag["random_tags"]) > 0:
+                    positive = random_tag["random_tags"]
+                    if len(opt_text) > 0:
+                        text_dec = opt_text +", "+positive
+                    else:
+                        text_dec = positive
         
         if opt_clip is not None:
             tokens = opt_clip.tokenize(text_dec)
-            return (text_dec, opt_clip.encode_from_tokens_scheduled(tokens), opt_clip)
+            return {"ui": {"positive": [str(positive)]}, "result":  (text_dec, opt_clip.encode_from_tokens_scheduled(tokens), opt_clip,)}
         
-        return (text_dec, opt_clip, opt_clip)
+        return {"ui": {"positive": [str(positive)]}, "result":  (text_dec, opt_clip, opt_clip,)}
 
 
 

@@ -153,7 +153,7 @@
 
       </div>
 
-      <div style="position: relative;">
+      <div style="position: relative;" ref="parentCneterBox">
         <!-- 输入框区域 -->
         <!-- 移除事件 @change="finishPromptPutItHistory" -->
         <textarea v-model="inputText" class="input-area" @input="handleInput" :placeholder="t('promptBox.placeholder')"
@@ -168,7 +168,7 @@
         <!-- 自动补全窗口 -->
         <div class="autocomplete-container" ref="autocompleteContainerRef" :style="{
           top: `${autocompletePosition.top}px`,
-          left: `${autocompletePosition.left}px`,
+          left: `${adjustedAutocompletePosition.left}px`,
           display: showAutocomplete ? 'block' : 'none',
           width: `${saveAutoCompleteWidth}px`,
           maxHeight: `${saveAutoCompleteHeight}px`
@@ -424,7 +424,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onBeforeUpdate, onMounted, onUnmounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, watch, onBeforeUpdate, onMounted, onUnmounted, onBeforeUnmount, nextTick, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import SettingDialog from './components/setting_dialog.vue'
@@ -462,6 +462,8 @@ const props = defineProps({
     default: false
   },
 })
+
+const parentCneterBox = ref(null)
 
 // 输入prompt信息
 const inputText = ref('')
@@ -1911,6 +1913,8 @@ const handleMessage = (event) => {
       // 触发输入事件以更新词组
       processInput()
     }
+  } else if (event.data.type === 'weilin_prompt_ui_prompt_inner_get_node_tag_template_id_go_random_response') {
+    onClickLocalTemplateRandomTag(event.data.data)
   }
 }
 
@@ -2040,8 +2044,8 @@ const triggerAutocomplete = (inputValue) => {
       // 更新补全结果
       await calculateAutocompletePosition();
       setTimeout(() => {
-        saveAutoCompleteWidth.value = localStorage.getItem('weilin_prompt_ui_auto_box_width')
-        saveAutoCompleteHeight.value = localStorage.getItem('weilin_prompt_ui_auto_box_height')
+        saveAutoCompleteWidth.value = localStorage.getItem('weilin_prompt_ui_auto_box_width') || 450
+        saveAutoCompleteHeight.value = localStorage.getItem('weilin_prompt_ui_auto_box_height') || 350
         showAutocomplete.value = autocompleteResults.value.length > 0;
         selectedAutocompleteIndex.value = 0; // 重置选中索引
       }, 50)
@@ -2099,6 +2103,30 @@ const scrollToSelectedItem = () => {
     }
   });
 };
+
+// 计算调整后的自动补全位置
+const adjustedAutocompletePosition = computed(() => {
+  if (!parentCneterBox.value) return { left: autocompletePosition.value.left };
+
+  const parentWidth = parentCneterBox.value.offsetWidth;
+  saveAutoCompleteWidth.value = localStorage.getItem('weilin_prompt_ui_auto_box_width') || 450
+  const autocompleteWidth = saveAutoCompleteWidth.value;
+  let left = autocompletePosition.value.left;
+
+  // 检查是否会超出右侧边界
+  if (left + autocompleteWidth > parentWidth) {
+    // 将窗口贴在右侧边界
+    left = parentWidth - autocompleteWidth;
+  }
+
+  // 确保不会超出左侧边界
+  if (left < 0) {
+    left = 0;
+  }
+
+  return { left };
+});
+
 
 const selectAutocomplete = (index, event) => {
   // 如果有event参数，阻止默认行为和事件冒泡
@@ -2380,32 +2408,62 @@ const openBilibili = () => {
 
 // 一键随机Tag方法
 const oneClickRandomTag = async () => {
-  try {
-    await randomTagApi.goRandomTemplate().then((res) => {
-      if (res.code === 200) {
-        // console.log(res.random_tags)
-        inputText.value = res.random_tags
-        nextTick(() => {
-          // 触发输入处理
-          processInput();
-        })
-      } else {
-        message({ type: "warn", str: res.info });
-      }
-    }).catch((err) => {
-      console.error(err);
+  if (props.promptManager == "prompt_global") {
+    try {
+      await randomTagApi.goRandomTemplate().then((res) => {
+        if (res.code === 200) {
+          // console.log(res.random_tags)
+          inputText.value = res.random_tags
+          nextTick(() => {
+            // 触发输入处理
+            processInput();
+          })
+        } else {
+          message({ type: "warn", str: res.info });
+        }
+      }).catch((err) => {
+        console.error(err);
+        message({ type: "warn", str: 'message.networkError' });
+      });
+    } catch (error) {
       message({ type: "warn", str: 'message.networkError' });
-    });
-  } catch (error) {
-    message({ type: "warn", str: 'message.networkError' });
-    console.error('Error loading random tag settings:', error)
+      console.error('Error loading random tag settings:', error)
+    }
+  } else {
+    window.postMessage({
+      type: 'weilin_prompt_ui_prompt_inner_get_node_tag_template_id_gorandom'
+    }, '*')
   }
+
 };
+
+const onClickLocalTemplateRandomTag = async (name) => {
+  try {
+      await randomTagApi.goRandomTemplatePath(name).then((res) => {
+        if (res.code === 200) {
+          // console.log(res.random_tags)
+          inputText.value = res.random_tags
+          nextTick(() => {
+            // 触发输入处理
+            processInput();
+          })
+        } else {
+          message({ type: "warn", str: res.info });
+        }
+      }).catch((err) => {
+        console.error(err);
+        message({ type: "warn", str: 'message.networkError' });
+      });
+    } catch (error) {
+      message({ type: "warn", str: 'message.networkError' });
+      console.error('Error loading random tag settings:', error)
+    }
+}
 
 
 // 打开随机Tag设置对话框
 const openRandomTagSettings = () => {
-  randomSettingItem.value.open()
+  randomSettingItem.value.open(props.promptManager)
 };
 
 defineExpose({

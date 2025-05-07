@@ -137,7 +137,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <button class="add-tag-btn" @click="selectTagGroup(index)">
+                                        <button class="add-tag-btn" @click="selectTagGroup(index,rule.tagGroupList)">
                                             {{ t('randomUtils.selectTagGroup') }}
                                         </button>
                                     </div>
@@ -180,7 +180,7 @@
 </template>
 
 <script setup>
-import { ref, onUnmounted, watch, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DraggableWindow from '@/components/DraggableWindow.vue'
 import { windowManager } from '@/utils/windowManager'
@@ -195,6 +195,8 @@ const isOpen = ref(false)
 const tagGroupSelectItem = ref(null)
 const STORAGE_PREFIX = 'weilin_tools_'
 const loadingFinish = ref(false)
+const promptMode = ref('')
+const nodeLocalTemplateId = ref('')
 
 // 默认窗口配置
 const DEFAULT_WINDOWS = {
@@ -235,13 +237,31 @@ const settings = ref({})
 // 从 localStorage 加载设置
 async function loadSettings() {
     try {
-        await randomTagApi.getRandomTemplateApple().then(async (res) => {
-            // console.log(res);
-            if (res.data == "") {
+        if (promptMode.value == "prompt_global") {
+            await randomTagApi.getRandomTemplateApple().then(async (res) => {
+                // console.log(res);
+                if (res.data == "") {
+                    settings.value = DEFAULT_SETTINGS
+                } else {
+                    await randomTagApi.getTemplateData(res.data).then(async (resData) => {
+                        selectedTemplate.value = res.data // 选中新创建的模板
+                        settings.value = resData.data
+                        loadingFinish.value = true
+                    }).catch(err => {
+                        console.error('加载模板失败:', err)
+                        message({ type: "warn", str: 'randomUtils.errorLoadingTemplate' });
+                    })
+                }
+            }).catch((err) => {
+                console.error(err);
+                message({ type: "warn", str: 'message.networkError' });
+            });
+        } else {
+            if (nodeLocalTemplateId.value == "") {
                 settings.value = DEFAULT_SETTINGS
             } else {
-                await randomTagApi.getTemplateData(res.data).then(async (resData) => {
-                    selectedTemplate.value = res.data // 选中新创建的模板
+                await randomTagApi.getTemplateData(nodeLocalTemplateId.value).then(async (resData) => {
+                    selectedTemplate.value = nodeLocalTemplateId.value // 选中新创建的模板
                     settings.value = resData.data
                     loadingFinish.value = true
                 }).catch(err => {
@@ -249,10 +269,7 @@ async function loadSettings() {
                     message({ type: "warn", str: 'randomUtils.errorLoadingTemplate' });
                 })
             }
-        }).catch((err) => {
-            console.error(err);
-            message({ type: "warn", str: 'message.networkError' });
-        });
+        }
     } catch (error) {
         message({ type: "warn", str: 'message.networkError' });
         console.error('Error loading random tag settings:', error)
@@ -381,12 +398,6 @@ watch(windows, (newState) => {
 }, { deep: true })
 
 
-
-// 组件卸载时注销窗口
-onUnmounted(() => {
-    windowManager.unregisterWindow('randomRuleSetting')
-})
-
 // 关闭窗口
 const closeWindow = (windowName) => {
     isOpen.value = false
@@ -407,18 +418,24 @@ const updateSize = (windowName, newSize) => {
 }
 
 // 打开窗口
-const open = () => {
+const open = (mode) => {
     isOpen.value = true
+    // console.log(mode)
+    promptMode.value = mode
     windowManager.registerWindow('randomRuleSetting')
     nextTick(() => {
         windowManager.setActiveWindow('randomRuleSetting')
-        loadTemplates(1)
+        if (mode == "prompt_global") {
+            loadTemplates(1)
+        } else {
+            getNodeTagTemplateIdAndReGet()
+        }
     })
 }
 
 
-const selectTagGroup = (index) => {
-    tagGroupSelectItem.value.open(index)
+const selectTagGroup = (index,data) => {
+    tagGroupSelectItem.value.open(index,data)
 }
 
 // 对外暴露生成随机标签的方法
@@ -506,13 +523,22 @@ function applyTemplate() {
         message.warm(t('randomUtils.pleaseChooseTemplate'))
         return
     }
-    // 获取选中的模板
-    randomTagApi.updateRandomTemplateApple(selectedTemplate.value).then(res => {
+    if (promptMode.value == "prompt_global") {
+        // 获取选中的模板
+        randomTagApi.updateRandomTemplateApple(selectedTemplate.value).then(res => {
+            message({ type: "success", str: 'randomUtils.templateApplied' });
+        }).catch(err => {
+            console.error('获取模板失败:', err)
+            message({ type: "warn", str: 'randomUtils.errorApplyingTemplate' });
+        })
+    } else {
+        window.postMessage({
+            type: 'weilin_prompt_ui_prompt_inner_update_node_tag_template_id',
+            data: selectedTemplate.value
+        }, '*')
         message({ type: "success", str: 'randomUtils.templateApplied' });
-    }).catch(err => {
-        console.error('获取模板失败:', err)
-        message({ type: "warn", str: 'randomUtils.errorApplyingTemplate' });
-    })
+    }
+
 }
 
 
@@ -647,6 +673,35 @@ const changeSelectTemplate = async (event) => {
 
 }
 
+const getNodeTagTemplateIdAndReGet = () => {
+    window.postMessage({
+        type: 'weilin_prompt_ui_prompt_inner_get_node_tag_template_id'
+    }, '*')
+}
+
+
+// 处理消息
+const handleMessage = (event) => {
+    if (event.data.type === 'weilin_prompt_ui_prompt_inner_get_node_tag_template_id_response') {
+        // console.log(event.data.data)
+        nodeLocalTemplateId.value = event.data.data
+        // 继续执行
+        loadTemplates(1)
+    }
+}
+
+
+// 组件挂载时注册所有窗口
+onMounted(() => {
+    // 添加消息监听
+    window.addEventListener('message', handleMessage)
+})
+// 组件卸载时注销所有窗口
+onUnmounted(() => {
+    windowManager.unregisterWindow('randomRuleSetting')
+    // 移除消息监听
+    window.removeEventListener('message', handleMessage)
+})
 
 defineExpose({
     open,

@@ -905,7 +905,18 @@ async def _go_random_template(request):
         setting = get_random_template_setting() # 获取设置的参数信息
         if setting == "":
             return web.json_response({"code": 300, "info": '请先应用一个模板'})
-        return web.json_response(await go_radom_template(setting)) 
+        return web.json_response(go_radom_template(setting)) 
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+@PromptServer.instance.routes.post(baseUrl+"random_template/go_random_template_path")
+async def _go_random_template_path(request):
+    data = await request.json()
+    try:
+        if data.get('name') == "":
+            return web.json_response({"code": 300, "info": '请先应用一个模板'})
+        return web.json_response(go_radom_template(data.get('name'))) 
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
@@ -913,3 +924,11 @@ async def _go_random_template(request):
 # =====================================================================================================
 print("======== WeiLin插件服务已启动 ========")
 print("======== WeiLin Server Init ========")
+
+
+def go_run_node_auto_random_tag(name):
+    try:
+        return go_radom_template(name)
+    except Exception as e:
+        print(f"Error: {e}")
+        return ""

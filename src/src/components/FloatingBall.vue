@@ -9,17 +9,17 @@
         <!-- 目录 -->
         <div v-if="showMenu[i - 1]" class="weilin_prompt_ui_menu-container" @mousedown.stop>
             <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item1')">{{ t('floatingBall.promptBox')
-                }}</div>
+            }}</div>
             <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item2')">{{
                 t('floatingBall.tagManager') }}</div>
             <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item3')">{{
                 t('floatingBall.loraManager') }}</div>
             <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item4')">{{ t('floatingBall.aiWindow')
-                }}</div>
+            }}</div>
             <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item6')">{{
                 t('floatingBall.openNodeListWindow') }}</div>
             <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item7')">{{ t('floatingBall.tranToWeb')
-                }}</div>
+            }}</div>
             <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item8')">{{
                 t('floatingBall.openSetting') }}</div>
             <div class="weilin_prompt_ui_menu-item" @click="handleMenuItemClick('item5')">{{
@@ -95,7 +95,10 @@ const computedBallStyle = computed(() => {
         // 背景设置
         if (ballSkinType.value === 'custom' && customSkinUrl.value) {
             newStyle.backgroundImage = `url(${customSkinUrl.value})`;
-            newStyle.backgroundSize = 'cover';
+            newStyle.backgroundSize = 'contain';  // 改为contain保持比例
+            newStyle.backgroundRepeat = 'no-repeat';
+            newStyle.backgroundPosition = 'center';
+            newStyle.imageRendering = 'optimizeQuality';  // 优化渲染质量
         } else if (bgType.value === 'gradient') {
             newStyle.background = `linear-gradient(135deg, ${gradientColor1.value}, ${gradientColor2.value})`;
         } else {
@@ -311,13 +314,18 @@ const handleMessage = (event) => {
                 top: `${ballPosition.value[i].y}px`,
                 width: `${ballSize}px`,
                 height: `${ballHeight}px`,
-                // 直接在这里应用样式
-                background: ballSkinType.value === 'custom' && customSkinUrl.value
-                    ? `url(${customSkinUrl.value})`
+                // 优化后的样式判断逻辑
+                ...(ballSkinType.value === 'custom' && customSkinUrl.value
+                    ? {
+                        backgroundImage: `url(${customSkinUrl.value})`,
+                        backgroundSize: 'cover',
+                        backgroundRepeat: 'no-repeat',
+                        backgroundPosition: 'center'
+                    }
                     : bgType.value === 'gradient'
-                        ? `linear-gradient(135deg, ${gradientColor1.value}, ${gradientColor2.value})`
-                        : 'transparent',
-                backgroundSize: ballSkinType.value === 'custom' && customSkinUrl.value ? 'cover' : '',
+                        ? { background: `linear-gradient(135deg, ${gradientColor1.value}, ${gradientColor2.value})` }
+                        : { background: 'transparent' }
+                ),
                 borderRadius: `${ballBorderRadius.value}%`
             };
         }
@@ -368,7 +376,7 @@ onUnmounted(() => {
 }
 
 .weilin_prompt_ui_floating-ball:hover {
-    transform: scale(1.1);
+    /* transform: scale(1.1); */
     /* 悬浮时放大 */
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
     /* 悬浮时阴影加深 */

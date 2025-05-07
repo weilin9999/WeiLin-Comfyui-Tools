@@ -302,6 +302,7 @@ export default {
         modelWeight: "模型权重",
         textEncoderWeight: "文本权重",
         all: "全部",
+        root: "根目录",
         refresh: "刷新",
         cacheAll: "缓存全部Lora信息",
         searchPlaceholder: "搜索Lora...",

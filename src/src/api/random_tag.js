@@ -64,5 +64,13 @@ export const randomTagApi = {
             method: 'post',
         })
     },
+
+    goRandomTemplatePath: async (name) => {
+        return await request({
+            url: '/random_template/go_random_template_path',
+            method: 'post',
+            data: { name }
+        })
+    },
   
 }

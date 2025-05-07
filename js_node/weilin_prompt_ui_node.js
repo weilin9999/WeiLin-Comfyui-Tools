@@ -120,6 +120,7 @@ app.registerExtension({
 
         if (nodeData.name === "WeiLinPromptUI" || nodeData.name === "WeiLinPromptUIWithoutLora") {
           hideWidgetForGood(this, this.widgets.find(w => w.name === "temp_str"))
+          hideWidgetForGood(this, this.widgets.find(w => w.name === "random_template"))
         }
         if (nodeData.name === "WeiLinPromptUI" || nodeData.name === "WeiLinPromptUIOnlyLoraStack") {
           hideWidgetForGood(this, this.widgets.find(w => w.name === "lora_str"))
@@ -144,6 +145,10 @@ app.registerExtension({
             let thisInputElement = widgetItem.element
             thisInputElement.readOnly = true
             nodeTextAreaList[3] = thisInputElement
+          } else if (widgetItem.name == "random_template") {
+            let thisInputElement = widgetItem.element
+            thisInputElement.readOnly = true
+            nodeTextAreaList[4] = thisInputElement
           }
         }
 
@@ -407,12 +412,32 @@ app.registerExtension({
             }
           }else if (event.data.type === "weilin_prompt_ui_selectLora_stack_node_"+thisNodeSeed) {
             addLora(thisNodeSeed,event.data.lora)
+          }else if (event.data.type === "weilin_prompt_ui_update_template_"+randomID) {
+            nodeTextAreaList[4].value = event.data.data
+          }else if (event.data.type === "weilin_prompt_ui_get_template_"+randomID) {
+            window.parent.postMessage({ type: 'weilin_prompt_ui_get_template_response', id: randomID, data: nodeTextAreaList[4].value }, '*')
+          }else if (event.data.type === "weilin_prompt_ui_get_template_go_random_"+randomID) {
+            window.parent.postMessage({ type: 'weilin_prompt_ui_get_template_go_random_response', id: randomID, data: nodeTextAreaList[4].value }, '*')
           }
 
         }, false);
 
         return r;
       };
+
+      // When the node is executed we will be sent the input text, display this in the widget
+			const onExecuted = nodeType.prototype.onExecuted;
+			nodeType.prototype.onExecuted = function (message) {
+				onExecuted?.apply(this, arguments);
+        const positiveWidget = this.widgets.find(w => w.name === "positive");
+        if (positiveWidget && message.positive) {
+          positiveWidget.element.value = message.positive;
+          // 触发input事件以更新全局状态
+          const event = new Event('input', { bubbles: true });
+          positiveWidget.element.dispatchEvent(event);
+        }
+        // console.log(message.positive)
+			};
     }
   },
 });

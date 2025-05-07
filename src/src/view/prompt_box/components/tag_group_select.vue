@@ -344,9 +344,10 @@ const selectSureThis = () => {
 }
 
 defineExpose({
-  open: (index) => {
+  open: (index,data) => {
     getTagsList()
     selectActionIndex.value = index
+    selectGroupsData.value = data
     dialogVisible.value = true
   }
 })

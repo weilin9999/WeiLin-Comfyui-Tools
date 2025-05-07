@@ -500,6 +500,35 @@ const handleMessage = (event) => {
     windowManager.setActiveWindow('lora_stack_window')
   } else if (event.data.type === "weilin_prompt_ui_openLoraDetail") {
     loraDetailLoraStackRef.value.open({ name: event.data.lora })
+  } else if (event.data.type === 'weilin_prompt_ui_prompt_inner_get_node_tag_template_id') {
+    window.postMessage({
+      type: 'weilin_prompt_ui_get_template_' + thisEditPromptId.value,
+      data: event.data.data
+    }, '*')
+  } else if (event.data.type === 'weilin_prompt_ui_get_template_response') {
+    if (thisEditPromptId.value === event.data.id) {
+      window.postMessage({
+        type: 'weilin_prompt_ui_prompt_inner_get_node_tag_template_id_response',
+        data: event.data.data
+      }, '*')
+    }
+  } else if (event.data.type === 'weilin_prompt_ui_prompt_inner_update_node_tag_template_id') {
+    window.postMessage({
+      type: 'weilin_prompt_ui_update_template_' + thisEditPromptId.value,
+      data: event.data.data
+    }, '*')
+  } else if (event.data.type === 'weilin_prompt_ui_prompt_inner_get_node_tag_template_id_gorandom') {
+    window.postMessage({
+      type: 'weilin_prompt_ui_get_template_go_random_' + thisEditPromptId.value,
+      data: event.data.data
+    }, '*')
+  } else if (event.data.type === 'weilin_prompt_ui_get_template_go_random_response') {
+    if (thisEditPromptId.value === event.data.id) {
+      window.postMessage({
+        type: 'weilin_prompt_ui_prompt_inner_get_node_tag_template_id_go_random_response',
+        data: event.data.data
+      }, '*')
+    }
   }
 }
 

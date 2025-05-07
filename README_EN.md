@@ -26,7 +26,7 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 > Last updated: 2025-05-07
 
-> 0.0.56 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.57 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
 >
 > 1. Fixed known bugs
 >
@@ -47,6 +47,10 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 > 9. Fixed the case where the input field record height had a low probability of triggering the height to be very low
 >
 > 10. The lower left corner of the window will prompt for updates when a new version of the plugin is available
+>
+> 11. New node function: automatic random Tag, set the template can be used, each node's random template is different and can be customized
+>
+> 12. Modified the Lora manager, added the function of displaying all secondary directories, and changed the height problem of the directory bar
 >
 
 <details>

@@ -3,7 +3,8 @@ import os
 import datetime
 import random
 from typing import List
-from ..dao.dao import _get_connection
+from ..dao.dao import tags_db_path
+import sqlite3
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 init_file_path = os.path.join(current_dir, '../../../random_tag')
@@ -152,26 +153,26 @@ def get_template_data(name: str):
         raise Exception(str(e))
 
 
-async def get_random_tags_by_group(p_uuid: str) -> List[str]:
+def get_random_tags_by_group(p_uuid: str) -> List[str]:
     """根据group的p_uuid获取随机标签"""
-    conn = await _get_connection('tags')
-    cursor = await conn.cursor()
-    await cursor.execute('''
+    conn = sqlite3.connect(tags_db_path)
+    cursor = conn.cursor()
+    cursor.execute('''
         SELECT t.text FROM tag_tags t
         JOIN tag_subgroups sg ON t.subgroup_id = sg.id_index
         WHERE sg.p_uuid = ?
     ''', (p_uuid,))
-    results = await cursor.fetchall()
+    results = cursor.fetchall()
     return [row[0] for row in results]
 
-async def get_random_tags_by_subgroup(g_uuid: str) -> List[str]:
+def get_random_tags_by_subgroup(g_uuid: str) -> List[str]:
     """根据subgroup的g_uuid获取随机标签"""
-    conn = await _get_connection('tags')
-    cursor = await conn.cursor()
-    await cursor.execute('''
+    conn = sqlite3.connect(tags_db_path)
+    cursor =  conn.cursor()
+    cursor.execute('''
         SELECT text FROM tag_tags WHERE g_uuid = ?
     ''', (g_uuid,))
-    results = await cursor.fetchall()
+    results = cursor.fetchall()
     return [row[0] for row in results]
 
 def shuffle_and_select(tags: List[str], count: int) -> List[str]:
@@ -179,7 +180,7 @@ def shuffle_and_select(tags: List[str], count: int) -> List[str]:
     random.shuffle(tags)
     return tags[:count]
 
-async def generate_random_tags(data: dict) -> str:
+def generate_random_tags(data: dict) -> str:
     """生成随机标签字符串"""
     result = []
     
@@ -192,9 +193,9 @@ async def generate_random_tags(data: dict) -> str:
             tags = []
             for group in rule['tagGroupList']:
                 if group['sub']:
-                    tags.extend(await get_random_tags_by_subgroup(group['sub']['g_uuid']))
+                    tags.extend(get_random_tags_by_subgroup(group['sub']['g_uuid']))
                 else:
-                    tags.extend(await get_random_tags_by_group(group['group']['p_uuid']))
+                    tags.extend(get_random_tags_by_group(group['group']['p_uuid']))
             selected_tags = shuffle_and_select(tags, count)
             result.extend(selected_tags)
             
@@ -206,7 +207,7 @@ async def generate_random_tags(data: dict) -> str:
     return ','.join(result) + ','
 
 
-async def go_radom_template(name: str):
+def go_radom_template(name: str):
     try:
         # 构建完整文件路径
         file_path = os.path.join(init_file_path, f"{name}.json")
@@ -220,7 +221,7 @@ async def go_radom_template(name: str):
             data = json.load(f)
         
         # 生成随机标签
-        random_tags = await generate_random_tags(data)
+        random_tags = generate_random_tags(data)
         
         return {"code": 200, "random_tags": random_tags, "path_name": str(name)}
         

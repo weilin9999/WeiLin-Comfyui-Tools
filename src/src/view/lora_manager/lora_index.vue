@@ -27,7 +27,7 @@
     <div :class="`${prefix}category-nav`" v-if="!isSearch">
       <button v-for="(category) in Object.keys(folderList)" :key="category"
         :class="[`${prefix}category-btn`, { active: currentCategory === category }]" @click="selectCategory(category)">
-        {{ category === '/' ? 'root' : category == "all" ? t('loraManager.all') : category }}
+        {{ category === '/' ? t('loraManager.root') : category == "all" ? t('loraManager.all') : category }}
       </button>
     </div>
 
@@ -36,7 +36,7 @@
       <button v-for="subCategory in Object.keys(selectFolder)" :key="subCategory"
         :class="[`${prefix}category-btn`, { active: currentSubCategory === subCategory }]"
         @click="selectSecondCategory(subCategory)">
-        {{ subCategory === '/' ? 'root' : subCategory }}
+        {{ subCategory === '/' ? t('loraManager.root') : subCategory == "all" ? t('loraManager.all') : subCategory }}
       </button>
     </div>
 
@@ -705,6 +705,26 @@ defineExpose({
   gap: 8px;
   margin-bottom: 16px;
   flex-wrap: wrap;
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+.weilin_prompt_ui_category-nav::-webkit-scrollbar {
+  width: 6px;
+}
+
+.weilin_prompt_ui_category-nav::-webkit-scrollbar-track {
+  background: var(--weilin-prompt-ui-scrollbar-track);
+  border-radius: 3px;
+}
+
+.weilin_prompt_ui_category-nav::-webkit-scrollbar-thumb {
+  background: var(--weilin-prompt-ui-scrollbar-thumb);
+  border-radius: 3px;
+}
+
+.weilin_prompt_ui_category-nav::-webkit-scrollbar-thumb:hover {
+  background: var(--weilin-prompt-ui-scrollbar-thumb-hover);
 }
 
 .weilin_prompt_ui_category-btn {
@@ -734,7 +754,29 @@ defineExpose({
   margin-top: -8px;
   flex-wrap: wrap;
   padding-left: 16px;
+  max-height: 100px;
+  overflow-y: auto;
 }
+
+
+.weilin_prompt_ui_subcategory-nav::-webkit-scrollbar {
+  width: 6px;
+}
+
+.weilin_prompt_ui_subcategory-nav::-webkit-scrollbar-track {
+  background: var(--weilin-prompt-ui-scrollbar-track);
+  border-radius: 3px;
+}
+
+.weilin_prompt_ui_subcategory-nav::-webkit-scrollbar-thumb {
+  background: var(--weilin-prompt-ui-scrollbar-thumb);
+  border-radius: 3px;
+}
+
+.weilin_prompt_ui_subcategory-nav::-webkit-scrollbar-thumb:hover {
+  background: var(--weilin-prompt-ui-scrollbar-thumb-hover);
+}
+
 
 .lora-manager-top-bar {
   display: flex;

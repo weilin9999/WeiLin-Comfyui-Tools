@@ -287,6 +287,7 @@ export default {
         modelWeight: "Model Weight",
         textEncoderWeight: "Text Encoder Weight",
         all: "All",
+        root: "Root",
         refresh: "Refresh",
         cacheAll: "Cache all Lora information",
         searchPlaceholder: "Search Lora...",

@@ -71,6 +71,7 @@ def get_lora_folder():
         - "一级目录名": 该一级目录下的子目录和文件
           - "/": 该目录下的文件列表
           - "子目录名": 子目录下的文件列表
+          - "all": 该目录下所有文件的列表
     """
     all_files = folder_paths.get_filename_list("loras")
     
@@ -78,7 +79,8 @@ def get_lora_folder():
     result = {
         "all": all_files,
         "/": {
-            "/": {}  # 根目录下的文件
+            "/": {},  # 根目录下的文件
+            "all": []  # 根目录下所有文件
         }
     }
     
@@ -89,6 +91,7 @@ def get_lora_folder():
         if len(parts) == 1:
             # 根目录文件
             result["/"]["/"][parts[0]] = file_path
+            result["/"]["all"].append(file_path)
         else:
             # 一级目录
             level1_dir = parts[0]
@@ -96,22 +99,29 @@ def get_lora_folder():
             # 确保一级目录在结果字典中
             if level1_dir not in result:
                 result[level1_dir] = {
+                    "all": [],  # 该目录下所有文件
                     "/": {}  # 该目录下的文件
                 }
             
             if len(parts) == 2:
                 # 一级目录下的文件
                 result[level1_dir]["/"][parts[1]] = file_path
+                result[level1_dir]["all"].append(file_path)
             else:
                 # 二级及以下目录
                 subdir = "\\".join(parts[1:-1])  # 排除文件名
                 
                 # 确保子目录在一级目录下
                 if subdir not in result[level1_dir]:
-                    result[level1_dir][subdir] = {}  # 子目录下的文件直接存储
+                    result[level1_dir][subdir] = {
+                        "all": [],  # 子目录下所有文件
+                        "/": {}  # 子目录下的文件
+                    }
                 
                 # 添加文件到子目录，使用完整路径
                 result[level1_dir][subdir][parts[-1]] = file_path
+                result[level1_dir][subdir]["all"].append(file_path)
+                result[level1_dir]["all"].append(file_path)
     
     return result
 
