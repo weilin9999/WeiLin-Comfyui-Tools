@@ -301,79 +301,6 @@ def migrate_db():
         # 更新所有UUID字段
         update_uuids_v3(conn)
 
-        # 删除空UUID的数据
-        print("删除空UUID的数据...")
-        cursor.execute("DELETE FROM tag_groups WHERE p_uuid IS NULL OR p_uuid = ''")
-        cursor.execute("DELETE FROM tag_subgroups WHERE g_uuid IS NULL OR g_uuid = ''")
-        cursor.execute("DELETE FROM tag_tags WHERE t_uuid IS NULL OR t_uuid = ''")
-
-        
-        # 处理重复的t_uuid值
-        print("检查并修复重复的UUID...")
-        cursor.execute('''
-            SELECT t_uuid, COUNT(*) as count
-            FROM tag_tags
-            WHERE t_uuid IS NOT NULL
-            GROUP BY t_uuid
-            HAVING count > 1
-        ''')
-        
-        duplicates = cursor.fetchall()
-        for dup in duplicates:
-            dup_uuid = dup[0]
-            # 获取所有具有相同t_uuid的记录
-            cursor.execute('SELECT id_index FROM tag_tags WHERE t_uuid = ? ORDER BY id_index', (dup_uuid,))
-            records = cursor.fetchall()
-            # 保留第一条记录，更新其余记录的t_uuid
-            for record in records[1:]:
-                new_uuid = getUUID()
-                cursor.execute('UPDATE tag_tags SET t_uuid = ? WHERE id_index = ?', (new_uuid, record[0]))
-        
-        # 处理重复的p_uuid值（tag_groups表）
-        cursor.execute('''
-            SELECT p_uuid, COUNT(*) as count
-            FROM tag_groups
-            WHERE p_uuid IS NOT NULL
-            GROUP BY p_uuid
-            HAVING count > 1
-        ''')
-        
-        duplicates = cursor.fetchall()
-        for dup in duplicates:
-            dup_uuid = dup[0]
-            # 获取所有具有相同p_uuid的记录
-            cursor.execute('SELECT id_index FROM tag_groups WHERE p_uuid = ? ORDER BY id_index', (dup_uuid,))
-            records = cursor.fetchall()
-            # 保留第一条记录，更新其余记录的p_uuid
-            for record in records[1:]:
-                new_uuid = getUUID()
-                cursor.execute('UPDATE tag_groups SET p_uuid = ? WHERE id_index = ?', (new_uuid, record[0]))
-        
-        # 处理重复的g_uuid值（tag_subgroups表）
-        cursor.execute('''
-            SELECT g_uuid, COUNT(*) as count
-            FROM tag_subgroups
-            WHERE g_uuid IS NOT NULL
-            GROUP BY g_uuid
-            HAVING count > 1
-        ''')
-        
-        duplicates = cursor.fetchall()
-        for dup in duplicates:
-            dup_uuid = dup[0]
-            # 获取所有具有相同g_uuid的记录
-            cursor.execute('SELECT id_index FROM tag_subgroups WHERE g_uuid = ? ORDER BY id_index', (dup_uuid,))
-            records = cursor.fetchall()
-            # 保留第一条记录，更新其余记录的g_uuid
-            for record in records[1:]:
-                new_uuid = getUUID()
-                cursor.execute('UPDATE tag_subgroups SET g_uuid = ? WHERE id_index = ?', (new_uuid, record[0]))
-        
-        # 添加唯一索引
-        cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_tag_groups_p_uuid ON tag_groups(p_uuid)')
-        cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_tag_subgroups_g_uuid ON tag_subgroups(g_uuid)')
-        cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_tag_tags_t_uuid ON tag_tags(t_uuid)')
-        
         update_version('tags', 3)
         conn.commit()
         conn.close()
@@ -555,6 +482,82 @@ def update_uuids_v3(conn):
                     WHERE id_index = ?
                 ''', (new_t_uuid, tag_id))
 
+        
+        
+        # 删除空UUID的数据
+        print("删除空UUID的数据...")
+        cursor.execute("DELETE FROM tag_groups WHERE p_uuid IS NULL OR p_uuid = ''")
+        cursor.execute("DELETE FROM tag_subgroups WHERE g_uuid IS NULL OR g_uuid = ''")
+        cursor.execute("DELETE FROM tag_tags WHERE t_uuid IS NULL OR t_uuid = ''")
+
+        
+        # 处理重复的t_uuid值
+        print("检查并修复重复的UUID...")
+        cursor.execute('''
+            SELECT t_uuid, COUNT(*) as count
+            FROM tag_tags
+            WHERE t_uuid IS NOT NULL
+            GROUP BY t_uuid
+            HAVING count > 1
+        ''')
+        
+        duplicates = cursor.fetchall()
+        for dup in duplicates:
+            dup_uuid = dup[0]
+            # 获取所有具有相同t_uuid的记录
+            cursor.execute('SELECT id_index FROM tag_tags WHERE t_uuid = ? ORDER BY id_index', (dup_uuid,))
+            records = cursor.fetchall()
+            # 保留第一条记录，更新其余记录的t_uuid
+            for record in records[1:]:
+                new_uuid = getUUID()
+                cursor.execute('UPDATE tag_tags SET t_uuid = ? WHERE id_index = ?', (new_uuid, record[0]))
+        
+        # 处理重复的p_uuid值（tag_groups表）
+        cursor.execute('''
+            SELECT p_uuid, COUNT(*) as count
+            FROM tag_groups
+            WHERE p_uuid IS NOT NULL
+            GROUP BY p_uuid
+            HAVING count > 1
+        ''')
+        
+        duplicates = cursor.fetchall()
+        for dup in duplicates:
+            dup_uuid = dup[0]
+            # 获取所有具有相同p_uuid的记录
+            cursor.execute('SELECT id_index FROM tag_groups WHERE p_uuid = ? ORDER BY id_index', (dup_uuid,))
+            records = cursor.fetchall()
+            # 保留第一条记录，更新其余记录的p_uuid
+            for record in records[1:]:
+                new_uuid = getUUID()
+                cursor.execute('UPDATE tag_groups SET p_uuid = ? WHERE id_index = ?', (new_uuid, record[0]))
+        
+        # 处理重复的g_uuid值（tag_subgroups表）
+        cursor.execute('''
+            SELECT g_uuid, COUNT(*) as count
+            FROM tag_subgroups
+            WHERE g_uuid IS NOT NULL
+            GROUP BY g_uuid
+            HAVING count > 1
+        ''')
+        
+        duplicates = cursor.fetchall()
+        for dup in duplicates:
+            dup_uuid = dup[0]
+            # 获取所有具有相同g_uuid的记录
+            cursor.execute('SELECT id_index FROM tag_subgroups WHERE g_uuid = ? ORDER BY id_index', (dup_uuid,))
+            records = cursor.fetchall()
+            # 保留第一条记录，更新其余记录的g_uuid
+            for record in records[1:]:
+                new_uuid = getUUID()
+                cursor.execute('UPDATE tag_subgroups SET g_uuid = ? WHERE id_index = ?', (new_uuid, record[0]))
+        
+        # 添加唯一索引
+        cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_tag_groups_p_uuid ON tag_groups(p_uuid)')
+        cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_tag_subgroups_g_uuid ON tag_subgroups(g_uuid)')
+        cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_tag_tags_t_uuid ON tag_tags(t_uuid)')
+
+        
         conn.commit()
         print("Tag数据更新完成。")
     except Exception as e:
