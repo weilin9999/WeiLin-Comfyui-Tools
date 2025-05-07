@@ -18,14 +18,14 @@
             <div v-if="searchResults.length === 0" class="no-results">
               {{ t('tagManager.noResults') }}
             </div>
-            <div v-else v-for="result in searchResults" :key="`${result.type}-${result.item.name || result.item.text}`"
+            <div v-else v-for="(result, index) in searchResults" :key="`${index}-search_item`"
               class="search-result-item" @click="navigateToResult(result)">
               <div class="result-content">
                 <span class="result-text">
-                  {{ result.item.name || result.item.text }}
+                  {{ result.name || result.text }}
                 </span>
                 <span class="result-path">
-                  {{ result.path.join(' > ') }}
+                  {{ result.where }}
                 </span>
               </div>
             </div>
@@ -60,6 +60,12 @@
             @mouseleave="hideTabActions(index)">
             <span class="tab-text">{{ category.name }}</span>
             <div class="tab-actions" v-if="hoverTabsActionFrist == 'TabID-' + index">
+              <button class="action-btn move" @click.stop="openMoveGroupDialog(category, 1)"
+                :title="t('tagManager.moveGroup')">
+                <svg viewBox="0 0 24 24" class="move-icon">
+                  <path d="M13 6v3h8V6h-8zm0 5v3h8v-3h-8zm-8 5v3h8v-3H5zm0-5v3h8v-3H5zm0-5v3h8V6H5z" />
+                </svg>
+              </button>
               <button class="action-btn edit" @click.stop="editCategory(category)" :title="t('tagManager.edit')">
                 <svg viewBox="0 0 24 24" class="action-icon">
                   <path
@@ -94,10 +100,10 @@
         </div>
       </div>
 
-      <!-- 分组 tabs -->
+      <!-- 二级分类 分组 tabs -->
       <div class="tabs-wrapper group-tabs" v-if="selectedCategory">
         <div class="tabs-scroll">
-          <div v-for="(group, index) in selectedCategory.groups" :key="'TabsSw-' + index" class="tab-item"
+          <div v-for="(group, index) in subCategories" :key="'TabsSw-' + index" class="tab-item"
             :class="{ active: selectedGroup?.name === group.name }" :style="{
               backgroundColor: selectedGroup?.name === group.name ? 'var(--primary-color)' : group.color,
               color: selectedGroup?.name === group.name ? '#ffffff' : getContrastColor(group.color)
@@ -105,6 +111,12 @@
             @mouseleave="hideTabActionsGroup(index)">
             <span class="tab-text">{{ group.name }}</span>
             <div class="tab-actions" v-if="hoverTabsActionSecond == 'TabID-' + index">
+              <button class="action-btn move" @click.stop="openMoveGroupDialog(group, 2)"
+                :title="t('tagManager.moveGroup')">
+                <svg viewBox="0 0 24 24" class="move-icon">
+                  <path d="M13 6v3h8V6h-8zm0 5v3h8v-3h-8zm-8 5v3h8v-3H5zm0-5v3h8v-3H5zm0-5v3h8V6H5z" />
+                </svg>
+              </button>
               <button class="action-btn edit" @click.stop="editGroup(group)" :title="t('tagManager.edit')">
                 <svg viewBox="0 0 24 24" class="action-icon">
                   <path
@@ -132,7 +144,7 @@
       </div>
     </div>
 
-    <!-- 标签内容区域 -->
+    <!-- Tag列表 标签内容区域 -->
     <div class="tags-content">
       <div class="tags-header">
         <div class="tags-title">{{ selectedGroup ? selectedGroup.name : t('tagManager.selectCategory') }}</div>
@@ -336,6 +348,44 @@
       </div>
     </div>
 
+
+    <!-- 移动分组对话框 -->
+    <div v-if="showMoveGroupDialog" class="dialog-overlay">
+      <div class="dialog-content">
+        <div class="dialog-header">
+          <h2>{{ t('tagManager.moveGroup') }}</h2>
+          <button class="close-btn" @click="showMoveGroupDialog = false">×</button>
+        </div>
+        <div class="dialog-body">
+          <div class="form-group">
+            <label>{{ t('tagManager.targetGroup') }}</label>
+            <select v-model="moveTargetGroupId" class="form-select">
+              <option v-for="(item, index) in availableGroup" :key="'group_move_id' + index" :value="item.id_index">
+                {{ item.name }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>{{ t('tagManager.movePosition') }}</label>
+            <div class="radio-group">
+              <label>
+                <input class="radio-input" type="radio" v-model="moveGroupPosition" value="before" />
+                {{ t('tagManager.moveGroupBefore') }}
+              </label>
+              <label>
+                <input class="radio-input" type="radio" v-model="moveGroupPosition" value="after" />
+                {{ t('tagManager.moveGroupAfter') }}
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="dialog-footer">
+          <button class="cancel-btn" @click="showMoveGroupDialog = false">{{ t('common.cancel') }}</button>
+          <button class="confirm-btn" @click="confirmMoveGroup">{{ t('common.confirm') }}</button>
+        </div>
+      </div>
+    </div>
+
     <ImportTagDialog ref="importTagDialogItem" />
 
   </div>
@@ -356,6 +406,10 @@ const { t } = useI18n()
 // 状态管理
 const categories = ref([]);
 const selectedCategory = ref(null)
+const subCategories = ref([])
+const currentTags = ref([])
+
+
 const selectedGroup = ref(null)
 const showCategoryDialog = ref(false)
 const showTagDialog = ref(false)
@@ -364,6 +418,7 @@ const isEditingTag = ref(false)
 const categoryType = ref('primary') // 'primary' 或 'group'
 const selectedTags = ref([]); // 用于存储选中的标签ID
 const isSelectTagAction = ref(false)
+const showMoveGroupDialog = ref(false)
 import { uuidv7 } from "uuidv7";
 
 const hoverTabsActionFrist = ref('None');
@@ -380,10 +435,16 @@ const moveTargetTagId = ref(null);
 const movePosition = ref('before');
 const currentMoveTagId = ref(null);
 
+
+const moveGroupPosition = ref('before');
+const currentMoveGroupId = ref(null);
+const moveTargetGroupId = ref(null);
+
 // 批量删除
 const isDeleteTagAction = ref(false);
 // 批量分享
 const isShareTagAction = ref(false);
+
 
 const props = defineProps({
   tagManager: {
@@ -434,37 +495,60 @@ const getTagsList = () => {
 
 const refreshTagsGoThis = async () => {
   try {
-    const res = await tagsApi.getTagsList()
-    tagStore.setCategories(res.data);
-    categories.value = tagStore.categories
-    // 如果当前分组存在，重新设置当前分组
-    if (selectedGroup.value) {
-      const group = categories.value
-        .flatMap(category => category.groups) // 获取所有分组
-        .find(g => g.p_uuid === selectedGroup.value.p_uuid); // 根据 p_uuid 查找当前分组
-
-      if (group) {
-        selectedGroup.value = group; // 重新设置当前分组
-      } else {
-        selectedGroup.value = null; // 如果分组不存在，重置为 null
-      }
-    }
+    await tagsApi.getTagMainGroup().then((res) => {
+      // console.log(res);
+      categories.value = res
+    }).catch((err) => {
+      console.error(err);
+      message({ type: "warn", str: 'message.networkError' });
+    });
 
     // 如果当前分类存在，重新设置当前分类
     if (selectedCategory.value) {
-      const category = categories.value.find(c => c.p_uuid === selectedCategory.value.p_uuid); // 根据 p_uuid 查找当前分类
-
-      if (category) {
-        selectedCategory.value = category; // 重新设置当前分类
-      } else {
-        selectedCategory.value = null; // 如果分类不存在，重置为 null
-      }
+      // console.log(selectedCategory.value)
+      await getSubCategories(selectedCategory.value.p_uuid);
     }
+
+    // 选择了二级分类就获取tag
+    if (selectedGroup.value) {
+      // console.log(selectedGroup.value)
+      await getTagList(selectedGroup.value.g_uuid);
+    }
+
   } catch (error) {
-    console.error('获取标签列表失败:', error)
+    console.error('Tag管理器列表失败:', error)
   }
 }
 
+
+const getSubCategories = async (p_uuid) => {
+  try {
+    await tagsApi.getTagSubGroup(p_uuid).then((res) => {
+      // console.log(res);
+      subCategories.value = res
+    }).catch((err) => {
+      console.error(err);
+      message({ type: "warn", str: 'message.networkError' });
+    });
+  } catch (error) {
+    console.error('二级分类列表失败:', error)
+  }
+}
+
+
+const getTagList = async (g_uuid) => {
+  try {
+    await tagsApi.getTagList(g_uuid).then((res) => {
+      // console.log(res);
+      currentTags.value = res
+    }).catch((err) => {
+      console.error(err);
+      message({ type: "warn", str: 'message.networkError' });
+    });
+  } catch (error) {
+    console.error('Tag列表失败:', error)
+  }
+}
 
 
 onMounted(() => {
@@ -474,10 +558,10 @@ onMounted(() => {
   window.addEventListener('resize', updateSearchResultsStyle)
   window.addEventListener('message', handleMessage)
   window.addEventListener('keydown', handleKeydown) // 监听键盘事件
-  categories.value = tagStore.categories
-  if (categories.value.length <= 0) {
-    getTagsList()
-  }
+  // categories.value = tagStore.categories
+  // if (categories.value.length <= 0) {
+  getTagsList()
+  // }
 })
 
 onBeforeUnmount(() => {
@@ -487,25 +571,23 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeydown) // 移除键盘事件监听
 })
 
-// 当前分组下的标签
-const currentTags = computed(() => {
-  if (!selectedGroup.value) return []
-  return selectedGroup.value.tags || []
-})
 
 // 选择分类
-const selectCategory = (category) => {
+const selectCategory = async (category) => {
+  // console.log(category.p_uuid)
   selectedCategory.value = category
   selectedGroup.value = null
   isSelectTagAction.value = false
   selectedTags.value = []
+  await getSubCategories(category.p_uuid)
 }
 
 // 选择分组
-const selectGroup = (group) => {
+const selectGroup = async (group) => {
   selectedGroup.value = group
   isSelectTagAction.value = false
   selectedTags.value = []
+  await getTagList(group.g_uuid)
 }
 
 // 显示添加分类对话框
@@ -681,8 +763,6 @@ const closeCategoryDialog = () => {
   }
 }
 
-// 标签相关方法
-const tags = ref([])
 
 // 显示添加标签对话框
 const showAddTagDialog = () => {
@@ -803,35 +883,13 @@ const hexToRgba = (hex, alpha) => {
   return `rgba(${r}, ${g}, ${b}, ${alpha / 100})`
 }
 
-// 改进的 RGBA 解析函数
-const parseRgba = (rgba) => {
-  if (!rgba || rgba === 'transparent') {
-    return { hex: '#FFFFFF', alpha: 0 }
-  }
-
-  const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([0-9.]+))?\)/)
-  if (match) {
-    const [, r, g, b, a] = match
-    const hex = '#' + [r, g, b].map(x => {
-      const hex = parseInt(x).toString(16)
-      return hex.length === 1 ? '0' + hex : hex
-    }).join('')
-
-    return {
-      hex: hex,
-      alpha: Math.round((a || 1) * 100)
-    }
-  }
-  return { hex: '#FFFFFF', alpha: 0 }
-}
-
 // 搜索相关的状态
 const searchQuery = ref('')
 const searchResults = ref([])
 const isSearching = ref(false)
 
 // 搜索处理函数
-const handleSearch = () => {
+const handleSearch = async () => {
   isSearching.value = searchQuery.value.trim().length > 0
   const query = searchQuery.value.trim().toLowerCase()
   if (!query) {
@@ -839,53 +897,16 @@ const handleSearch = () => {
     return
   }
 
-  const results = []
-
-  // 搜索分类
-  categories.value.forEach(category => {
-    // 确保 name 是字符串
-    const categoryName = String(category?.name || '')
-    if (categoryName && categoryName.toLowerCase().includes(query)) {
-      results.push({
-        type: 'category',
-        item: category,
-        path: [categoryName]
-      })
-    }
-
-    // 搜索分组
-    category.groups?.forEach(group => {
-      // 确保 name 是字符串
-      const groupName = String(group?.name || '')
-      if (groupName && groupName.toLowerCase().includes(query)) {
-        results.push({
-          type: 'group',
-          item: group,
-          path: [categoryName, groupName]
-        })
-      }
-
-      // 搜索标签
-      group.tags?.forEach(tag => {
-        // 确保 text 和 desc 是字符串
-        const tagText = String(tag?.text || '')
-        const tagDesc = String(tag?.desc || '')
-
-        if (
-          (tagText && tagText.toLowerCase().includes(query)) ||
-          (tagDesc && tagDesc.toLowerCase().includes(query))
-        ) {
-          results.push({
-            type: 'tag',
-            item: tag,
-            path: [categoryName, groupName, tagText]
-          })
-        }
-      })
+  searchResults.value = []
+  // 搜索匹配
+  await tagsApi.searchTag(query)
+    .then((res) => {
+      searchResults.value = res
     })
-  })
+    .catch((err) => {
+      message({ type: "warn", str: 'message.networkError' });
+    });
 
-  searchResults.value = results
 }
 
 // 监听搜索输入
@@ -894,51 +915,45 @@ watch(searchQuery, () => {
 })
 
 // 跳转到搜索结果
-const navigateToResult = (result) => {
-  if (!result?.type || !result?.item) return
+const navigateToResult = async (result) => {
+  // 先根据p_uuid查找并选择一级分类
+  const primaryCategory = categories.value.find(cat => cat.p_uuid === result.p_uuid);
+  if (primaryCategory) {
+    await selectCategory(primaryCategory).then(async () => {
+      // 然后根据g_uuid查找并选择二级分类
+      await nextTick(async () => {
+        const group = subCategories.value.find(g => g.g_uuid === result.g_uuid);
+        if (group) {
+          await selectGroup(group).then(async () => {
+            // 最后高亮显示对应的标签
+            await nextTick(() => {
 
-  if (result.type === 'category') {
-    if (result.item) {
-      selectCategory(result.item)
-    }
-  } else if (result.type === 'group') {
-    const category = categories.value.find(
-      c => c?.groups?.some(g => String(g?.name) === String(result.item?.name))
-    )
-    if (category && result.item) {
-      selectCategory(category)
-      selectGroup(result.item)
-    }
-  } else if (result.type === 'tag') {
-    const category = categories.value.find(c =>
-      c?.groups?.some(g => g?.tags?.some(t => String(t?.text) === String(result.item?.text)))
-    )
-    if (category) {
-      const group = category.groups?.find(g =>
-        g?.tags?.some(t => String(t?.text) === String(result.item?.text))
-      )
-      if (group) {
-        selectCategory(category)
-        selectGroup(group)
+              if (isAutoAddSearchTag.value == 1) {
+                // 发送消息通知
+                window.postMessage({
+                  type: 'weilin_prompt_ui_insertTag',
+                  tagText: result.text
+                }, '*')
+              }
 
-        if (isAutoAddSearchTag.value == 1) {
-          // 发送消息通知
-          window.postMessage({
-            type: 'weilin_prompt_ui_insertTag',
-            tagText: result.item.text
-          }, '*')
+              highlightedTagId.value = result.id_index;
+              // 滚动到该标签位置
+              setTimeout(() => {
+                const tagElement = document.querySelector(`.tag-wrapper.highlight`);
+                if (tagElement) {
+                  tagElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+              }, 100);
+
+              // 5秒后取消高亮
+              setTimeout(() => {
+                highlightedTagId.value = null;
+              }, 5000);
+            });
+          });
         }
-
-        // 设置高亮标签
-        highlightedTagId.value = result.item.id_index;
-
-        // 5秒后取消高亮
-        setTimeout(() => {
-          highlightedTagId.value = null;
-        }, 5000);
-
-      }
-    }
+      });
+    });
   }
   searchQuery.value = '' // 清空搜索
 }
@@ -1137,6 +1152,7 @@ const openMoveDialog = (tag) => {
   showMoveDialog.value = true;
 };
 
+
 // 确认移动
 const confirmMove = async () => {
   try {
@@ -1162,6 +1178,63 @@ const availableTags = computed(() => {
   return selectedGroup.value.tags.filter(tag => tag.id_index !== currentMoveTagId.value);
 });
 
+const availableGroup = ref([])
+const actionMoveGroup = ref(1)
+// 打开移动对话框 Group
+const openMoveGroupDialog = (group, action) => {
+  actionMoveGroup.value = action
+  if (action === 1) {
+    availableGroup.value = categories.value
+    currentMoveGroupId.value = group.id_index;
+    showMoveGroupDialog.value = true;
+  } else {
+    // console.log(group)
+    availableGroup.value = subCategories.value
+    currentMoveGroupId.value = group.id_index;
+    showMoveGroupDialog.value = true;
+  }
+  // console.log(group)
+}
+
+
+const confirmMoveGroup = async () => {
+  if (actionMoveGroup.value === 1) {
+    try {
+      tagsApi.moveMainGroup({
+        id_index: currentMoveGroupId.value,
+        reference_id_index: moveTargetGroupId.value,
+        position: moveGroupPosition.value
+      }).then((res) => {
+        getTagsList();
+        showMoveGroupDialog.value = false;
+        message({ type: 'success', str: t('message.moveSuccess') });
+      }).catch((err) => {
+        message({ type: 'error', str: t('message.moveFailed') });
+      });
+    } catch (error) {
+      console.error('移动标签失败:', error);
+      message({ type: 'error', str: t('message.moveFailed') });
+    }
+  } else {
+    try {
+      tagsApi.moveSubGroup({
+        id_index: currentMoveGroupId.value,
+        reference_id_index: moveTargetGroupId.value,
+        position: moveGroupPosition.value
+      }).then((res) => {
+        getTagsList();
+        showMoveGroupDialog.value = false;
+        message({ type: 'success', str: t('message.moveSuccess') });
+      }).catch((err) => {
+        message({ type: 'error', str: t('message.moveFailed') });
+      });
+    } catch (error) {
+      console.error('移动标签失败:', error);
+      message({ type: 'error', str: t('message.moveFailed') });
+    }
+  }
+
+}
 
 const deleteTagAction = () => {
   isSelectTagAction.value = true
@@ -2153,7 +2226,7 @@ const showImportDialog = () => {
 }
 
 
-.delete-action-btn{
+.delete-action-btn {
   background: var(--weilin-prompt-ui-primary-color);
   border: none;
   color: white;

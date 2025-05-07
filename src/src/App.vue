@@ -1,7 +1,8 @@
 <template>
   <div id="weilin_comfyui_tools_prompt_ui_div">
     <!-- 提示词窗口 -->
-    <DraggableWindow name="promptBox" v-if="windows.prompt.visible" :title="promptManager === 'prompt' ? t('promptBox.windowTitle') : t('promptBox.windowTitleGlobal')"
+    <DraggableWindow name="promptBox" v-if="windows.prompt.visible"
+      :title="promptManager === 'prompt' ? t('promptBox.windowTitle') : t('promptBox.windowTitleGlobal')"
       :position="windows.prompt.position" :size="windows.prompt.size" :z-index="windowManager.getZIndex('prompt')"
       @update:position="updatePosition('prompt', $event)" @update:size="updateSize('prompt', $event)"
       @active="windowManager.setActiveWindow('prompt')" @close="closeWindow('prompt')">
@@ -34,51 +35,56 @@
 
     <!-- AI窗口 -->
     <DraggableWindow name="aiWindow" v-if="windows.ai_window.visible" :title="t('aiWindow.windowTitle')"
-      :position="windows.ai_window.position" :size="windows.ai_window.size" :z-index="windowManager.getZIndex('ai_window')"
-      @update:position="updatePosition('ai_window', $event)" @update:size="updateSize('ai_window', $event)"
-      @active="windowManager.setActiveWindow('ai_window')" @close="closeWindow('ai_window')">
+      :position="windows.ai_window.position" :size="windows.ai_window.size"
+      :z-index="windowManager.getZIndex('ai_window')" @update:position="updatePosition('ai_window', $event)"
+      @update:size="updateSize('ai_window', $event)" @active="windowManager.setActiveWindow('ai_window')"
+      @close="closeWindow('ai_window')">
       <AiWindow />
     </DraggableWindow>
 
     <!-- 节点列表快捷窗口 -->
-    <DraggableWindow name="nodeListWindow" v-if="windows.node_list_window.visible" 
-    :title="t('nodeListWindow.windowTitle')"
-      :position="windows.node_list_window.position" :size="windows.node_list_window.size"
-      :z-index="windowManager.getZIndex('node_list_window')"
+    <DraggableWindow name="nodeListWindow" v-if="windows.node_list_window.visible"
+      :title="t('nodeListWindow.windowTitle')" :position="windows.node_list_window.position"
+      :size="windows.node_list_window.size" :z-index="windowManager.getZIndex('node_list_window')"
       @update:position="updatePosition('node_list_window', $event)"
-      @update:size="updateSize('node_list_window', $event)"
-      @active="windowManager.setActiveWindow('node_list_window')"
+      @update:size="updateSize('node_list_window', $event)" @active="windowManager.setActiveWindow('node_list_window')"
       @close="closeWindow('node_list_window')">
       <NodeListWindow />
     </DraggableWindow>
 
     <!-- 云仓库窗口 -->
-    <DraggableWindow name="cloudWindow" v-if="windows.cloud_window.visible" 
-    :title="t('cloudWindow.windowTitle')"
+    <DraggableWindow name="cloudWindow" v-if="windows.cloud_window.visible" :title="t('cloudWindow.windowTitle')"
       :position="windows.cloud_window.position" :size="windows.cloud_window.size"
-      :z-index="windowManager.getZIndex('cloud_window')"
-      @update:position="updatePosition('cloud_window', $event)"
-      @update:size="updateSize('cloud_window', $event)"
-      @active="windowManager.setActiveWindow('cloud_window')"
+      :z-index="windowManager.getZIndex('cloud_window')" @update:position="updatePosition('cloud_window', $event)"
+      @update:size="updateSize('cloud_window', $event)" @active="windowManager.setActiveWindow('cloud_window')"
       @close="closeWindow('cloud_window')">
       <CloudWindow />
     </DraggableWindow>
 
     <!-- Lora堆窗口 -->
-    <DraggableWindow name="loraStackWindow" v-if="windows.lora_stack_window.visible" 
-    :title="t('controls.loraStack')"
+    <DraggableWindow name="loraStackWindow" v-if="windows.lora_stack_window.visible" :title="t('controls.loraStack')"
       :position="windows.lora_stack_window.position" :size="windows.lora_stack_window.size"
       :z-index="windowManager.getZIndex('lora_stack_window')"
       @update:position="updatePosition('lora_stack_window', $event)"
       @update:size="updateSize('lora_stack_window', $event)"
-      @active="windowManager.setActiveWindow('lora_stack_window')"
-      @close="closeWindow('lora_stack_window')">
+      @active="windowManager.setActiveWindow('lora_stack_window')" @close="closeWindow('lora_stack_window')">
       <LoraStackWindow ref="loraStackRef" />
     </DraggableWindow>
 
     <!-- 悬浮球 -->
-    <FloatingBall v-if="isFloatingBallEnabled">WeiLin</FloatingBall>
+    <FloatingBall v-if="isFloatingBallEnabled"></FloatingBall>
     <loraDetail ref="loraDetailLoraStackRef" />
+
+    <!-- 版本更新提示 -->
+    <div v-if="showVersionUpdate" class="version-update-notification">
+      <div class="version-update-content">
+        <span>{{ versionUpdateMessage }}</span>
+        <div class="version-update-actions">
+          <button class="goto-github-btn" @click="goToGitHub">前往GitHub</button>
+          <button class="close-version-update" @click="closeVersionUpdate">×</button>
+        </div>
+      </div>
+    </div>
 
   </div>
 </template>
@@ -101,11 +107,12 @@ import LoraStackWindow from '@/view/lora_manager/lora_stack.vue'
 import { translatorApi } from '@/api/translator'
 import { tagsApi } from '@/api/tags'
 import loraDetail from '@/view/lora_manager/lora_detail.vue'
+import { version as localVersion } from './utils/version'
 
 const tagStore = useTagStore();
 
 const isFloatingBallEnabled = ref(localStorage.getItem('weilin_prompt_ui_floatingBallEnabled') === 'true');
-if(!localStorage.getItem('weilin_prompt_ui_floatingBallEnabled')) {
+if (!localStorage.getItem('weilin_prompt_ui_floatingBallEnabled')) {
   localStorage.setItem('weilin_prompt_ui_floatingBallEnabled', 'true');
   isFloatingBallEnabled.value = true
 }
@@ -123,6 +130,24 @@ const THEME_KEY = `${STORAGE_PREFIX}theme`
 const isDark = ref(localStorage.getItem(THEME_KEY) === 'dark')
 // 全局提示词
 const globalPrompt = ref('')
+
+// 检查版本更新
+const showVersionUpdate = ref(false);
+const versionUpdateMessage = ref('');
+const versionUpdateTimer = ref(null);
+// 关闭版本更新提示
+const closeVersionUpdate = () => {
+  showVersionUpdate.value = false;
+  if (versionUpdateTimer.value) {
+    clearTimeout(versionUpdateTimer.value);
+    versionUpdateTimer.value = null;
+  }
+};
+// 跳转到GitHub
+const goToGitHub = () => {
+  window.open('https://github.com/weilin9999/WeiLin-Comfyui-Tools', '_blank');
+  closeVersionUpdate();
+};
 
 // 默认窗口配置
 const DEFAULT_WINDOWS = {
@@ -228,7 +253,11 @@ onMounted(() => {
   // 添加消息监听
   window.addEventListener('message', handleMessage)
 
-  getTagsData();
+  // getTagsData();
+
+  // 检查版本更新
+  checkForUpdates();
+
 })
 
 // 初始化主题
@@ -256,6 +285,12 @@ onUnmounted(() => {
 
   // 移除消息监听
   window.removeEventListener('message', handleMessage)
+
+  // 清除版本更新定时器
+  if (versionUpdateTimer.value) {
+    clearTimeout(versionUpdateTimer.value);
+    versionUpdateTimer.value = null;
+  }
 })
 
 // 关闭窗口
@@ -285,10 +320,10 @@ const updateSize = (windowName, newSize) => {
 const restoreWindowsToDefault = () => {
   const LORA_DETAIL_WINDOWS = {
     loraDetail: {
-        visible: false,
-        is_default_close: false,
-        position: { x: 150, y: 150 },
-        size: { width: 800, height: 600 }
+      visible: false,
+      is_default_close: false,
+      position: { x: 150, y: 150 },
+      size: { width: 800, height: 600 }
     }
   }
 
@@ -372,7 +407,7 @@ const handleMessage = (event) => {
     tagManager.value = 'manager'
     windows.value.tag.visible = true
     windowManager.setActiveWindow('tag')
-  }else if (event.data.type === 'weilin_prompt_ui_openTagManager_prompt') {
+  } else if (event.data.type === 'weilin_prompt_ui_openTagManager_prompt') {
     tagManager.value = 'prompt'
     windows.value.tag.visible = true
     windowManager.setActiveWindow('tag')
@@ -383,14 +418,14 @@ const handleMessage = (event) => {
     promptManager.value = 'prompt'
     windows.value.prompt.visible = true
     hasPromptLoraStack.value = false
-    if(event.data.node === "WeiLinPromptUI"){
+    if (event.data.node === "WeiLinPromptUI") {
       hasPromptLoraStack.value = true
     }
-    nextTick(() => {  
+    nextTick(() => {
       promptBoxRef.value.setPromptText(event.data.prompt)
     })
     windowManager.setActiveWindow('prompt')
-    
+
   } else if (event.data.type === 'weilin_prompt_ui_openLoraManager') {
     loraManager.value = 'look'
     windows.value.lora.visible = true
@@ -398,31 +433,31 @@ const handleMessage = (event) => {
   } else if (event.data.type === 'weilin_prompt_ui_openLoraManager_addLora') {
     loraManager.value = 'addLora'
     windows.value.lora.visible = true
-    nextTick(() => {  
-      loraManagerRef.value.openSetSeed(0,"")
+    nextTick(() => {
+      loraManagerRef.value.openSetSeed(0, "")
     })
     windowManager.setActiveWindow('lora')
   } else if (event.data.type === 'weilin_prompt_ui_openLoraManager_addLora_stack') {
     loraManager.value = 'addLora'
     windows.value.lora.visible = true
-    nextTick(() => {  
-      loraManagerRef.value.openSetSeed(1,event.data.seed)
+    nextTick(() => {
+      loraManagerRef.value.openSetSeed(1, event.data.seed)
     })
     windowManager.setActiveWindow('lora')
   } else if (event.data.type === 'weilin_prompt_ui_openLoraManager_addLora_stack_node') {
     loraManager.value = 'addLora'
     windows.value.lora.visible = true
-    nextTick(() => {  
-      loraManagerRef.value.openSetSeed(2,event.data.seed)
+    nextTick(() => {
+      loraManagerRef.value.openSetSeed(2, event.data.seed)
     })
     windowManager.setActiveWindow('lora')
-  }  else if (event.data.type === 'weilin_prompt_ui_openHistoryManager') {
+  } else if (event.data.type === 'weilin_prompt_ui_openHistoryManager') {
     windows.value.history.visible = true
     windowManager.setActiveWindow('history')
-  } else if (event.data.type === 'weilin_prompt_ui_openAiWindow') { 
+  } else if (event.data.type === 'weilin_prompt_ui_openAiWindow') {
     windows.value.ai_window.visible = true
     windowManager.setActiveWindow('ai_window')
-  } else if (event.data.type === 'weilin_prompt_ui_open_node_list_window') { 
+  } else if (event.data.type === 'weilin_prompt_ui_open_node_list_window') {
     windows.value.node_list_window.visible = true
     windowManager.setActiveWindow('node_list_window')
 
@@ -436,7 +471,7 @@ const handleMessage = (event) => {
     thisEditPromptId.value = "global"
     windows.value.prompt.visible = true
     hasPromptLoraStack.value = false
-    nextTick(() => {  
+    nextTick(() => {
       promptBoxRef.value.setPromptText(globalPrompt.value)
     })
     windowManager.setActiveWindow('prompt')
@@ -450,20 +485,20 @@ const handleMessage = (event) => {
     windowManager.setActiveWindow('lora')
   } else if (event.data.type === 'weilin_prompt_ui_prompt_update_prompt_global') {
     globalPrompt.value = event.data.data
-  }else if (event.data.type === 'weilin_prompt_ui_floating_ball_setting') {
+  } else if (event.data.type === 'weilin_prompt_ui_floating_ball_setting') {
     isFloatingBallEnabled.value = localStorage.getItem('weilin_prompt_ui_floatingBallEnabled') === 'true';
-  }else if (event.data.type === 'weilin_prompt_ui_restore_window') {
+  } else if (event.data.type === 'weilin_prompt_ui_restore_window') {
     restoreWindowsToDefault();
-  }else if (event.data.type === 'weilin_prompt_ui_open_cloud_window') {
+  } else if (event.data.type === 'weilin_prompt_ui_open_cloud_window') {
     windows.value.cloud_window.visible = true
     windowManager.setActiveWindow('cloud_window')
   } else if (event.data.type === 'weilin_prompt_ui_open_node_lora_stack_window') {
     windows.value.lora_stack_window.visible = true
-    nextTick(() => {  
-      loraStackRef.value.initLoraStack(event.data.prompt,event.data.seed)
+    nextTick(() => {
+      loraStackRef.value.initLoraStack(event.data.prompt, event.data.seed)
     })
     windowManager.setActiveWindow('lora_stack_window')
-  }else if (event.data.type ===  "weilin_prompt_ui_openLoraDetail"){
+  } else if (event.data.type === "weilin_prompt_ui_openLoraDetail") {
     loraDetailLoraStackRef.value.open({ name: event.data.lora })
   }
 }
@@ -478,6 +513,45 @@ const getTagsData = async () => {
   }
 }
 
+// 检查版本更新
+const checkForUpdates = async () => {
+  try {
+    const response = await fetch('https://raw.githubusercontent.com/weilin9999/WeiLin-Comfyui-Tools/refs/heads/main/src/src/utils/version.js');
+    if (!response.ok) {
+      console.error('获取版本信息失败:', response.status);
+      return;
+    }
+
+    const text = await response.text();
+    // 使用正则表达式提取版本号
+    const versionMatch = text.match(/export const version = "([^"]+)"/);
+
+    if (versionMatch && versionMatch[1]) {
+      const remoteVersion = versionMatch[1];
+      console.info(`WeiLin-Comfyui-Tools GitHub版本： ${remoteVersion}`);
+      // 比较版本号
+      if (remoteVersion !== localVersion) {
+        // 显示更新提示
+        versionUpdateMessage.value = `WeiLin-Comfyui-Tools 发现新版本 ${remoteVersion}，当前版本 ${localVersion}`;
+        showVersionUpdate.value = true;
+
+        // 10秒后自动关闭
+        if (versionUpdateTimer.value) {
+          clearTimeout(versionUpdateTimer.value);
+        }
+        versionUpdateTimer.value = setTimeout(() => {
+          showVersionUpdate.value = false;
+          versionUpdateTimer.value = null;
+        }, 10000);
+
+        console.info(`WeiLin-Comfyui-Tools 发现新版本 ${remoteVersion}，当前版本 ${localVersion} GitHub链接：https://github.com/weilin9999/WeiLin-Comfyui-Tools`);
+      }
+    }
+  } catch (error) {
+    console.error('WeiLin-Comfyui-Tools 检查更新失败:', error);
+  }
+};
+
 </script>
 
 <style scoped>
@@ -489,5 +563,64 @@ const getTagsData = async () => {
 /* 确保所有对话框都在窗口之上 */
 :deep(.dialog-overlay) {
   z-index: 9999 !important;
+}
+
+
+/* 版本更新提示样式 */
+.version-update-notification {
+  position: fixed;
+  right: 10px;
+  bottom: 10px;
+  z-index: 9999;
+  background-color: var(--primary-color, #4caf50);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  max-width: 350px;
+  animation: slideIn 0.3s ease-out;
+}
+
+.version-update-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.version-update-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.goto-github-btn {
+  background-color: white;
+  color: var(--primary-color, #4caf50);
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  margin-right: 10px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.close-version-update {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 5px;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 </style>

@@ -52,7 +52,8 @@
                                 </div>
                                 <div class="weight-item">
                                     <label>{{ t('loraManager.textEncoderWeight') }}</label>
-                                    <input type="number" v-model="lora.text_encoder_weight" class="lora-weight" step="0.1" />
+                                    <input type="number" v-model="lora.text_encoder_weight" class="lora-weight"
+                                        step="0.1" />
                                 </div>
                             </div>
 
@@ -119,22 +120,25 @@ const handleMouseHover = (fileName, event) => {
     isHovering.value = true;
     if (hoveFileName.value === fileName && showCard.value) return;
 
+
     const hoveredCard = event.currentTarget;
     const cardRect = hoveredCard.getBoundingClientRect();
-    const viewportHeight = window.innerHeight;
-    const cardWidth = 680;
+    const viewportWidth = window.innerWidth;
+    const cardWidth = 450;
 
+    // 默认显示在左侧
     let position = {
-        left: cardRect.left + (cardRect.width - cardWidth) / 2,
-        top: cardRect.top + cardRect.height + 10
+        left: cardRect.left - cardWidth - 10,
+        top: cardRect.top
     };
 
-    if (position.top + 310 > viewportHeight) {
-        position.top = cardRect.top - 310;
+    // 如果左侧空间不足(小于10px)，则显示在右侧
+    if (position.left < 10) {
+        position.left = cardRect.right + 10;
     }
 
-    position.left = Math.max(10, Math.min(position.left, window.innerWidth - cardWidth - 10));
-    position.top = Math.max(10, Math.min(position.top, viewportHeight - 310));
+    // 确保不会超出视口顶部和底部
+    position.top = Math.max(10, Math.min(position.top, window.innerHeight - 310));
 
     paddingLeftValue.value = position.left;
     paddingTopValue.value = position.top;

@@ -157,7 +157,13 @@
         <!-- 输入框区域 -->
         <!-- 移除事件 @change="finishPromptPutItHistory" -->
         <textarea v-model="inputText" class="input-area" @input="handleInput" :placeholder="t('promptBox.placeholder')"
-          @keydown="handleKeydown" @blur="onBlur" rows="6" ref="inputAreaRef"></textarea>
+          @keydown="handleKeydown" @blur="onBlur" rows="6" ref="inputAreaRef" @mouseup="saveTextareaHeight"
+          @resize="saveTextareaHeight"></textarea>
+
+        <!-- 添加token计数器 -->
+        <div class="token-counter">
+          {{ tokenCount }} tokens
+        </div>
 
         <!-- 自动补全窗口 -->
         <div class="autocomplete-container" ref="autocompleteContainerRef" :style="{
@@ -178,10 +184,14 @@
 
       </div>
 
+      <!--  中间小工具栏  -->
       <div class="prompt-input-translate-area">
+
+        <!-- 添加翻译输入框 -->
         <input type="text" v-model="translateText" class="prompt-input-translate-area-textarea"
           @keyup.enter="finishTranslateEnter()" :placeholder="t('promptBox.translatePlaceholder')" />
 
+        <!-- 添加翻译按钮 -->
         <button class="translate-btn" @click="oneClickTranslatePrompt" :title="t('promptBox.oneClickTranslate')">
           <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" class="token-item-icon" width="24"
             height="24">
@@ -192,7 +202,38 @@
               d="M894.854661 0.504H128.353929C58.095158 0.504 0.607803 58.0473 0.607803 128.378v767.244c0 70.3307 57.487355 127.874 127.746126 127.874h766.500733c70.258771 0 127.746126-57.5433 127.746126-127.874V128.378c0-70.3307-51.101647-127.874-127.746126-127.874zM581.867062 825.2913c-12.771416 12.7874-25.550824 12.7874-38.322239 12.7874-6.3937 0-19.165116 0-25.550824-6.3937-6.3937-6.3937-12.779408 0-12.779408-6.3937s-6.385708-12.7874-12.771415-25.5748c-6.3937-12.7874-6.3937-19.1811-12.779408-31.9685l-25.542832-70.3307H230.557224L205.0064 767.748c-12.771416 25.5748-19.165116 44.7559-25.550824 57.5433-6.3937 12.7874-19.165116 12.7874-38.322239 12.7874-12.779408 0-25.550824-6.3937-38.330231-12.7874-12.771416-12.7874-19.157124-19.1811-19.157124-31.9685 0-6.3937 0-12.7874 6.385708-25.5748 6.3937-12.7874 6.3937-19.1811 12.771416-31.9685l140.525533-358.0472c6.3937-12.7874 6.3937-25.5748 12.779408-38.3622 6.385708-12.7874 12.771416-25.5748 19.157124-31.9685 6.3937-6.3937 12.779408-19.1811 25.550823-25.5748 12.779408-6.3937 25.550824-6.3937 38.330232-6.3937 12.771416 0 25.542832 0 38.322239 6.3937 12.771416 6.3937 19.165116 12.7874 25.550824 25.5748 6.385708 6.3937 12.771416 19.1811 19.157124 31.9685 6.3937 12.7874 12.779408 25.5748 19.165115 44.7559l140.525534 351.6535c12.771416 25.5748 19.165116 44.7559 19.165116 57.5433-6.3937 6.3937-12.779408 19.1811-19.165116 31.9685zM933.176901 575.937c-70.258771-25.5748-121.360418-57.5433-166.076358-95.9055-44.707947 44.7559-102.195302 76.7244-172.462065 95.9055l-19.157124-31.9685c70.258771-19.1811 127.746126-44.7559 172.462066-89.5118C703.22748 409.7008 664.905241 352.1575 652.125833 288.2205h-63.873063v-25.5748h172.470058c-12.7874-19.1811-25.558816-44.7559-38.330232-63.937l19.157124-6.3937c12.779408 19.1811 31.944524 44.7559 44.715939 70.3307h159.682658v31.9685h-63.873063c-19.157124 63.937-51.093655 121.4803-89.423887 159.8425 44.715939 38.3622 95.809594 70.3307 166.076358 89.5118l-25.550824 31.9685z"
               p-id="2420"></path>
           </svg>
+          <span style="margin-left: 5px;" class="action-text">{{ t('promptBox.oneClickTranslate') }}</span>
         </button>
+
+        <!-- 添加设置随机Tag规则按钮 -->
+        <button class="translate-btn random-tag-settings-btn" @click="openRandomTagSettings"
+          :title="t('promptBox.randomTagSettings')">
+          <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" class="utils-item-icon" width="24"
+            height="24">
+            <path
+              d="M512 409.6c-56.32 0-102.4 46.08-102.4 102.4s46.08 102.4 102.4 102.4 102.4-46.08 102.4-102.4-46.08-102.4-102.4-102.4z m0 153.6c-28.16 0-51.2-23.04-51.2-51.2s23.04-51.2 51.2-51.2 51.2 23.04 51.2 51.2-23.04 51.2-51.2 51.2z">
+            </path>
+            <path
+              d="M512 204.8c-25.6 0-51.2 2.56-76.8 7.68l-15.36-61.44c-2.56-10.24-10.24-17.92-20.48-20.48-10.24-2.56-20.48 0-28.16 7.68l-76.8 76.8c-5.12 5.12-7.68 12.8-7.68 20.48s2.56 15.36 7.68 20.48l76.8 76.8c5.12 5.12 12.8 7.68 20.48 7.68 2.56 0 5.12 0 7.68-2.56 10.24-2.56 17.92-10.24 20.48-20.48l15.36-61.44c25.6-5.12 51.2-7.68 76.8-7.68 140.8 0 256 115.2 256 256s-115.2 256-256 256-256-115.2-256-256c0-25.6 2.56-51.2 7.68-76.8l61.44-15.36c10.24-2.56 17.92-10.24 20.48-20.48 2.56-10.24 0-20.48-7.68-28.16l-76.8-76.8c-5.12-5.12-12.8-7.68-20.48-7.68s-15.36 2.56-20.48 7.68l-76.8 76.8c-7.68 7.68-10.24 17.92-7.68 28.16 2.56 10.24 10.24 17.92 20.48 20.48l61.44 15.36c-5.12 25.6-7.68 51.2-7.68 76.8 0 168.96 138.24 307.2 307.2 307.2s307.2-138.24 307.2-307.2-138.24-307.2-307.2-307.2z">
+            </path>
+          </svg>
+          <span class="action-text">{{ t('promptBox.randomTagSettings') }}</span>
+        </button>
+
+        <!-- 添加一键随机Tag按钮 -->
+        <button class="translate-btn random-tag-btn" @click="oneClickRandomTag"
+          :title="t('promptBox.oneClickRandomTag')">
+          <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" class="utils-item-icon" width="24"
+            height="24">
+            <path
+              d="M832 512c0-176-144-320-320-320S192 336 192 512s144 320 320 320 320-144 320-320z m-384 0c0-35.2 28.8-64 64-64s64 28.8 64 64-28.8 64-64 64-64-28.8-64-64z m128-128c0-35.2 28.8-64 64-64s64 28.8 64 64-28.8 64-64 64-64-28.8-64-64z m-256 0c0-35.2 28.8-64 64-64s64 28.8 64 64-28.8 64-64 64-64-28.8-64-64z m128-128c0-35.2 28.8-64 64-64s64 28.8 64 64-28.8 64-64 64-64-28.8-64-64z m256 256c0-35.2 28.8-64 64-64s64 28.8 64 64-28.8 64-64 64-64-28.8-64-64z m-256 0c0-35.2 28.8-64 64-64s64 28.8 64 64-28.8 64-64 64-64-28.8-64-64z m-128 128c0-35.2 28.8-64 64-64s64 28.8 64 64-28.8 64-64 64-64-28.8-64-64z m256 0c0-35.2 28.8-64 64-64s64 28.8 64 64-28.8 64-64 64-64-28.8-64-64z">
+            </path>
+          </svg>
+          <span class="action-text">{{ t('promptBox.oneClickRandomTag') }}</span>
+        </button>
+
+
+
       </div>
 
       <!-- 词组显示区域 -->
@@ -378,6 +419,8 @@
 
     </div>
   </div>
+
+  <RandomSetting ref="randomSettingItem" />
 </template>
 
 <script setup>
@@ -392,17 +435,22 @@ import translate from 'i18n-jsautotranslate'
 import { translatorApi } from '@/api/translator'
 import { historyApi } from '@/api/history'
 import message from '@/utils/message'
-import { useTagStore } from '@/stores/tagStore';
 import { autocompleteApi } from '@/api/autocomplete'
 import LoraManager from "@/view/lora_manager/lora_index.vue"
+import RandomSetting from './components/random_setting.vue'
+import { randomTagApi } from '@/api/random_tag'
 
-const tagStore = useTagStore();
+const randomSettingItem = ref(null)
+
 const prefix = "weilin_prompt_ui_"
 const { t } = useI18n()
 
 const autocompleteContainerRef = ref()
 const inputAreaRef = ref()
 const autocompletePosition = ref({ top: 0, left: 0 })
+
+// 在data或ref部分添加
+const tokenCount = ref(0)
 
 const props = defineProps({
   promptManager: {
@@ -457,6 +505,15 @@ const tagTipsPosition = ref({
 const debounceTimeout = ref(null); // 用于存储 setTimeout 的 ID
 const proceTimeout = ref(null);
 const lastInputValue = ref(''); // 用于存储上一次的输入内容
+
+// 在data或ref部分添加一个计数器用于生成唯一ID
+const tokenIdCounter = ref(0);
+
+// 生成唯一ID的函数
+const generateUniqueId = () => {
+  tokenIdCounter.value++;
+  return `token_${tokenIdCounter.value}_${Date.now()}`;
+};
 
 const toggleLora = () => {
   loraOpen.value = !loraOpen.value
@@ -767,6 +824,8 @@ const calculateAutocompletePosition = async () => {
 // 添加一个 ref 用于存储定时器
 const historyTimer = ref(null);
 
+
+// 处理输入事件
 const handleInput = (event) => {
   if (!event?.target) return;
 
@@ -861,8 +920,21 @@ const handleInput = (event) => {
     }
     postMessageToWindowsPrompt();
   }, 300);
+
+  // 计算token数量（简单实现，可根据实际分词算法调整）
+  tokenCount.value = calculateTokens(inputText.value)
 };
 
+
+// 添加计算token的方法
+const calculateTokens = (text) => {
+  if (!text) return 0
+  // 简单实现：按空格分词
+  // 注意：实际的token计算应该使用与您模型匹配的分词器
+  return text.trim().split(/\s+/).length
+}
+
+// 处理输入事件 ========== 主事件处理 ==========
 const processInput = async () => {
 
   // 预设设置
@@ -1033,6 +1105,10 @@ const processInput = async () => {
   // 处理每个片段
   const existingTokensMap = new Map();
   tokens.value.forEach((token, index) => {
+    // 确保每个token都有唯一ID
+    if (!token.id) {
+      token.id = generateUniqueId();
+    }
     existingTokensMap.set(index, token); // 使用索引作为key
   });
 
@@ -1043,6 +1119,7 @@ const processInput = async () => {
     if (segment === '\n') {
       // 保留换行符作为特殊token
       result.push({
+        id: generateUniqueId(),
         text: '\n',
         translate: '',
         isPunctuation: false,
@@ -1053,19 +1130,32 @@ const processInput = async () => {
     } else if (segment.trim()) {
       // 处理非空文本
       const trimmedSegment = segment.trim();
-      // 尝试按顺序匹配原始token
+      // 优先匹配非隐藏的token
       let matched = false;
       for (const [index, token] of existingTokensMap) {
-        if (token.text === trimmedSegment && !result.includes(token)) {
+        if (token.text === trimmedSegment && !token.isHidden && !result.includes(token)) {
           result.push(token);
-          existingTokensMap.delete(index); // 已匹配的token从map中移除
+          existingTokensMap.delete(index);
           matched = true;
           break;
         }
       }
 
+      // 如果没有匹配到非隐藏token，再尝试匹配隐藏token
+      if (!matched) {
+        for (const [index, token] of existingTokensMap) {
+          if (token.text === trimmedSegment && !result.includes(token)) {
+            result.push(token);
+            existingTokensMap.delete(index);
+            matched = true;
+            break;
+          }
+        }
+      }
+
       if (!matched) {
         result.push({
+          id: generateUniqueId(),
           text: trimmedSegment,
           translate: '',
           isPunctuation: false,
@@ -1078,9 +1168,28 @@ const processInput = async () => {
 
   });
 
+  // 使用ID来跟踪已处理的隐藏token
+  const processedHiddenTokenIds = new Set();
+
   //重新插入隐藏token到它们原来的位置
   hiddenTokensWithOriginalIndex.forEach(({ token, originalIndex }) => {
-    let insertIndex = originalIndex;  // 使用originalIndex而不是currentIndex
+    // 如果这个token已经处理过，跳过
+    if (processedHiddenTokenIds.has(token.id)) {
+      return;
+    }
+
+    // 标记这个token已经处理
+    processedHiddenTokenIds.add(token.id);
+
+    // 检查结果中是否已经包含这个隐藏token
+    const alreadyExists = result.some(t => t.id === token.id);
+
+    // 如果已经存在，不再添加
+    if (alreadyExists) {
+      return;
+    }
+
+    let insertIndex = originalIndex;
 
     // 确保插入位置有效
     while (insertIndex > result.length) {
@@ -1205,6 +1314,8 @@ const processInput = async () => {
   //   }
   // }
 
+  // 计算token数量（简单实现，可根据实际分词算法调整）
+  tokenCount.value = calculateTokens(inputText.value)
 };
 
 const oneClickTranslatePrompt = async () => {
@@ -1705,6 +1816,22 @@ const updateAutocompletePosition = () => {
   }
 };
 
+// 保存文本区域高度到localStorage
+const saveTextareaHeight = () => {
+  if (inputAreaRef.value) {
+    const height = inputAreaRef.value.style.height || `${inputAreaRef.value.offsetHeight}px`;
+    localStorage.setItem('weilinPromptTextAreaHeight', height);
+  }
+};
+
+// 从localStorage恢复文本区域高度
+const restoreTextareaHeight = () => {
+  const savedHeight = localStorage.getItem('weilinPromptTextAreaHeight');
+  if (savedHeight && inputAreaRef.value) {
+    inputAreaRef.value.style.height = savedHeight;
+  }
+};
+
 // 添加消息监听
 onMounted(() => {
   document.addEventListener('click', handleClickOutside);
@@ -1712,26 +1839,13 @@ onMounted(() => {
   initTranslate()
   setupCursorTracking()
 
-  // 恢复保存的高度
-  const savedHeight = localStorage.getItem('weilinPromptTextAreaHeight')
-  if (savedHeight && inputAreaRef.value) {
-    inputAreaRef.value.style.height = `${savedHeight}px`
-  }
-
-  // 添加ResizeObserver监听
-  resizeObserver.value = new ResizeObserver(() => {
-    handleTextareaResize()
-  })
-
-  if (inputAreaRef.value) {
-    resizeObserver.value.observe(inputAreaRef.value)
-  }
+  nextTick(() => {
+    restoreTextareaHeight();
+  });
 })
 
 onBeforeUnmount(() => {
-  if (resizeObserver.value) {
-    resizeObserver.value.disconnect()
-  }
+
 })
 
 
@@ -1798,7 +1912,6 @@ const handleMessage = (event) => {
       processInput()
     }
   }
-
 }
 
 const initTranslate = async () => {
@@ -2263,6 +2376,36 @@ const toggleHidden = (index) => {
 
 const openBilibili = () => {
   window.open('https://www.bilibili.com/list/288025756/?sid=4690314&spm_id_from=333.1387.0.0&oid=114342431298474&bvid=BV1txdfYxE7X', '_blank');
+};
+
+// 一键随机Tag方法
+const oneClickRandomTag = async () => {
+  try {
+    await randomTagApi.goRandomTemplate().then((res) => {
+      if (res.code === 200) {
+        // console.log(res.random_tags)
+        inputText.value = res.random_tags
+        nextTick(() => {
+          // 触发输入处理
+          processInput();
+        })
+      } else {
+        message({ type: "warn", str: res.info });
+      }
+    }).catch((err) => {
+      console.error(err);
+      message({ type: "warn", str: 'message.networkError' });
+    });
+  } catch (error) {
+    message({ type: "warn", str: 'message.networkError' });
+    console.error('Error loading random tag settings:', error)
+  }
+};
+
+
+// 打开随机Tag设置对话框
+const openRandomTagSettings = () => {
+  randomSettingItem.value.open()
 };
 
 defineExpose({

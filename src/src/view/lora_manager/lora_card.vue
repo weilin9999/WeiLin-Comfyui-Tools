@@ -1,6 +1,12 @@
 <template>
     <div class="lora_catd_content" :style="'left: ' + paddingLeft + 'px;top: '+paddingTop+'px;'" @mouseenter="handleCardEnter"
-        @mouseleave="handleCardLeave">
+        @mouseleave="handleCardLeave" style="font-size: 0.55em;">
+        <!-- 添加关闭按钮 -->
+        <div class="close-button" @click="handleCardLeave" title="关闭">
+            <span>×</span>
+        </div>
+
+        <!-- 内容区域 -->
         <div class="lora-detail__content" ref="loraContent">
 
             <div v-if="loading" class="lora-detail__loading">
@@ -212,59 +218,9 @@
                 <!-- 图片 -->
                 <ul class="lora-detail__images" v-if="loraInfo.images?.length" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
                     <li v-for="(img, index) in loraInfo.images" :key="index" class="lora-detail__image-item">
-                        <figure>
-
-                            <div class="image-wrapper" style="height: 200px;">
-                                <img :src="img.url" style="width: 100%; height: 100%; object-fit: contain;" />
-                            </div>
-
-                            <figcaption class="image-info">
-                                <span v-if="img.civitaiUrl" class="info-item">
-                                    <a :href="img.civitaiUrl" target="_blank" class="civitai-link">
-                                        C站 civitai
-                                        <svg viewBox="0 0 24 24" width="16" height="16">
-                                            <path
-                                                d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" />
-                                        </svg>
-                                    </a>
-                                </span>
-
-                                <span v-if="img.seed" class="info-item">
-                                    <label>种子 seed</label>
-                                    {{ img.seed }}
-                                </span>
-
-                                <span v-if="img.steps" class="info-item">
-                                    <label>步数 steps</label>
-                                    {{ img.steps }}
-                                </span>
-
-                                <span v-if="img.cfg" class="info-item">
-                                    <label>引导系数 cfg</label>
-                                    {{ img.cfg }}
-                                </span>
-
-                                <span v-if="img.sampler" class="info-item">
-                                    <label>采样器 sampler</label>
-                                    {{ img.sampler }}
-                                </span>
-
-                                <span v-if="img.model" class="info-item">
-                                    <label>基础模型 model</label>
-                                    {{ img.model }}
-                                </span>
-
-                                <span v-if="img.positive" class="info-item">
-                                    <label>正向提示词 positive</label>
-                                    {{ img.positive }}
-                                </span>
-
-                                <span v-if="img.negative" class="info-item">
-                                    <label>反向提示词 negative</label>
-                                    {{ img.negative }}
-                                </span>
-                            </figcaption>
-                        </figure>
+                        <div class="image-wrapper" style="height: 200px;">
+                            <img :src="img.url" style="width: 100%; height: 100%; object-fit: contain;" />
+                        </div>
                     </li>
                 </ul>
             </div>
@@ -792,19 +748,37 @@ defineExpose({
 /* 表格样式 */
 .lora-detail__table {
     width: 100%;
+    table-layout: fixed;
+    word-wrap: break-word;
     border-collapse: collapse;
+    font-size: 0.55em;
 }
 
 .lora-detail__table td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     padding: 12px;
     border-bottom: 1px solid var(--weilin-prompt-ui-border);
+    max-width: 330px; /* 450px减去标签列宽度 */
 }
 
 .lora-detail__table td.label {
-    width: 280px;
     color: var(--weilin-prompt-ui-label);
     font-weight: 500;
+    width: 120px;
+    min-width: 120px;
 }
+
+/* 处理长文本 */
+.lora-detail__table .hash,
+.lora-detail__table .text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 
 .lora-detail__table td.actions {
     width: 130px;
@@ -822,10 +796,14 @@ defineExpose({
     margin-bottom: 20px;
 }
 
+.lora-detail__title {
+    font-size: 0.55em;
+}
+
 .lora-detail__tag {
     padding: 4px 12px;
     border-radius: 16px;
-    font-size: 14px;
+    font-size: 0.55em;
 }
 
 /* 按钮样式 */
@@ -840,6 +818,7 @@ defineExpose({
     color: var(--weilin-prompt-ui-button-text);
     cursor: pointer;
     transition: all 0.3s;
+    font-size: 0.55em;
 }
 
 .edit-btn:hover,
@@ -925,6 +904,7 @@ input:focus {
     padding: 20px;
     list-style: none;
     margin: 0;
+    max-width: 100%;
 }
 
 /* 单个图片项 */
@@ -976,7 +956,7 @@ input:focus {
     opacity: 0;
     transition: all 0.3s ease;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 0.55em;
     backdrop-filter: blur(4px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     z-index: 1;
@@ -993,6 +973,7 @@ input:focus {
 
 /* 图片信息区域 */
 .image-info {
+    font-size: 0.55em;
     padding: 16px;
     background: var(--weilin-prompt-ui-secondary-bg);
 }
@@ -1001,7 +982,7 @@ input:focus {
 .info-item {
     display: block;
     margin-bottom: 8px;
-    font-size: 13px;
+    font-size: 0.55em;
     color: var(--weilin-prompt-ui-secondary-text);
     word-break: break-all;
 }
@@ -1057,7 +1038,7 @@ input:focus {
     background: var(--weilin-prompt-ui-tag-bg);
     padding: 4px 8px;
     border-radius: 4px;
-    font-size: 12px;
+    font-size: 0.55em;
 }
 
 /* 响应式调整 */
@@ -1089,15 +1070,47 @@ input:focus {
     text-decoration: underline;
 }
 
+/* 添加关闭按钮样式 */
+.close-button {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: rgba(187, 187, 187, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+}
+
+.close-button:hover {
+    background-color: rgba(255, 0, 0, 0.8);
+    color: white;
+}
+
+.close-button span {
+    font-size: 18px;
+    line-height: 18px;
+    font-weight: bold;
+}
+
+
 .lora_catd_content {
     position: fixed;
-    width: 680px;
-    height: 300px;
+    width: 450px;
+    height: 330px;
     z-index: 999999999;
     border: 1px solid var(--weilin-prompt-ui-border-color);
     border-radius: 4px;
     background-color: var(--weilin-prompt-ui-primary-bg);
     padding: 6px;
     box-sizing: border-box;
+    font-size: 0.55em;
+    overflow: hidden;
 }
 </style>

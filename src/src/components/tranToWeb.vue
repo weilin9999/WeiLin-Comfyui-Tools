@@ -7,7 +7,8 @@
             <div class="utils_tran_web__content" 
                  @dragover.prevent="handleDragOver"
                  @drop.prevent="handleDrop"
-                 @paste="handlePaste">
+                 @paste="handlePaste"
+                 @click="handleClick">
                 <div v-if="!htmlContent" class="drop-zone">
                     {{ t('utils.dropOrPasteImage') }}
                 </div>
@@ -19,6 +20,7 @@
                         <button @click="clearContent">{{ t('utils.clear') }}</button>
                     </div>
                 </div>
+                <input type="file" ref="fileInput" style="display: none" accept="image/*" @change="handleFileChange">
             </div>
         </template>
     </DraggableWindow>
@@ -229,6 +231,22 @@ const clearContent = () => {
     imageData.value = null
 }
 
+
+
+const fileInput = ref(null)
+
+const handleClick = () => {
+    if (!htmlContent.value) {
+        fileInput.value.click()
+    }
+}
+
+const handleFileChange = (e) => {
+    const file = e.target.files[0]
+    if (file && file.type.startsWith('image/')) {
+        processImageFile(file)
+    }
+}
 
 
 defineExpose({

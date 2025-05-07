@@ -161,7 +161,7 @@ const handleMouseHover = (fileName, event) => {
   const hoveredCard = event.currentTarget;
   const cardRect = hoveredCard.getBoundingClientRect();
   const viewportHeight = window.innerHeight;
-  const cardWidth = 680; // LoraCard的宽度
+  const cardWidth = 450; // LoraCard的宽度
 
   // 计算最佳显示位置 - 居中显示
   let position = {

@@ -155,4 +155,57 @@ export const tagsApi = {
             }
         })
     },
-} 
+
+    // 移动主分组
+    moveMainGroup: async (data) => {
+        // 从 localStorage 获取保存的语言设置
+        const savedLocale = localStorage.getItem(`${STORAGE_PREFIX}userLocale`) || 'zh_CN'
+        return await request({
+            url: '/prompt/move_group',
+            method: 'post',
+            data: {...data,lang:savedLocale}
+        })
+    },
+
+    // 移动子分组
+    moveSubGroup: async (data) => {
+        // 从 localStorage 获取保存的语言设置
+        const savedLocale = localStorage.getItem(`${STORAGE_PREFIX}userLocale`) || 'zh_CN'
+        return await request({
+            url: '/prompt/move_subgroup',
+            method: 'post',
+            data: {...data,lang:savedLocale}
+        })
+    },
+
+    getTagMainGroup: async () => {
+        return await request({
+            url: '/prompt/get_tag_groups',
+            method: 'post',
+        })
+    },
+
+    getTagSubGroup: async (p_uuid) => {
+        return await request({
+            url: '/prompt/get_tag_subgroups',
+            method: 'post',
+            data: {p_uuid}
+        })
+    },
+
+    getTagList: async (g_uuid) => {
+        return await request({
+            url: '/prompt/get_tag_tags',
+            method: 'post',
+            data: {g_uuid}
+        })
+    },
+
+    searchTag: async (keyword) => {
+        return await request({
+            url: '/prompt/search_tags',
+            method: 'post',
+            data: {keyword}
+        })
+    },
+}

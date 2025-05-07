@@ -577,6 +577,7 @@
 .translated-text {
     color: var(--weilin-prompt-ui-primary-text);
     font-weight: bold;
+    font-size: 0.9em;
 }
 
 .token-item-box {
@@ -746,8 +747,20 @@
 }
 
 .translate-btn:hover {
-    background: var(--weilin-prompt-ui-primary-color);
+    background: var(--weilin-prompt-ui-primary-color-hover);
     color: white;
+}
+
+.translate-btn:hover .action-text {
+    color: white;
+}
+
+.translate-btn:hover .token-item-icon {
+    fill: white;
+}
+
+.translate-btn:hover .utils-item-icon {
+    fill: white;
 }
 
 /* 操作按钮 */
@@ -814,13 +827,48 @@
     max-width: 300px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     pointer-events: none;
-  }
-  
-  .tag-tips-content {
+}
+
+.tag-tips-content {
     margin: 0;
-  }
-  
-  .tag-tips-content p {
+}
+
+.tag-tips-content p {
     white-space: normal;
     line-height: 1.5;
-  }
+}
+
+.token-counter {
+    position: absolute;
+    bottom: 5px;
+    right: 10px;
+    font-size: 12px;
+    color: #888;
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 2px 5px;
+    border-radius: 3px;
+    pointer-events: none;
+    /* 确保不会干扰文本输入 */
+}
+
+/* 暗色主题适配 */
+#weilin_comfyui_tools_prompt_ui_div[data-theme="dark"] .token-counter {
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #ccc;
+}
+
+.random-tag-btn,
+.random-tag-settings-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.random-tag-btn .action-text,
+.random-tag-settings-btn .action-text {
+    margin-left: 4px;
+}
+
+.utils-item-icon {
+    fill: var(--weilin-prompt-ui-icon-color);
+}

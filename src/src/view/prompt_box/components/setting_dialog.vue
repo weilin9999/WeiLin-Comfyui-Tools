@@ -4,25 +4,25 @@
       <div class="settings-sidebar">
         <ul>
           <li :class="{ active: selectedSetting === 'translator' }" @click="selectSetting('translator')">{{
-    t('promptBox.settings.translator') }}</li>
+            t('promptBox.settings.translator') }}</li>
           <li :class="{ active: selectedSetting === 'setting_auto_complete_limit' }"
             @click="selectSetting('setting_auto_complete_limit')">{{
-    t('promptBox.settings.setting_auto_complete_limit') }}</li>
+              t('promptBox.settings.setting_auto_complete_limit') }}</li>
           <li :class="{ active: selectedSetting === 'setting_floating_ball' }"
             @click="selectSetting('setting_floating_ball')">{{
-    t('promptBox.settings.setting_floating_ball') }}</li>
+              t('promptBox.settings.setting_floating_ball') }}</li>
           <li :class="{ active: selectedSetting === 'setting_prompt_box' }"
             @click="selectSetting('setting_prompt_box')">{{
-    t('promptBox.settings.setting_prompt_box') }}</li>
+              t('promptBox.settings.setting_prompt_box') }}</li>
           <li :class="{ active: selectedSetting === 'setting_openai_box' }"
             @click="selectSetting('setting_openai_box')">{{
-    t('promptBox.settings.setting_openai_box') }}</li>
+              t('promptBox.settings.setting_openai_box') }}</li>
           <!-- <li :class="{ active: selectedSetting === 'setting_start_panel' }"
             @click="selectSetting('setting_start_panel')">{{
               t('promptBox.settings.setting_start_panel') }}</li> -->
           <li :class="{ active: selectedSetting === 'setting_sponsor_me' }"
             @click="selectSetting('setting_sponsor_me')">{{
-    t('promptBox.settings.setting_sponsor_me') }}</li>
+              t('promptBox.settings.setting_sponsor_me') }}</li>
         </ul>
       </div>
       <div class="settings-main">
@@ -44,7 +44,7 @@
             <div class="group-box" v-if="settingTranslater == 'network'">
               <div class="group-title">{{ t('promptBox.settings.selectOptionNetworkTranslaterTitle') }}</div>
               <div class="note-top">{{ t('promptBox.settings.selectOptionNetworkTranslaterInfo')
-                }}：https://github.com/xnx3/translate</div>
+              }}：https://github.com/xnx3/translate</div>
               <!-- 选择源语言 -->
               <div class="setting-item">
                 <label>{{ t('promptBox.settings.sourceLanguage') }}</label>
@@ -72,13 +72,13 @@
             <div class="group-box" v-if="settingTranslater == 'translater'">
               <div class="group-title">{{ t('promptBox.settings.selectOptionPythonTranslaterTitle') }}</div>
               <div class="note-top">{{ t('promptBox.settings.selectOptionPythonTranslaterInfo')
-                }}：https://github.com/UlionTse/translators</div>
+              }}：https://github.com/UlionTse/translators</div>
 
               <!-- 三方库安装状态 -->
               <div class="translater-innstall-status">
                 <div class="translater-install-label">
                   {{ t('promptBox.settings.nowTranlaterPackageState') }} {{ hasTranslaterPackage ?
-    t('promptBox.settings.tranlaterPackageStateTrue') : t('promptBox.settings.tranlaterPackageStateFlase')
+                    t('promptBox.settings.tranlaterPackageStateTrue') : t('promptBox.settings.tranlaterPackageStateFlase')
                   }}
                 </div>
                 <div class="translater-install-label" v-if="installTranslater">
@@ -92,52 +92,54 @@
               </div>
 
               <div class="translater-setting-box" v-if="hasTranslaterPackage">
-                <div class="setting-small-titile">{{ t('promptBox.settings.translaterSetting')}}</div>
-                
+                <div class="setting-small-titile">{{ t('promptBox.settings.translaterSetting') }}</div>
+
                 <!-- 选择翻译服务 -->
                 <div class="setting-item">
-                  <label>{{ t('promptBox.settings.chooseTranslaterSetting')}}</label>
+                  <label>{{ t('promptBox.settings.chooseTranslaterSetting') }}</label>
                   <select v-model="selectedTranslatorService">
-                    <option v-for="(item,index) in translaterSerives" :index="index" :key="'tran-item_'+index"
-                       :value="item">{{ t('translaterService.'+item) }}</option>
+                    <option v-for="(item, index) in translaterSerives" :index="index" :key="'tran-item_' + index"
+                      :value="item">{{ t('translaterService.' + item) }}</option>
                   </select>
                 </div>
 
                 <!-- 翻译语言和目标语言 -->
                 <div class="language-selectors">
                   <div class="setting-item">
-                    <label>{{ t('promptBox.settings.translaterLangSourceSetting')}}</label>
+                    <label>{{ t('promptBox.settings.translaterLangSourceSetting') }}</label>
                     <select v-model="sourceLanguage">
-                      <option v-for="(item,index) in language" :index="index" :key="'lan-item_'+index"
-                       :value="item.translator">{{ t('translaterLanguage.'+item.language) }}</option>
+                      <option v-for="(item, index) in language" :index="index" :key="'lan-item_' + index"
+                        :value="item.translator">{{ t('translaterLanguage.' + item.language) }}</option>
                     </select>
                   </div>
                   <div class="setting-item">
-                    <label>{{ t('promptBox.settings.translaterLangTargeSetting')}}</label> 
+                    <label>{{ t('promptBox.settings.translaterLangTargeSetting') }}</label>
                     <select v-model="targetLanguage">
-                      <option v-for="(item,index) in language" :index="index" :key="'lan-mu-item_'+index"
-                       :value="item.translator">{{ t('translaterLanguage.'+item.language) }}</option>
+                      <option v-for="(item, index) in language" :index="index" :key="'lan-mu-item_' + index"
+                        :value="item.translator">{{ t('translaterLanguage.' + item.language) }}</option>
                     </select>
                   </div>
                 </div>
 
                 <button class="install-button" @click="saveTranslaterSetting">
-                  {{ t('promptBox.settings.saveTranslaterSetting')}}
+                  {{ t('promptBox.settings.saveTranslaterSetting') }}
                 </button>
               </div>
 
               <div class="tranlater-text-box" v-if="hasTranslaterPackage">
-                <div class="setting-small-titile">{{ t('promptBox.settings.testTranslaterTitle')}}</div>
+                <div class="setting-small-titile">{{ t('promptBox.settings.testTranslaterTitle') }}</div>
                 <div class="setting-item">
                   <label>{{ t('promptBox.settings.inputTestTranslater') }}</label>
-                  <input type="text" v-model="testTranslaterInputText" :placeholder="t('promptBox.settings.inputTestTranslaterPlaceholder')" />
+                  <input type="text" v-model="testTranslaterInputText"
+                    :placeholder="t('promptBox.settings.inputTestTranslaterPlaceholder')" />
                 </div>
                 <div class="setting-item">
-                  <label>{{ t('promptBox.settings.outPutTestTranslater')}}</label>
-                  <input type="text" v-model="testTranslaterOutputText" readonly :placeholder="t('promptBox.settings.outPutTestTranslaterPlaceholder')" />
+                  <label>{{ t('promptBox.settings.outPutTestTranslater') }}</label>
+                  <input type="text" v-model="testTranslaterOutputText" readonly
+                    :placeholder="t('promptBox.settings.outPutTestTranslaterPlaceholder')" />
                 </div>
                 <button class="install-button" @click="translaterTextTest">
-                  {{ t('promptBox.settings.testingTranslater')}}
+                  {{ t('promptBox.settings.testingTranslater') }}
                 </button>
               </div>
 
@@ -163,7 +165,7 @@
                 :placeholder="t('promptBox.settings.settingAutoCompleteWidthPlaceholder')" />
             </div>
 
-             <!-- 设置补全提示框最大高度 -->
+            <!-- 设置补全提示框最大高度 -->
             <div class="setting-item">
               <label>{{ t('promptBox.settings.settingAutoCompleteHeight') }}</label>
               <input type="number" v-model.number="saveAutoCompleteHeight" min="5" style="width: 100px;"
@@ -179,31 +181,91 @@
 
         <div v-if="selectedSetting === 'setting_floating_ball'">
           <h3>{{ t('promptBox.settings.setting_floating_ball') }}</h3>
-          <div class="floating-ball-settings">
+          <div class="floating-ball-settings" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+            <!-- 第一列 -->
+            <div class="settings-column">
+              <!-- 是否启用悬浮球 -->
+              <div class="setting-item">
+                <label>
+                  <input type="checkbox" v-model="isFloatingBallEnabled" />
+                  {{ t('promptBox.settings.enableFloatingBall') }}
+                </label>
+              </div>
 
-            <!-- 是否启用悬浮球 -->
-            <div class="setting-item">
-              <label>
-                <input type="checkbox" v-model="isFloatingBallEnabled" />
-                {{ t('promptBox.settings.enableFloatingBall') }}
-              </label>
-            </div>
-            <!-- 悬浮球数量 -->
-            <div class="setting-item">
-              <label>{{ t('promptBox.settings.floatingBallCount') }}</label>
-              <input type="number" v-model.number="savedFloatingBallCount" min="1" max="100" style="width: 100px;"
-                :placeholder="t('promptBox.settings.floatingBallCountPlaceholder')" />
+              <!-- 悬浮球数量 -->
+              <div class="setting-item">
+                <label>{{ t('promptBox.settings.floatingBallCount') }}</label>
+                <input type="number" v-model.number="savedFloatingBallCount" min="1" max="100"
+                  :placeholder="t('promptBox.settings.floatingBallCountPlaceholder')" />
+              </div>
+
+              <!-- 悬浮球大小 -->
+              <div class="setting-item">
+                <label>{{ t('promptBox.settings.floatingBallSize') }}</label>
+                <input type="number" v-model.number="savedFloatingBallSize" min="5" max="999999"
+                  :placeholder="t('promptBox.settings.floatingBallSizePlaceholder')" />
+              </div>
+
+              <!-- 新增悬浮球高度设置 -->
+              <div class="setting-item">
+                  <label>{{ t('promptBox.settings.floatingBallHeight') }}</label>
+                  <input type="number" v-model.number="savedFloatingBallHeight" min="5" max="999999"
+                      :placeholder="t('promptBox.settings.floatingBallHeightPlaceholder')" />
+              </div>
+
+
             </div>
 
-            <!-- 悬浮球大小 -->
-            <div class="setting-item">
-              <label>{{ t('promptBox.settings.floatingBallSize') }}</label>
-              <input type="number" v-model.number="savedFloatingBallSize" min="5" max="999999" style="width: 100px;"
-                :placeholder="t('promptBox.settings.floatingBallSizePlaceholder')" />
+            <!-- 第二列 -->
+            <div class="settings-column">
+              <!-- 皮肤设置 -->
+              <div class="setting-item">
+                <label>{{ t('promptBox.settings.skinSetting') }}</label>
+                <select v-model="ballSkinType">
+                  <option value="default">{{ t('promptBox.settings.defaultSkin') }}</option>
+                  <option value="custom">{{ t('promptBox.settings.customSkin') }}</option>
+                </select>
+              </div>
+
+              <!-- 自定义皮肤上传 -->
+              <div class="setting-item" v-if="ballSkinType === 'custom'">
+                <label>{{ t('promptBox.settings.uploadSkin') }}</label>
+                <input type="file" accept="image/*" @change="handleSkinUpload" ref="skinUploader">
+                <div class="skin-preview" v-if="customSkinUrl">
+                  <img :src="customSkinUrl" alt="Custom Skin Preview">
+                </div>
+              </div>
+            </div>
+
+            <!-- 全宽设置项 -->
+            <div class="setting-item" style="grid-column: span 2;">
+              <label>{{ t('promptBox.settings.bgSetting') }}</label>
+              <select v-model="bgType">
+                <option value="gradient">{{ t('promptBox.settings.gradientBg') }}</option>
+                <option value="transparent">{{ t('promptBox.settings.transparentBg') }}</option>
+              </select>
+            </div>
+
+            <!-- 渐变颜色选择器 -->
+            <div class="setting-item" v-if="bgType === 'gradient'" style="grid-column: span 2;">
+              <label>{{ t('promptBox.settings.gradientColor') }}</label>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="color" v-model="gradientColor1">
+                <input type="color" v-model="gradientColor2">
+                <button @click="resetGradientColors" style="margin-left: 10px;width: 200px;">
+                  {{ t('promptBox.settings.resetToDefault') }}
+                </button>
+              </div>
+            </div>
+
+            <!-- 圆角设置 -->
+            <div class="setting-item" style="grid-column: span 2;">
+              <label>{{ t('promptBox.settings.borderRadius') }}</label>
+              <input type="number" v-model.number="ballBorderRadius" min="0" max="50">
             </div>
 
             <!-- 保存按钮 -->
-            <button class="save-button" @click="saveFloatingBallSettings">
+            <button class="save-button" style="grid-column: span 2;" @click="saveFloatingBallSettings" >
               {{ t('promptBox.settings.save') }}
             </button>
           </div>
@@ -306,7 +368,7 @@
                 <!-- 配置详情 -->
                 <div class="config-details" v-else>
                   <div>{{ t('promptBox.settings.openai_api_key') }}: {{ config.api_key ? '******' :
-    t('promptBox.settings.not_set') }}</div>
+                    t('promptBox.settings.not_set') }}</div>
                   <div>{{ t('promptBox.settings.openai_base_url') }}: {{ config.base_url }}</div>
                 </div>
               </div>
@@ -377,7 +439,7 @@ import { autocompleteApi } from '@/api/autocomplete'
 import message from '@/utils/message'
 import { languageApi } from '@/api/language'
 import { openaiApi } from '@/api/openai'
-import { translaterSerives,language } from "./translater"
+import { translaterSerives, language } from "./translater"
 
 const { t } = useI18n()
 
@@ -388,10 +450,19 @@ const translationText = ref('') // 输入框内容
 // 新增语言选择相关状态
 const savedSourceLanguage = ref(localStorage.getItem('weilin_prompt_ui_sourceLanguage') || 'english');
 const savedTargetLanguage = ref(localStorage.getItem('weilin_prompt_ui_targetLanguage') || 'chinese_simplified');
+
 // 新增悬浮球设置相关状态
 const savedFloatingBallCount = ref(localStorage.getItem('weilin_prompt_ui_floatingBallCount') || 1);
-const savedFloatingBallSize = ref(localStorage.getItem('weilin_prompt_ui_floatingBallSize') || 5);
+const savedFloatingBallSize = ref(localStorage.getItem('weilin_prompt_ui_floatingBallSize') || 66);
+const savedFloatingBallHeight = ref(localStorage.getItem('weilin_prompt_ui_floatingBallHeightSize') || savedFloatingBallSize.value);
 const isFloatingBallEnabled = ref(localStorage.getItem('weilin_prompt_ui_floatingBallEnabled') === 'true');
+const ballSkinType = ref(localStorage.getItem('weilin_prompt_ui_ballSkinType') || 'default')
+const customSkinUrl = ref(localStorage.getItem('weilin_prompt_ui_customSkinUrl') || '')
+const bgType = ref(localStorage.getItem('weilin_prompt_ui_bgType') || 'gradient')
+const gradientColor1 = ref(localStorage.getItem('weilin_prompt_ui_gradientColor1') || '#6a11cb')
+const gradientColor2 = ref(localStorage.getItem('weilin_prompt_ui_gradientColor2') || '#2575fc')
+const ballBorderRadius = ref(localStorage.getItem('weilin_prompt_ui_ballBorderRadius') || 50)
+
 // 提示词设置
 const isCommaConversionEnabled = ref(localStorage.getItem('weilin_prompt_ui_comma_conversion') === 'true');
 const isPeriodConversionEnabled = ref(localStorage.getItem('weilin_prompt_ui_period_conversion') === 'true');
@@ -428,7 +499,7 @@ const saveAutoCompleteHeight = ref(localStorage.getItem('weilin_prompt_ui_auto_b
 
 const selectSetting = (setting) => {
   selectedSetting.value = setting
-  if (setting == "setting_auto_complete_limit"){
+  if (setting == "setting_auto_complete_limit") {
     getAutoCompleteSetting();
   }
 }
@@ -478,9 +549,27 @@ const saveTranslatorSettings = () => {
   message({ type: "success", str: 'message.saveSuccess' });
 }
 
+// 添加皮肤上传处理函数
+const handleSkinUpload = (e) => {
+  const file = e.target.files[0]
+  if (file) {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      customSkinUrl.value = e.target.result
+      localStorage.setItem('weilin_prompt_ui_customSkinUrl', e.target.result)
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
+const resetGradientColors = () => {
+  gradientColor1.value = '#6a11cb';
+  gradientColor2.value = '#2575fc';
+};
+
 // 保存悬浮球设置
 const saveFloatingBallSettings = () => {
-  if (savedFloatingBallCount.value < 1 || savedFloatingBallSize.value < 5) {
+  if (savedFloatingBallCount.value < 1 || savedFloatingBallSize.value < 5 || savedFloatingBallHeight.value < 5) {
     message({ type: "warn", str: 'message.error' });
     return;
   }
@@ -488,6 +577,14 @@ const saveFloatingBallSettings = () => {
   localStorage.setItem('weilin_prompt_ui_floatingBallEnabled', isFloatingBallEnabled.value);
   localStorage.setItem('weilin_prompt_ui_floatingBallCount', savedFloatingBallCount.value);
   localStorage.setItem('weilin_prompt_ui_floatingBallSize', savedFloatingBallSize.value);
+  localStorage.setItem('weilin_prompt_ui_floatingBallHeightSize', savedFloatingBallHeight.value);
+  localStorage.setItem('weilin_prompt_ui_ballSkinType', ballSkinType.value)
+  localStorage.setItem('weilin_prompt_ui_bgType', bgType.value)
+  localStorage.setItem('weilin_prompt_ui_gradientColor1', gradientColor1.value)
+  localStorage.setItem('weilin_prompt_ui_gradientColor2', gradientColor2.value)
+  localStorage.setItem('weilin_prompt_ui_ballBorderRadius', ballBorderRadius.value)
+  localStorage.setItem('weilin_prompt_ui_floatingBallHeightSize', savedFloatingBallHeight.value)
+
   window.parent.postMessage({ type: 'weilin_prompt_ui_floating_ball_setting' }, '*');
   // 显示保存成功提示
   message({ type: "success", str: 'message.saveSuccess' });
@@ -664,18 +761,18 @@ const getTranskateBuktSetting = () => {
 };
 
 const saveTranslaterSetting = () => {
-  translatorApi.saveTranslateSetting(selectedTranslatorService.value, 
-  sourceLanguage.value, 
-  targetLanguage.value).then(res => {
-    // console.log(res)
-    if (res.info == "ok") {
-      message({ type: "success", str: 'message.saveSuccess' });
-    } else {
+  translatorApi.saveTranslateSetting(selectedTranslatorService.value,
+    sourceLanguage.value,
+    targetLanguage.value).then(res => {
+      // console.log(res)
+      if (res.info == "ok") {
+        message({ type: "success", str: 'message.saveSuccess' });
+      } else {
+        message({ type: "warn", str: 'message.saveFailed' });
+      }
+    }).catch(err => {
       message({ type: "warn", str: 'message.saveFailed' });
-    }
-  }).catch(err => {
-    message({ type: "warn", str: 'message.saveFailed' });
-  })
+    })
 };
 
 // 翻译文本
@@ -864,6 +961,7 @@ defineExpose({
 .setting-item {
   margin-bottom: 20px;
 }
+
 
 .setting-item label {
   display: block;
@@ -1156,7 +1254,7 @@ defineExpose({
   background-color: var(--weilin-prompt-ui-primary-color-hover);
 }
 
-.translater-setting-box{
+.translater-setting-box {
   margin-top: 20px;
   padding: 16px;
   background-color: var(--weilin-prompt-ui-secondary-bg);
@@ -1206,5 +1304,15 @@ defineExpose({
 .common-select:focus {
   outline: none;
   border-color: var(--weilin-prompt-ui-primary-color);
+}
+
+.skin-preview{
+  max-width: 200px;
+  max-height: 300px;
+}
+
+.skin-preview img{
+  width: 100%;
+  height: 100%;
 }
 </style>

@@ -7,7 +7,7 @@ from .prompt_api.tags_manager import *
 from .history.history_contl import *
 from .history.collect_history_contl import *
 from .fast_autocomplete.autocomplete import fuzzy_search
-from .user_init.user_init import read_init_file, set_user_lang, get_translate_setting,update_translate_setting,get_translate_settings,update_translate_settings,get_auto_limit_setting,update_auto_limit_setting
+from .user_init.user_init import *
 from .translate.local_translate import translate_phrase
 from .translate.api_translate import installTranslateApi,applyTranslateApi,translateText
 from .cloud_warehouse.warehouse import get_main_warehouse,get_warehouse_tree
@@ -20,6 +20,7 @@ from .ai_translator.ai_translator import (
     delete_openai_setting,
     set_select_openai
 )
+from .prompt_api.random_tag_template import * 
 
 
 static_path = os.path.join(os.path.dirname(__file__), "../../dist/")
@@ -358,6 +359,82 @@ async def _run_sql_text(request):
         return web.Response(status=500)
 
     return web.json_response(result)
+
+# 2025-05-06 新增 移动分类功能
+
+@PromptServer.instance.routes.post(baseUrl+"prompt/move_group")
+async def _move_group(request):
+    data = await request.json()
+    try:
+        result = await move_group(data['id_index'],
+                          data['reference_id_index'], data['position'])
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+    return web.json_response({"info": result})
+
+@PromptServer.instance.routes.post(baseUrl+"prompt/move_subgroup")
+async def _move_subgroup(request):
+    data = await request.json()
+    try:
+        result = await move_subgroup(data['id_index'],
+                          data['reference_id_index'], data['position'])
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+    return web.json_response({"info": result})
+
+# 2025-05-06 新增 查询功能
+
+@PromptServer.instance.routes.post(baseUrl+"prompt/get_tag_groups")
+async def _get_tag_groups(request):
+    resp = {"code":202}
+    try:
+       resp = await get_tag_groups()
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+    return web.json_response(resp)
+
+@PromptServer.instance.routes.post(baseUrl+"prompt/get_tag_subgroups")
+async def _get_tag_subgroups(request):
+    data = await request.json()
+    resp = {"code":202}
+    try:
+       resp = await get_tag_subgroups(data['p_uuid'])
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+    return web.json_response(resp)
+
+@PromptServer.instance.routes.post(baseUrl+"prompt/get_tag_tags")
+async def _get_tag_tags(request):
+    data = await request.json()
+    resp = {"code":202}
+    try:
+       resp = await get_tag_tags(data['g_uuid'])
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+    return web.json_response(resp)
+
+
+@PromptServer.instance.routes.post(baseUrl+"prompt/search_tags")
+async def _search_tags(request):
+    data = await request.json()
+    resp = {"code":202}
+    try:
+       resp = await search_tags(data['keyword'])
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+    return web.json_response(resp)
 
 # =====================================================================================================
 
@@ -753,5 +830,86 @@ async def _cloud_get_local_package(request):
 
 # =====================================================================================================
 
+# =================================================== 随机Tag模板 =======================================
+
+@PromptServer.instance.routes.post(baseUrl+"random_template/get_template_list")
+async def _get_template_list(request):
+    try:
+       return web.json_response(get_template_list())
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+@PromptServer.instance.routes.post(baseUrl+"random_template/save_template")
+async def _save_template(request):
+    data = await request.json()
+    try:
+       return web.json_response(save_template(data['data']))
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+@PromptServer.instance.routes.post(baseUrl+"random_template/update_template")
+async def _update_template(request):
+    data = await request.json()
+    try:
+       return web.json_response(update_template(data['name'],data['data']))
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+@PromptServer.instance.routes.post(baseUrl+"random_template/delete_template")
+async def _delete_template(request):
+    data = await request.json()
+    try:
+        update_random_template_setting("")
+        return web.json_response(delete_template(data['name']))
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+@PromptServer.instance.routes.post(baseUrl+"random_template/get_template_data")
+async def _get_template_data(request):
+    data = await request.json()
+    try:
+       return web.json_response(get_template_data(data['name']))
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+
+@PromptServer.instance.routes.post(baseUrl+"get/setting/get_random_template_setting")
+async def _get_random_template_setting(request):
+    try:
+        setting = get_random_template_setting() # 获取设置的参数信息
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+    return web.json_response({"data": setting})
+
+@PromptServer.instance.routes.post(baseUrl+"update/setting/update_random_template_setting")
+async def _update_random_template_setting(request):
+    data = await request.json()
+    try:
+        update_random_template_setting(data.get('path')) # 获取设置的参数信息
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+    return web.json_response({"info": 'ok'})
+
+@PromptServer.instance.routes.post(baseUrl+"random_template/go_random_template")
+async def _go_random_template(request):
+    try:
+        setting = get_random_template_setting() # 获取设置的参数信息
+        if setting == "":
+            return web.json_response({"code": 300, "info": '请先应用一个模板'})
+        return web.json_response(await go_radom_template(setting)) 
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+# =====================================================================================================
 print("======== WeiLin插件服务已启动 ========")
 print("======== WeiLin Server Init ========")

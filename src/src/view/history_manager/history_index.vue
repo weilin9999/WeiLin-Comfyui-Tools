@@ -52,7 +52,7 @@
             </div>
             <ul class="history-list">
                 <li v-for="item in filteredHistory" :key="item.id_index" class="history-item">
-                    <span>{{ item.tag }}</span>
+                    <span>{{ retPromptInfo(item.tag) }}</span>
                     <div class="action-buttons">
                         <button @click="addToFavorites(item)" class="favorite-btn"
                             :title="t('history.add_to_favorites')">
@@ -134,7 +134,7 @@
                     <div class="favor-name-box" :style="{ backgroundColor: item.color || 'transparent' }" >
                         <span class="favor-name"v-if="item.name.length > 0" >{{ item.name }}</span>
                     </div>
-                    <span>{{ item.tag }}</span>
+                    <span>{{ retPromptInfo(item.tag) }}</span>
                     <div class="action-buttons">
                         <button @click="editTag(item)" class="delete-favorite-btn" :title="t('history.edit_favorite')">
                             <svg viewBox="0 0 1024 1024" width="24" height="24" class="delete-favorite-icon">
@@ -255,6 +255,11 @@ const currentTag = ref({
 
 const isDeleteBatch = ref(false)
 const selectAllTags = ref(0)
+
+const retPromptInfo = (strJson) => {
+    const jsonTemp = JSON.parse(strJson)
+    return jsonTemp.prompt
+}
 
 // 改进的 RGBA 解析函数
 const parseRgba = (rgba) => {

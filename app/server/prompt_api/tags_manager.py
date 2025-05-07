@@ -46,6 +46,55 @@ async def move_tag(id_index, reference_id_index, position='before'):
 
     return {"info": "Tag moved"}
 
+
+async def move_group(id_index, reference_id_index, position='before'):
+    query = 'SELECT create_time FROM tag_groups WHERE id_index = ?'
+    reference_group = await fetch_one('tags',query, (reference_id_index,))
+    if not reference_group:
+        return {"info": "Reference group not found"}
+
+    reference_create_time = reference_group[0]
+
+    if position == 'before':
+        new_create_time = reference_create_time - 1
+    elif position == 'after':
+        new_create_time = reference_create_time + 1
+    else:
+        return {"info": "Invalid position"}
+
+    query = '''
+        UPDATE tag_groups
+        SET create_time = ?
+        WHERE id_index = ?
+    '''
+    await execute_query('tags',query, (new_create_time, id_index))
+
+    return {"info": "Group moved"}
+
+async def move_subgroup(id_index, reference_id_index, position='before'):
+    query = 'SELECT create_time FROM tag_subgroups WHERE id_index = ?'
+    reference_subgroup = await fetch_one('tags',query, (reference_id_index,))
+    if not reference_subgroup:
+        return {"info": "Reference subgroup not found"}
+
+    reference_create_time = reference_subgroup[0]
+
+    if position == 'before':
+        new_create_time = reference_create_time - 1
+    elif position == 'after':
+        new_create_time = reference_create_time + 1
+    else:
+        return {"info": "Invalid position"}
+
+    query = '''
+        UPDATE tag_subgroups
+        SET create_time = ?
+        WHERE id_index = ?
+    '''
+    await execute_query('tags',query, (new_create_time, id_index))
+
+    return {"info": "Subgroup moved"}
+
 async def delete_group_tag(id_index):
     query = 'DELETE FROM tag_tags WHERE id_index = ?'
     await execute_query('tags',query, (id_index,))
@@ -314,3 +363,103 @@ def run_sql_text(sql_array):
         return {"code": 500, "message": f"SQL执行失败: {str(e)}"}
     finally:
         conn.close()
+
+# 2025-05-06 新增函数 查询
+
+async def get_tag_groups():
+    """获取所有标签组"""
+    query = '''
+        SELECT 
+            id_index, name, color, create_time, p_uuid
+        FROM tag_groups
+        ORDER BY create_time ASC
+    '''
+    data = await fetch_all('tags', query)
+    return [{
+        'id_index': row[0],
+        'name': row[1],
+        'color': row[2],
+        'create_time': row[3],
+        'p_uuid': row[4]
+    } for row in data]
+
+async def get_tag_subgroups(p_uuid):
+    """根据p_uuid获取子组"""
+    query = '''
+        SELECT 
+            id_index, name, color, create_time, g_uuid, p_uuid
+        FROM tag_subgroups
+        WHERE p_uuid = ?
+        ORDER BY create_time ASC
+    '''
+    data = await fetch_all('tags', query, (p_uuid,))
+    return [{
+        'id_index': row[0],
+        'name': row[1],
+        'color': row[2],
+        'create_time': row[3],
+        'g_uuid': row[4],
+        'p_uuid': row[5]
+    } for row in data]
+
+async def get_tag_tags(g_uuid):
+    """根据g_uuid获取标签"""
+    query = '''
+        SELECT 
+            id_index, text, desc, color, create_time, g_uuid
+        FROM tag_tags
+        WHERE g_uuid = ?
+        ORDER BY create_time DESC
+    '''
+    data = await fetch_all('tags', query, (g_uuid,))
+    return [{
+        'id_index': row[0],
+        'text': row[1],
+        'desc': row[2],
+        'color': row[3],
+        'create_time': row[4],
+        'g_uuid': row[5]
+    } for row in data]
+
+async def search_tags(keyword):
+    """模糊查询tag_tags，按匹配度排序"""
+    query = '''
+        SELECT 
+            t.id_index, t.text, t.desc, t.color, t.create_time, t.g_uuid, t.t_uuid,
+            (CASE 
+                WHEN t.text LIKE ? THEN 3 
+                WHEN t.desc LIKE ? THEN 2 
+                WHEN t.text LIKE ? THEN 1 
+                WHEN t.desc LIKE ? THEN 0 
+                ELSE -1 
+            END) AS match_score,
+            sg.name as subgroup_name, sg.p_uuid as subgroup_p_uuid,
+            g.name as group_name, g.p_uuid as group_p_uuid
+        FROM tag_tags t
+        LEFT JOIN tag_subgroups sg ON t.g_uuid = sg.g_uuid
+        LEFT JOIN tag_groups g ON sg.p_uuid = g.p_uuid
+        WHERE t.text LIKE ? OR t.desc LIKE ? OR t.text LIKE ? OR t.desc LIKE ?
+        ORDER BY match_score DESC, t.create_time DESC
+        LIMIT 100
+    '''
+    # 构建模糊查询条件
+    exact_match = f"%{keyword}%"
+    partial_match = f"%{keyword}%"
+    
+    data = await fetch_all('tags', query, (
+        exact_match, exact_match, partial_match, partial_match,
+        exact_match, exact_match, partial_match, partial_match
+    ))
+    
+    return [{
+        'id_index': row[0],
+        'text': row[1],
+        'desc': row[2],
+        'color': row[3],
+        'create_time': row[4],
+        'g_uuid': row[5],
+        't_uuid': row[6],
+        'match_score': row[7],
+        'where': f"{row[1]} > {row[8]} > {row[10]}" if row[8] and row[10] else "",
+        'p_uuid': row[9] if row[9] else row[11]
+    } for row in data]

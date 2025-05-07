@@ -278,65 +278,38 @@ def migrate_db():
         conn.commit()
         conn.close()
     
-    # 添加版本3的迁移(移除外键)
-    # if current_version < 3:
-    #     conn = sqlite3.connect(tags_db_path)
-    #     cursor = conn.cursor()
+    # 添加版本3的迁移
+    if current_version < 3:
+        print("检测到数据库版本变动 版本V3 正在升级中...")
+        conn = sqlite3.connect(tags_db_path)
+        cursor = conn.cursor()
         
-    #     # 重建表结构(移除外键)
-    #     cursor.execute('''
-    #         CREATE TABLE IF NOT EXISTS tag_groups_new (
-    #             id_index INTEGER PRIMARY KEY AUTOINCREMENT,
-    #             name TEXT,
-    #             color TEXT,
-    #             create_time INTEGER,
-    #             p_uuid TEXT(128)
-    #         )
-    #     ''')
+        # 检查并添加新字段(如果不存在)
+        def add_column_if_not_exists(table, column, column_type):
+            cursor.execute(f"PRAGMA table_info({table})")
+            columns = [info[1] for info in cursor.fetchall()]
+            if column not in columns:
+                cursor.execute(f"ALTER TABLE {table} ADD COLUMN {column} {column_type}")
         
-    #     cursor.execute('''
-    #         CREATE TABLE IF NOT EXISTS tag_subgroups_new (
-    #             id_index INTEGER PRIMARY KEY AUTOINCREMENT,
-    #             group_id INTEGER,
-    #             name TEXT,
-    #             color TEXT,
-    #             create_time INTEGER,
-    #             p_uuid TEXT(128),
-    #             g_uuid TEXT(128)
-    #         )
-    #     ''')
+        # 确保所有表都有UUID字段
+        add_column_if_not_exists('tag_groups', 'p_uuid', 'TEXT(128)')
+        add_column_if_not_exists('tag_subgroups', 'p_uuid', 'TEXT(128)')
+        add_column_if_not_exists('tag_subgroups', 'g_uuid', 'TEXT(128)')
+        add_column_if_not_exists('tag_tags', 't_uuid', 'TEXT(128)')
+        add_column_if_not_exists('tag_tags', 'g_uuid', 'TEXT(128)')
         
-    #     cursor.execute('''
-    #         CREATE TABLE IF NOT EXISTS tag_tags_new (
-    #             id_index INTEGER PRIMARY KEY AUTOINCREMENT,
-    #             subgroup_id INTEGER,
-    #             text TEXT,
-    #             desc TEXT,
-    #             color TEXT,
-    #             create_time INTEGER,
-    #             t_uuid TEXT(128),
-    #             g_uuid TEXT(128)
-    #         )
-    #     ''')
+        # 更新所有UUID字段
+        update_uuids_v3(conn)
         
-    #     # 迁移数据
-    #     cursor.execute('INSERT INTO tag_groups_new SELECT * FROM tag_groups')
-    #     cursor.execute('INSERT INTO tag_subgroups_new SELECT * FROM tag_subgroups')
-    #     cursor.execute('INSERT INTO tag_tags_new SELECT * FROM tag_tags')
+        # 添加唯一索引
+        cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_tag_groups_p_uuid ON tag_groups(p_uuid)')
+        cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_tag_subgroups_g_uuid ON tag_subgroups(g_uuid)')
+        cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_tag_tags_t_uuid ON tag_tags(t_uuid)')
         
-    #     # 删除旧表
-    #     cursor.execute('DROP TABLE tag_groups')
-    #     cursor.execute('DROP TABLE tag_subgroups')
-    #     cursor.execute('DROP TABLE tag_tags')
-        
-    #     # 重命名新表
-    #     cursor.execute('ALTER TABLE tag_groups_new RENAME TO tag_groups')
-    #     cursor.execute('ALTER TABLE tag_subgroups_new RENAME TO tag_subgroups')
-    #     cursor.execute('ALTER TABLE tag_tags_new RENAME TO tag_tags')
-        
-    #     conn.commit()
-    #     conn.close()
-    #     update_version('tags', 3)
+        update_version('tags', 3)
+        conn.commit()
+        conn.close()
+        print("升级完成")
 
     # history数据库迁移
     current_version = get_current_version('history')
@@ -447,6 +420,74 @@ def update_uuids(conn):
 
         conn.commit()
         save_package_path("tags/2025_03_31/tags_2025_03_31.sql")
+        print("Tag数据更新完成。")
+    except Exception as e:
+        print(f"更新UUID时出错: {e}")
+        conn.rollback()
+        raise
+
+def update_uuids_v3(conn):
+    """根据SQL文件中的固定UUID更新所有表的UUID字段"""
+    cursor = conn.cursor()
+    print("开始更新Tag数据 V3...")
+    try:
+        # 1. 确保所有tag_groups都有p_uuid
+        cursor.execute("SELECT id_index FROM tag_groups WHERE p_uuid IS NULL OR p_uuid = ''")
+        empty_groups = cursor.fetchall()
+        for group in empty_groups:
+            group_id = group[0]
+            new_uuid = getUUID()
+            cursor.execute("UPDATE tag_groups SET p_uuid = ? WHERE id_index = ?", (new_uuid, group_id))
+        
+        # 2. 更新tag_subgroups的p_uuid和g_uuid
+        cursor.execute('''
+            SELECT sg.id_index, g.p_uuid 
+            FROM tag_subgroups sg
+            LEFT JOIN tag_groups g ON sg.group_id = g.id_index
+            WHERE sg.p_uuid IS NULL OR sg.p_uuid = '' OR sg.g_uuid IS NULL OR sg.g_uuid = ''
+        ''')
+        subgroups = cursor.fetchall()
+        for subgroup in subgroups:
+            subgroup_id, group_p_uuid = subgroup
+            new_g_uuid = getUUID()
+            if group_p_uuid:  # 如果找到对应的group
+                cursor.execute('''
+                    UPDATE tag_subgroups 
+                    SET p_uuid = ?, g_uuid = ?
+                    WHERE id_index = ?
+                ''', (group_p_uuid, new_g_uuid, subgroup_id))
+            else:  # 如果没有对应的group，只设置g_uuid
+                cursor.execute('''
+                    UPDATE tag_subgroups 
+                    SET g_uuid = ?
+                    WHERE id_index = ?
+                ''', (new_g_uuid, subgroup_id))
+        
+        # 3. 更新tag_tags的g_uuid和t_uuid
+        cursor.execute('''
+            SELECT t.id_index, sg.g_uuid 
+            FROM tag_tags t
+            LEFT JOIN tag_subgroups sg ON t.subgroup_id = sg.id_index
+            WHERE t.g_uuid IS NULL OR t.g_uuid = '' OR t.t_uuid IS NULL OR t.t_uuid = ''
+        ''')
+        tags = cursor.fetchall()
+        for tag in tags:
+            tag_id, subgroup_g_uuid = tag
+            new_t_uuid = getUUID()
+            if subgroup_g_uuid:  # 如果找到对应的subgroup
+                cursor.execute('''
+                    UPDATE tag_tags 
+                    SET g_uuid = ?, t_uuid = ?
+                    WHERE id_index = ?
+                ''', (subgroup_g_uuid, new_t_uuid, tag_id))
+            else:  # 如果没有对应的subgroup，只设置t_uuid
+                cursor.execute('''
+                    UPDATE tag_tags 
+                    SET t_uuid = ?
+                    WHERE id_index = ?
+                ''', (new_t_uuid, tag_id))
+
+        conn.commit()
         print("Tag数据更新完成。")
     except Exception as e:
         print(f"更新UUID时出错: {e}")

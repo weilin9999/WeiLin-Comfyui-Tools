@@ -24,17 +24,40 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 # Version update introduction
 
-> Last updated: 2025-04-30
+> Last updated: 2025-05-07
 
-> 0.0.53 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.54 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+>
+> 1. Fixed known bugs
+>
+> 2. Changed the size and position of the Lora hover card
+>
+> 3. Feature upgrade: The hover ball can be customized with skin and color
+>
+> 4. Function optimization: History information simplified display
+>
+> 5. New function: random Tag function, you can set the template, one key random Tag
+>
+> 6. Feature optimization: The category bar of the Tag manager can be changed in order and position
+>
+> 7. Feature optimization: Tag Manager searches for more accurate matches
+>
+> 8. Small feature: Added Token length display in bottom left corner of input field
+>
+> 9. Fixed the case where the input field record height had a low probability of triggering the height to be very low
+>
+> 10. The lower left corner of the window will prompt for updates when a new version of the plugin is available
+>
+
+<details>
+<summary>Click here for more updates from the past</summary>
+
+> 0.0.53 Public Beta Version 2025-04-30
 >
 > 1. Feature optimization: Fixed the issue that Lora details button style could not be seen in daytime mode
 >
 > 2. Repair the issues [#14](https://github.com/weilin9999/WeiLin-Comfyui-Tools/issues/14#issuecomment-2840561525) When the first line has only one Tag, a newline is triggered without the trailing comma
 >
-
-<details>
-<summary>Click here for more updates from the past</summary>
 
 > 0.0.52 Public Beta Version Last updated: 2025-04-28
 >
