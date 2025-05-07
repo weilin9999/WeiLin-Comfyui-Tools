@@ -705,6 +705,7 @@ defineExpose({
   gap: 8px;
   margin-bottom: 16px;
   flex-wrap: wrap;
+  min-height: 40px; /* 添加最小高度 */
   max-height: 100px;
   overflow-y: auto;
 }
@@ -754,6 +755,7 @@ defineExpose({
   margin-top: -8px;
   flex-wrap: wrap;
   padding-left: 16px;
+  min-height: 40px; /* 确保与category-nav一致 */
   max-height: 100px;
   overflow-y: auto;
 }

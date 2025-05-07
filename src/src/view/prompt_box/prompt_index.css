@@ -481,6 +481,7 @@
     padding: 6px;
     box-sizing: border-box;
     max-height: 600px;
+    min-height: 200px; /* 确保有足够的最小高度 */
     overflow: hidden;
     display: flex;
     flex-direction: column;
