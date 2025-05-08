@@ -481,7 +481,8 @@
     padding: 6px;
     box-sizing: border-box;
     max-height: 600px;
-    min-height: 200px; /* 确保有足够的最小高度 */
+    min-height: 200px;
+    /* 确保有足够的最小高度 */
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -872,4 +873,53 @@
 
 .utils-item-icon {
     fill: var(--weilin-prompt-ui-icon-color);
+}
+
+/* Lora标签样式 */
+.lora-tag {
+    background-color: rgba(64, 158, 255, 0.1) !important;
+    border: 1px solid rgba(64, 158, 255, 0.5) !important;
+    border-radius: 4px;
+}
+
+.lora-tag-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-right: 4px;
+}
+
+.lora-tag-icon svg {
+    fill: #a7a8a9;
+}
+
+.lora-weight-controls {
+    display: flex;
+    gap: 5px;
+    padding: 5px;
+    background-color: var(--weilin-prompt-ui-background);
+    border-radius: 4px;
+    flex-direction: row;
+    align-items: center;
+}
+
+.lora-weight-controls .weight-control {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.lora-weight-controls .weight-input {
+    width: 50px;
+    text-align: center;
+    border: 1px solid var(--weilin-prompt-ui-border-color);
+    border-radius: 3px;
+    background-color: var(--weilin-prompt-ui-input-background);
+    color: var(--weilin-prompt-ui-primary-text);
+}
+
+.lora-weight-controls .weight-label {
+    font-size: 12px;
+    color: var(--weilin-prompt-ui-secondary-text);
 }

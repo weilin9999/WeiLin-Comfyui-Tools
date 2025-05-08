@@ -145,7 +145,7 @@ const handleMouseHover = (fileName, event) => {
 
     showCard.value = true;
     hoveFileName.value = fileName;
-    console.log(fileName)
+    // console.log(fileName)
     nextTick(() => {
         loraCardItem.value.refresh()
     })

@@ -322,7 +322,7 @@
           <div class="form-group">
             <label>{{ t('tagManager.targetTag') }}</label>
             <select v-model="moveTargetTagId" class="form-select">
-              <option v-for="tag in availableTags" :key="tag.id_index" :value="tag.id_index">
+              <option v-for="tag in currentTags" :key="tag.id_index" :value="tag.id_index">
                 {{ tag.desc + ' --> ' + tag.text }}
               </option>
             </select>
@@ -1172,11 +1172,6 @@ const confirmMove = async () => {
     message({ type: 'error', str: t('message.moveFailed') });
   }
 };
-
-// 计算可移动的目标标签
-const availableTags = computed(() => {
-  return selectedGroup.value.tags.filter(tag => tag.id_index !== currentMoveTagId.value);
-});
 
 const availableGroup = ref([])
 const actionMoveGroup = ref(1)

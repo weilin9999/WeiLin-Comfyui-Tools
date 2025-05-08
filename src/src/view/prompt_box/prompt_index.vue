@@ -232,8 +232,6 @@
           <span class="action-text">{{ t('promptBox.oneClickRandomTag') }}</span>
         </button>
 
-
-
       </div>
 
       <!-- 词组显示区域 -->
@@ -254,8 +252,18 @@
               <span class="token-symbol" :title="t('promptBox.tab')">→</span>
             </div>
 
+            <!-- 为Lora标签添加特殊图标 -->
+            <div v-else-if="token.isLoraTag" class="lora-tag-icon" :title="t('promptBox.loraTag')"
+              @mouseenter="showControls(index, $event)" @mouseleave="handleMouseLeave(index)">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="15" height="15">
+                <path
+                  d="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5c1.49 0 2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7 1.49 0 2.7 1.21 2.7 2.7V22H17c1.1 0 2-.9 2-2v-4h1.5c1.38 0 2.5-1.12 2.5-2.5S21.88 11 20.5 11z" />
+              </svg>
+              <span style="margin-left: 5px;">{{ token.text }}</span>
+            </div>
+
             <!-- 普通词组 -->
-            <div v-else-if="token.text" class="token-item" @mouseenter="showControls(index, $event)"
+            <div v-else-if="token.text && !token.isLoraTag" class="token-item" @mouseenter="showControls(index, $event)"
               @mouseleave="handleMouseLeave(index)" :class="{
                 'punctuation': token.isPunctuation
               }">
@@ -267,8 +275,10 @@
                 :ref="el => { if (el) tokenInputRefs[index] = el }">
             </div>
 
+
+
             <!-- 翻译结果显示 -->
-            <div class="translation-result" v-if="token.text !== '\n' && token.text !== '\t'">
+            <div class="translation-result" v-if="token.text !== '\n' && token.text !== '\t' && !token.isLoraTag">
               <div v-if="isTextTranslatable(token.text)" @click="translateFunction(token.text, token)"
                 class="translate-button" :title="t('promptBox.translate')">
                 <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" class="token-item-icon" width="24"
@@ -310,11 +320,26 @@
       <!-- 控制栏容器 -->
       <div v-show="activeControls !== null && tokens[activeControls]" class="token-controls" :style="controlsPosition"
         @mouseenter="isOverControls = true" @mouseleave="handleControlsLeave">
-        <!-- 添加权重输入框 -->
-        <div class="weight-control">
-          <input type="number" v-model="weightValue" step="0.1" min="0.1" max="2" class="weight-input"
+
+        <!-- 普通Tag 添加权重输入框 -->
+        <div class="weight-control" v-if="!tokens[activeControls]?.isLoraTag">
+          <input type="number" v-model="weightValue" step="0.1" class="weight-input"
             @change="applyWeight">
           <span class="weight-label">{{ t('promptBox.weight') }}</span>
+        </div>
+        
+        <!-- Lora标签的权重控制 -->
+        <div class="lora-weight-controls" v-if="tokens[activeControls]?.isLoraTag">
+          <div class="weight-control">
+            <input type="number" v-model="loraModelWeight" step="0.1" class="weight-input"
+              @change="applyLoraWeights">
+            <span class="weight-label">{{ t('promptBox.modelWeight') }}</span>
+          </div>
+          <div class="weight-control">
+            <input type="number" v-model="loraTextWeight" step="0.1" class="weight-input"
+              @change="applyLoraWeights">
+            <span class="weight-label">{{ t('promptBox.textWeight') }}</span>
+          </div>
         </div>
 
         <button @click="handleDelete" class="delete-btn" :title="t('promptBox.delete')">
@@ -324,7 +349,7 @@
           </svg>
         </button>
 
-        <div class="bracket-btn-group">
+        <div class="bracket-btn-group" v-if="!tokens[activeControls]?.isLoraTag">
           <div class="bracket-btn-container">
             <!-- 括号按钮 -->
             <div class="bracket-btn">
@@ -392,7 +417,7 @@
           </div>
         </div>
         <div class="lora-manager-container" v-show="showLoraManager">
-          <LoraManager />
+          <LoraManager :loraManager="'prompt_inner'" />
         </div>
       </div>
 
@@ -439,6 +464,7 @@ import { autocompleteApi } from '@/api/autocomplete'
 import LoraManager from "@/view/lora_manager/lora_index.vue"
 import RandomSetting from './components/random_setting.vue'
 import { randomTagApi } from '@/api/random_tag'
+import pako from 'pako'
 
 const randomSettingItem = ref(null)
 
@@ -608,8 +634,44 @@ const applyWeight = () => {
   }
 
   tokens.value[activeControls.value].text = newText;
-  postMessageToWindowsPrompt();
+  updateInputText();
 };
+
+
+// Lora权重控制
+const loraModelWeight = ref(0.5);
+const loraTextWeight = ref(0.5);
+
+// 当选择一个Lora标签时，解析其权重
+watch(activeControls, (newVal) => {
+  if (newVal !== null && tokens.value[newVal]?.isLoraTag) {
+    // 解析Lora标签格式 <wlr:LoraName:weight1:weight2>
+    const text = tokens.value[newVal].text;
+    const match = text.match(/<wlr:([^:]+):([^:]+):([^>]+)>/);
+    if (match) {
+      loraModelWeight.value = parseFloat(match[2]);
+      loraTextWeight.value = parseFloat(match[3]);
+    }
+  }
+});
+
+// 应用Lora权重
+const applyLoraWeights = () => {
+  if (activeControls.value !== null && tokens.value[activeControls.value]?.isLoraTag) {
+    const token = tokens.value[activeControls.value];
+    const match = token.text.match(/<wlr:([^:]+):([^:]+):([^>]+)>/);
+    if (match) {
+      const loraName = match[1];
+      // 创建新的Lora标签文本
+      const newText = `<wlr:${loraName}:${loraModelWeight.value}:${loraTextWeight.value}>`;
+      // 更新token文本
+      token.text = newText;
+      // 更新输入文本
+      updateInputText();
+    }
+  }
+};
+
 
 // 修改wrapWith函数
 const wrapWith = (bracketType) => {
@@ -1132,10 +1194,17 @@ const processInput = async () => {
     } else if (segment.trim()) {
       // 处理非空文本
       const trimmedSegment = segment.trim();
+      // 检查是否是Lora标签格式 <wlr:LoraName:weight1:weight2>
+      const isLoraTag = /^<wlr:[^:]+:\d+(\.\d+)?:\d+(\.\d+)?>$/.test(trimmedSegment);
+
       // 优先匹配非隐藏的token
       let matched = false;
       for (const [index, token] of existingTokensMap) {
         if (token.text === trimmedSegment && !token.isHidden && !result.includes(token)) {
+          // 如果是已存在的token，确保更新其Lora标签状态
+          if (isLoraTag && !token.isLoraTag) {
+            token.isLoraTag = true;
+          }
           result.push(token);
           existingTokensMap.delete(index);
           matched = true;
@@ -1147,6 +1216,10 @@ const processInput = async () => {
       if (!matched) {
         for (const [index, token] of existingTokensMap) {
           if (token.text === trimmedSegment && !result.includes(token)) {
+            // 如果是已存在的token，确保更新其Lora标签状态
+            if (isLoraTag && !token.isLoraTag) {
+              token.isLoraTag = true;
+            }
             result.push(token);
             existingTokensMap.delete(index);
             matched = true;
@@ -1163,7 +1236,8 @@ const processInput = async () => {
           isPunctuation: false,
           isEditing: false,
           isHidden: false,
-          color: ''
+          color: '',
+          isLoraTag: isLoraTag // 添加Lora标签标识
         });
       }
     }
@@ -1465,7 +1539,9 @@ const showControls = (index, event) => {
     top: `${rect.bottom + window.scrollY + rect.height + 10}px`,
     left: `${rect.left + rect.width / 2}px`
   };
-  showTagTipsBox.value = true;
+  if (!tokens.value[index].isLoraTag){
+    showTagTipsBox.value = true;
+  }
 }
 
 
@@ -1915,6 +1991,43 @@ const handleMessage = (event) => {
     }
   } else if (event.data.type === 'weilin_prompt_ui_prompt_inner_get_node_tag_template_id_go_random_response') {
     onClickLocalTemplateRandomTag(event.data.data)
+  } else if (event.data.type === 'weilin_prompt_ui_addLoraTag_inner') {
+    // console.log(event.data.lora)
+    if (event.data.lora.loraWorks != undefined && event.data.lora.loraWorks.length > 0) {
+      // 在输入框末尾添加标签文本
+      const currentText = inputText.value
+      const tagText = event.data.lora.tag + (event.data.lora.loraWorks === '' ? "" : ", " + event.data.lora.loraWorks)
+
+      // 检查当前文本是否为空或是否以空格结尾
+      if (currentText === '') {
+        inputText.value = tagText
+      } else if (currentText.endsWith(' ')) {
+        inputText.value = currentText + ', ' + tagText + ',';
+      } else {
+        inputText.value = currentText + ', ' + tagText + ',';
+      }
+
+      lastInputValue.value = inputText.value; // 更新上一次的输入内容
+      // 触发输入事件以更新词组
+      processInput()
+    } else {
+      // 在输入框末尾添加标签文本
+      const currentText = inputText.value
+      const tagText = event.data.lora.tag
+
+      // 检查当前文本是否为空或是否以空格结尾
+      if (currentText === '') {
+        inputText.value = tagText
+      } else if (currentText.endsWith(' ')) {
+        inputText.value = currentText + ', ' + tagText + ',';
+      } else {
+        inputText.value = currentText + ', ' + tagText + ',';
+      }
+
+      lastInputValue.value = inputText.value; // 更新上一次的输入内容
+      // 触发输入事件以更新词组
+      processInput()
+    }
   }
 }
 
@@ -2439,27 +2552,66 @@ const oneClickRandomTag = async () => {
 
 const onClickLocalTemplateRandomTag = async (name) => {
   try {
-      await randomTagApi.goRandomTemplatePath(name).then((res) => {
-        if (res.code === 200) {
-          // console.log(res.random_tags)
-          inputText.value = res.random_tags
-          nextTick(() => {
-            // 触发输入处理
-            processInput();
-          })
-        } else {
-          message({ type: "warn", str: res.info });
-        }
-      }).catch((err) => {
-        console.error(err);
-        message({ type: "warn", str: 'message.networkError' });
-      });
-    } catch (error) {
+    await randomTagApi.goRandomTemplatePath(name).then((res) => {
+      if (res.code === 200) {
+        // console.log(res.random_tags)
+        inputText.value = res.random_tags
+        nextTick(() => {
+          // 触发输入处理
+          processInput();
+        })
+      } else {
+        message({ type: "warn", str: res.info });
+      }
+    }).catch((err) => {
+      console.error(err);
       message({ type: "warn", str: 'message.networkError' });
-      console.error('Error loading random tag settings:', error)
-    }
+    });
+  } catch (error) {
+    message({ type: "warn", str: 'message.networkError' });
+    console.error('Error loading random tag settings:', error)
+  }
 }
 
+/**
+ * 从短码反向解析出原始路径
+ * 
+ * @param {string} shortcode - 短码
+ * @returns {string} - 原始文件路径
+ */
+const shortcodeToPath = (shortcode) => {
+  try {
+    // 还原 Base64 编码中被替换的字符
+    let base64Str = shortcode.replace(/-/g, '+').replace(/_/g, '/');
+
+    // 添加回可能被移除的填充字符
+    const padding = 4 - (base64Str.length % 4);
+    if (padding < 4) {
+      base64Str += '='.repeat(padding);
+    }
+
+    // 解码 Base64
+    const binaryStr = atob(base64Str);
+
+    // 将二进制字符串转换为 Uint8Array
+    const bytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) {
+      bytes[i] = binaryStr.charCodeAt(i);
+    }
+
+    // 解压缩
+    const decompressed = pako.inflate(bytes);
+
+    // 将 Uint8Array 转换为字符串
+    const decoder = new TextDecoder('utf-8');
+    const path = decoder.decode(decompressed);
+
+    return path;
+  } catch (error) {
+    console.error('解析短码时出错:', error);
+    return '';
+  }
+};
 
 // 打开随机Tag设置对话框
 const openRandomTagSettings = () => {

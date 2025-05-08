@@ -7,6 +7,8 @@ from io import BytesIO
 import asyncio
 import concurrent.futures
 from tqdm import tqdm
+import zlib
+import base64
 
 from .lora_info import get_model_info
 
@@ -24,6 +26,51 @@ filters = [
     'local_preview',
     'metadata',
 ]
+
+def path_to_shortcode(path):
+    """
+    将路径转换为短码，可直接反向解析
+    
+    参数:
+        path: 文件路径
+    
+    返回:
+        生成的短码
+    """
+    # 压缩路径字符串
+    compressed = zlib.compress(path.encode('utf-8'))
+    
+    # 使用Base64编码，并替换一些特殊字符以便于URL使用
+    # 替换 + 为 - 和 / 为 _
+    shortcode = base64.b64encode(compressed).decode('utf-8').replace('+', '-').replace('/', '_').replace('=', '')
+    
+    return shortcode
+
+def shortcode_to_path(shortcode):
+    """
+    从短码反向解析出原始路径
+    
+    参数:
+        shortcode: 短码
+    
+    返回:
+        原始文件路径
+    """
+    # 还原Base64编码中被替换的字符
+    base64_str = shortcode.replace('-', '+').replace('_', '/')
+    
+    # 添加回可能被移除的填充字符
+    padding = 4 - (len(base64_str) % 4)
+    if padding < 4:
+        base64_str += '=' * padding
+    
+    # 解码Base64
+    compressed = base64.b64decode(base64_str)
+    
+    # 解压缩
+    path = zlib.decompress(compressed).decode('utf-8')
+    
+    return path
 
 
 def prepare_lora_item_data(item_path, auto_fetch=False):
@@ -47,6 +94,8 @@ def prepare_lora_item_data(item_path, auto_fetch=False):
         #     url = next(filter(lambda x: x['type'] == 'image', info_data['images']), {}).get('url')
         #     download_image(url=url, filename=file_name, directory=os.path.dirname(lora_path))
 
+    # 为item_path生成短码
+    # shortcode = path_to_shortcode(item_path)
     item = {
             "basename": item_path,
             "name": item_path,
@@ -55,6 +104,7 @@ def prepare_lora_item_data(item_path, auto_fetch=False):
             "preview":preview_file(lora_path),
             "model_name": model_name,
             "model_filename": file_name,
+            # "shortcode": shortcode,  # 添加短码到返回数据中
         }
     item["local_info"] = info_data
     # item["search_terms"] = ["Lora\\"+item_path]
@@ -113,14 +163,10 @@ def get_lora_folder():
                 
                 # 确保子目录在一级目录下
                 if subdir not in result[level1_dir]:
-                    result[level1_dir][subdir] = {
-                        "all": [],  # 子目录下所有文件
-                        "/": {}  # 子目录下的文件
-                    }
+                    result[level1_dir][subdir] = {}
                 
                 # 添加文件到子目录，使用完整路径
                 result[level1_dir][subdir][parts[-1]] = file_path
-                result[level1_dir][subdir]["all"].append(file_path)
                 result[level1_dir]["all"].append(file_path)
     
     return result

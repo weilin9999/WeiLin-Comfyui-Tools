@@ -19,6 +19,8 @@ export default {
         oneClickRandomTag: 'one Click Random Tag',
         randomTagSettings: 'setting Random Tag',
         oneClickTranslate: "one Click Translate Tag",
+        modelWeight: "Model Weight",
+        textWeight: "Text Weight",
         settings: {
             title: 'Settings',
             cancel: 'Cancel',

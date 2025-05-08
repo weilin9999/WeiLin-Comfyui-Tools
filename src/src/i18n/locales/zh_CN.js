@@ -19,6 +19,8 @@ export default {
         oneClickRandomTag: '一键随机Tag',
         randomTagSettings: '设置随机Tag规则',
         oneClickTranslate: "一键翻译Tag",
+        modelWeight: "模型权重",
+        textWeight: "文本权重",
         settings: {
             title: '设置',
             cancel: '取消',

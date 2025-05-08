@@ -181,6 +181,9 @@ function initLoraStack() {
 // Render all Lora items
 function renderAllLoras(seed) {
     const loraListContainer = document.getElementById('loraListContainer_' + seed);
+    if (!loraListContainer) {
+        return;
+    }
     loraListContainer.innerHTML = '';
     window.weilinGlobalSelectedLoras[seed].forEach((lora, index) => {
         renderLoraItem(seed, index, lora);
@@ -189,6 +192,7 @@ function renderAllLoras(seed) {
 
 // Update Lora stack info to windows
 function updateLoraStackInfoToWindows(seed) {
+    
     let putJson = {
         lora: "",
         temp_lora: window.weilinGlobalSelectedLoras[seed]

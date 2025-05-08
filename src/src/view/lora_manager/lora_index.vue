@@ -21,6 +21,18 @@
             d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2z" />
         </svg>
       </button>
+
+      <!-- 添加复选框区域 -->
+      <div class="checkbox-container">
+        <label :class="`${prefix}checkbox-label`">
+          <input type="checkbox" v-model="showHoverInfo" :class="`${prefix}checkbox`" />
+          <span>悬浮信息</span>
+        </label>
+        <label :class="`${prefix}checkbox-label`" v-if="loraManager == 'prompt_inner'">
+          <input type="checkbox" v-model="clickAddTag" :class="`${prefix}checkbox`" />
+          <span>点击添加Tag</span>
+        </label>
+      </div>
     </div>
 
     <!-- 主分类导航 -->
@@ -52,7 +64,8 @@
       <div :class="`${prefix}lora-list`"
         style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px;">
         <div v-for="lora in paginatedLoraList" :key="lora.file_path" :class="`${prefix}lora-card`" ref="loraCardRef"
-          @click="openLoraDetail(lora)" @mouseover="(e) => handleMouseHover(lora.name, e)" @mouseleave="handleMouseLeave"
+          @click="openLoraDetail(lora)" @mouseover="(e) => handleMouseHover(lora.name, e)"
+          @mouseleave="handleMouseLeave"
           style="display: flex; flex-direction: column; min-height: 200px; cursor: pointer;">
           <div :class="`${prefix}lora-preview`"
             style="flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden;width: 100%;">
@@ -95,8 +108,8 @@
     </div>
 
     <loraDetail ref="loraDetailRef" />
-    <LoraCard ref="loraCardItem" v-if="showCard" :fileNmae="hoveFileName" :paddingLeft="paddingLeftValue" :paddingTop="paddingTopValue"
-      @cardLeave="handleEnterLeave" @cardenter="handEnterCard" />
+    <LoraCard ref="loraCardItem" v-if="showCard" :fileNmae="hoveFileName" :paddingLeft="paddingLeftValue"
+      :paddingTop="paddingTopValue" @cardLeave="handleEnterLeave" @cardenter="handEnterCard" />
 
   </div>
 </template>
@@ -129,6 +142,36 @@ const isEnterCatd = ref(false)
 const isHovering = ref(false);
 const loraCardItem = ref()
 
+const showHoverInfo = ref(localStorage.getItem('weilin_prompt_ui_showHoverInfo'));
+const clickAddTag = ref(localStorage.getItem('weilin_prompt_ui_clickAddTag'));
+
+if (showHoverInfo.value === null || showHoverInfo.value === undefined || showHoverInfo.value === '') {
+  localStorage.setItem('weilin_prompt_ui_showHoverInfo', true);
+  showHoverInfo.value = true;
+}
+if (clickAddTag.value === null || clickAddTag.value === undefined || clickAddTag.value === '') {
+  localStorage.setItem('weilin_prompt_ui_clickAddTag', false);
+  clickAddTag.value = false;
+}
+
+const props = defineProps({
+  loraManager: {
+    type: String,
+    default: 'look'
+  }
+})
+
+
+// 监听复选框变化并保存到本地存储
+watch(showHoverInfo, (newVal) => {
+  localStorage.setItem('weilin_prompt_ui_showHoverInfo', newVal);
+});
+
+watch(clickAddTag, (newVal) => {
+  localStorage.setItem('weilin_prompt_ui_clickAddTag', newVal);
+});
+
+
 // 分页相关
 const currentPage = ref(1)
 const pageSize = ref(50) // 每页显示的数量
@@ -155,6 +198,8 @@ const handEnterCard = () => {
   isHovering.value = true;
 }
 const handleMouseHover = (fileName, event) => {
+  if (!showHoverInfo.value || showHoverInfo.value == "false") return; // 如果不显示悬浮信息，直接返回
+
   isHovering.value = true;
   if (hoveFileName.value === fileName && showCard.value) return;
 
@@ -254,13 +299,6 @@ const debouncedSearch = () => {
   }, 300)
 }
 
-const props = defineProps({
-  loraManager: {
-    type: String,
-    default: 'look'
-  }
-})
-
 const retLoraName = (lora) => {
   if (lora.local_info?.name && lora.local_info.name !== '' && lora.local_info.name.length > 0) {
     return lora.local_info.name
@@ -274,6 +312,9 @@ const loraDetailRef = ref()
 const openLoraDetail = (loraData) => {
   if (props.loraManager === 'addLora') {
     selectLora(loraData)
+  } else if (props.loraManager === 'prompt_inner' && clickAddTag.value) {
+    // 如果启用了点击添加Tag，则直接添加Tag而不打开详情
+    addLoraTag(loraData);
   } else {
     loraDetailRef.value.open(loraData)
   }
@@ -538,6 +579,22 @@ const selectLora = (lora) => {
   }
 }
 
+
+
+// 添加Lora标签的函数
+const addLoraTag = (loraData) => {
+  // 发送消息添加标签
+  window.postMessage({
+    type: 'weilin_prompt_ui_addLoraTag_inner',
+    lora: {
+      tag: `<wlr:${loraData.model_name}:${loraData.local_info?.strengthMin ? loraData.local_info.strengthMin : 0.5}:${loraData.local_info?.strWeight ? loraData.local_info.strWeight : 0.5}>`,
+      loraWorks: loraData.local_info?.loraWorks ? loraData.local_info.loraWorks : '',
+    }
+  }, '*');
+  // 显示提示消息
+  // message({ type: "success", str: `已添加Lora标签: ${loraName}` });
+}
+
 defineExpose({
   openSetSeed
 })
@@ -705,7 +762,8 @@ defineExpose({
   gap: 8px;
   margin-bottom: 16px;
   flex-wrap: wrap;
-  min-height: 40px; /* 添加最小高度 */
+  min-height: 40px;
+  /* 添加最小高度 */
   max-height: 100px;
   overflow-y: auto;
 }
@@ -755,7 +813,8 @@ defineExpose({
   margin-top: -8px;
   flex-wrap: wrap;
   padding-left: 16px;
-  min-height: 40px; /* 确保与category-nav一致 */
+  min-height: 40px;
+  /* 确保与category-nav一致 */
   max-height: 100px;
   overflow-y: auto;
 }
@@ -888,5 +947,33 @@ defineExpose({
   word-break: break-word;
   white-space: normal;
   line-height: 1.2;
+}
+
+
+.lora-manager-top-bar {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  gap: 8px;
+  border-bottom: 1px solid var(--weilin-prompt-ui-border-color);
+}
+
+.checkbox-container {
+  display: flex;
+  margin-left: auto;
+  gap: 12px;
+}
+
+.weilin_prompt_ui_checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  color: var(--weilin-prompt-ui-primary-text);
+  cursor: pointer;
+}
+
+.weilin_prompt_ui_checkbox {
+  cursor: pointer;
 }
 </style>

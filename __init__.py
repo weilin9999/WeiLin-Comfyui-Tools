@@ -5,6 +5,7 @@ import logging
 import locale
 import json
 import shutil
+import re
 
 # Server Init
 from .install_request import *
@@ -121,7 +122,10 @@ class WeiLinPromptUI:
     CATEGORY = node_name_text
 
     # 加载Lora
-    def load_lora_ing(self, positive="", auto_random=False, lora_str="", temp_str="", temp_lora_str="",random_template="", opt_text="", opt_clip=None, opt_model=None):
+    def load_lora_ing(self, positive="", auto_random=False, lora_str="",
+     temp_str="", temp_lora_str="", random_template="", opt_text="",
+      opt_clip=None, opt_model=None):
+
         model_lora_secondA = opt_model
         clip_lora_secondA = opt_clip
 
@@ -155,6 +159,36 @@ class WeiLinPromptUI:
                         text_dec = opt_text +", "+positive
                     else:
                         text_dec = positive
+        
+        
+        wlr_pattern = r'<wlr:([^:]+):([^:]+):([^>]+)>'
+        wlr_matches = re.findall(wlr_pattern, text_dec)
+
+        # print(wlr_matches)
+        # 如果找到了wlr标签，创建lora列表
+        if wlr_matches:
+            extracted_loras = []
+            for lora_path, model_weight, text_weight in wlr_matches:
+                extracted_loras.append({
+                    "lora": lora_path.strip()+".safetensors",
+                    "weight": float(model_weight.strip()),
+                    "text_encoder_weight": float(text_weight.strip())
+                })
+            
+            # print(extracted_loras)
+            # 如果已经有lora_list，合并它们
+            if lora_list is not None:
+                lora_list.extend(extracted_loras)
+            else:
+                lora_list = extracted_loras
+            
+            # 从text_dec中移除这些标签
+            clean_text_dec = re.sub(wlr_pattern, '', text_dec)
+            # 清理连续的逗号
+            clean_text_dec = re.sub(r',\s*,', ',', clean_text_dec)
+            # 清理开头和结尾的逗号
+            clean_text_dec = clean_text_dec.strip().strip(',').strip()
+            text_dec = clean_text_dec
                 
 
         # 当模型不为空时
@@ -183,6 +217,7 @@ class WeiLinPromptUI:
                     self.loaded_loraA = (lora_path, lora)
 
                 model_lora_secondA, clip_lora_secondA = load_lora_for_models(model_lora_secondA, clip_lora_secondA, lora, strength_model, strength_clip)
+        
         if opt_clip != None:
             tokensA = clip_lora_secondA.tokenize(text_dec)
             outputA = clip_lora_secondA.encode_from_tokens(tokensA, return_pooled=True, return_dict=True)

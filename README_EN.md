@@ -24,9 +24,23 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 # Version update introduction
 
-> Last updated: 2025-05-07
+> Last updated: 2025-05-08
 
-> 0.0.58 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.59 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+>
+> 1. Fixed known bugs
+>
+> 2. New function (test) :Lora can be loaded in the form of Tag (only the omnipotent prompt word editor is effective) Click on the Lora manager below the editor to add the Tag. The way that our plugin can identify is' ' '<wlr:Lora name: model weight: text weight >' ' '
+>
+> 3. Fixed issues with Lora manager subdirectory loading
+>
+> 4. Fixed a bug with Tag click sorting in Tag manager
+>
+
+<details>
+<summary>Click here for more updates from the past</summary>
+
+> 0.0.58 Public Beta Version 2025-05-07
 >
 > 1. Fixed known bugs
 >
@@ -52,9 +66,6 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 >
 > 12. Modified the Lora manager, added the function of displaying all secondary directories, and changed the height problem of the directory bar
 >
-
-<details>
-<summary>Click here for more updates from the past</summary>
 
 > 0.0.53 Public Beta Version 2025-04-30
 >
