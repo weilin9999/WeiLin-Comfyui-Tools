@@ -24,9 +24,19 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 # Version update introduction
 
-> Last updated: 2025-05-08
+> Last updated: 2025-07-11 (Long time no see. I miss you so much.)
 
-> 0.0.59 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.60 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+>
+> 1. Fixed a known BUG (running the process when the node is not loading can also cause the node to load).
+>
+> 2. New feature: Danbooru Manager, which enables quick and convenient management of Danbooru data
+>
+
+<details>
+<summary>Click here for more updates from the past</summary>
+
+> 0.0.59 Public Beta Version 2025-05-08
 >
 > 1. Fixed known bugs
 >
@@ -36,9 +46,6 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 >
 > 4. Fixed a bug with Tag click sorting in Tag manager
 >
-
-<details>
-<summary>Click here for more updates from the past</summary>
 
 > 0.0.58 Public Beta Version 2025-05-07
 >

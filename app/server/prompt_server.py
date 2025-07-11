@@ -21,6 +21,7 @@ from .ai_translator.ai_translator import (
     set_select_openai
 )
 from .prompt_api.random_tag_template import * 
+from .prompt_api.danbooru import *
 
 
 static_path = os.path.join(os.path.dirname(__file__), "../../dist/")
@@ -922,6 +923,81 @@ async def _go_random_template_path(request):
         return web.Response(status=500)
 
 # =====================================================================================================
+
+# ================================= Danbooru标签管理 =================================
+@PromptServer.instance.routes.post(baseUrl+"danbooru/get_tags")
+async def _get_danbooru_tags(request):
+    data = await request.json()
+    try:
+        tags = await get_danbooru_tags(data.get("search"),data.get("page", 1), data.get("limit", 100))
+        return web.json_response({"data": tags})
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+@PromptServer.instance.routes.post(baseUrl+"danbooru/add_tag")
+async def _add_danbooru_tag(request):
+    data = await request.json()
+    try:
+        tag_id = await add_danbooru_tag(data)
+        return web.json_response({"code": 200})
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+@PromptServer.instance.routes.post(baseUrl+"danbooru/update_tag")
+async def _update_danbooru_tag(request):
+    data = await request.json()
+    try:
+        success = await update_danbooru_tag(data["id"], data["update_data"])
+        return web.json_response({"code": 200})
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+@PromptServer.instance.routes.post(baseUrl+"danbooru/delete_tag")
+async def _delete_danbooru_tag(request):
+    data = await request.json()
+    try:
+        success = await delete_danbooru_tag(data["id"])
+        return web.json_response({"code": 200})
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+@PromptServer.instance.routes.post(baseUrl+"danbooru/batch_delete_tag")
+async def _batch_delete_danbooru_tag(request):
+    data = await request.json()
+    try:
+        success = await delete_danbooru_tags_batch(data["values"])
+        return web.json_response({"code": 200})
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+@PromptServer.instance.routes.post(baseUrl+"danbooru/get_tag_by_id")
+async def _get_danbooru_tag_by_id(request):
+    data = await request.json()
+    try:
+        tag = await get_danbooru_tag_by_id(data["id"])
+        return web.json_response({"data": tag})
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+    
+
+@PromptServer.instance.routes.post(baseUrl+"danbooru/run_sql_text")
+async def _run_danbooru_sql_text(request):
+    data = await request.json()
+    try:
+        result = run_danbooru_sql_text(data['sql'])
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+
+    return web.json_response(result)
+# ===================================================================================
+
 print("======== WeiLin插件服务已启动 ========")
 print("======== WeiLin Server Init ========")
 

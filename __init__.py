@@ -65,7 +65,8 @@ class WeiLinPromptUI:
 
     def __init__(self):
         self.loaded_loraA = None
-
+    
+    @classmethod
     def IS_CHANGED(self, auto_random, **kwargs):
         if auto_random:
             return float("nan")
@@ -311,7 +312,8 @@ class WeiLinPromptUIWithoutLora:
 
     def __init__(self):
         pass
-
+    
+    @classmethod
     def IS_CHANGED(self, auto_random, **kwargs):
         if auto_random:
             return float("nan")

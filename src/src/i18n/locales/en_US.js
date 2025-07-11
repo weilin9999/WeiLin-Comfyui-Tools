@@ -127,6 +127,7 @@ export default {
         shareCloudData: 'Share Cloud Data',
         tutorialVideo: "Tutorial Video",
         sponsor: "Sponsor Me",
+        danbooruManager: "danbooru Manager",
     },
     theme: {
         toggle: 'Switch Theme'
@@ -283,6 +284,7 @@ export default {
         "targetGroup": "Target Group",
         "moveGroupBefore": "Move Before",
         "moveGroupAfter": "Move After",
+        importDanbooru: "Batch import",
     },
     loraManager: {
         windowTitle: "Lora Manager",
@@ -623,5 +625,21 @@ export default {
         newTemplate: "New Template",
         rulesReminder: "Reminder: The range of the first rule must start at 1! If the range exceeds the total number of random, it will simply display all not random!"
     },
-
+    danbooruManager:{
+        title: "Danbooru Manager",
+        controle: 'Controle',
+        translatePlaceholder: "Please enter the tag to be translated",
+        searchPlaceholder: "Input need search danbooru tag",
+         pageShow: "Display per page:",
+        pageLimit: "article",
+        hot: "hot",
+        aliases: "aliases",
+        sureBatchDelete: "Batch deletion confirmation",
+        sureBatchDeleteTips1: "You are sure you want to delete the selected one",
+        sureBatchDeleteTips2: "A label? This operation is irrevocable.",
+        sureDelete: "Confirm deletion",
+        import: "Import in Danbooru format",
+        importBatchTitle: "Batch import Danbooru data",
+        importTitle: "Danbooru Import data display",
+    }
 } 

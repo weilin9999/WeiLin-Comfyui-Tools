@@ -71,6 +71,16 @@
       <LoraStackWindow ref="loraStackRef" />
     </DraggableWindow>
 
+    <!-- Danbooru管理器窗口 -->
+    <DraggableWindow name="DanbooruManagerWindow" v-if="windows.danbooru_manager_window.visible" :title="t('controls.danbooruManager')"
+      :position="windows.danbooru_manager_window.position" :size="windows.danbooru_manager_window.size"
+      :z-index="windowManager.getZIndex('danbooru_manager_window')"
+      @update:position="updatePosition('danbooru_manager_window', $event)"
+      @update:size="updateSize('danbooru_manager_window', $event)"
+      @active="windowManager.setActiveWindow('danbooru_manager_window')" @close="closeWindow('danbooru_manager_window')">
+      <DanbooruManagerWindow ref="danbooruManagerRef" />
+    </DraggableWindow>
+
     <!-- 悬浮球 -->
     <FloatingBall v-if="isFloatingBallEnabled"></FloatingBall>
     <loraDetail ref="loraDetailLoraStackRef" />
@@ -104,6 +114,7 @@ import AiWindow from '@/view/ai_window/ai_window.vue'
 import NodeListWindow from '@/view/node_list/index.vue'
 import CloudWindow from '@/view/cloud/index.vue'
 import LoraStackWindow from '@/view/lora_manager/lora_stack.vue'
+import DanbooruManagerWindow from '@/view/danbooru/danbooru_manager.vue'
 import { translatorApi } from '@/api/translator'
 import { tagsApi } from '@/api/tags'
 import loraDetail from '@/view/lora_manager/lora_detail.vue'
@@ -198,6 +209,12 @@ const DEFAULT_WINDOWS = {
     is_default_close: true,
     position: { x: 100, y: 100 },
     size: { width: 300, height: 600 }
+  },
+  danbooru_manager_window: {
+    visible: false,
+    is_default_close: true,
+    position: { x: 100, y: 100 },
+    size: { width: 800, height: 600 }
   }
 }
 
@@ -375,6 +392,12 @@ const restoreWindowsToDefault = () => {
       is_default_close: true,
       position: { x: 100, y: 100 },
       size: { width: 300, height: 600 }
+    },
+    danbooru_manager_window: {
+      visible: false,
+      is_default_close: true,
+      position: { x: 100, y: 100 },
+      size: { width: 800, height: 600 }
     }
   }
 
@@ -400,6 +423,7 @@ const promptBoxRef = ref()
 const loraStackRef = ref()
 const loraManagerRef = ref()
 const loraDetailLoraStackRef = ref()
+const danbooruManagerRef = ref()
 
 // 处理消息
 const handleMessage = (event) => {
@@ -500,6 +524,11 @@ const handleMessage = (event) => {
     windowManager.setActiveWindow('lora_stack_window')
   } else if (event.data.type === "weilin_prompt_ui_openLoraDetail") {
     loraDetailLoraStackRef.value.open({ name: event.data.lora })
+
+  }else if(event.data.type === "weilin_prompt_ui_open_danbooru_manager_window"){
+    windows.value.danbooru_manager_window.visible = true
+    windowManager.setActiveWindow('danbooru_manager_window')
+
   } else if (event.data.type === 'weilin_prompt_ui_prompt_inner_get_node_tag_template_id') {
     window.postMessage({
       type: 'weilin_prompt_ui_get_template_' + thisEditPromptId.value,

@@ -49,6 +49,16 @@
           </button>
         </div>
 
+        <div class="action-item">
+          <button class="tag-manager-btn" @click="openDanbooruManager" :title="t('controls.danbooruManager')">
+            <svg class="tag-icon" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z" />
+            </svg>
+            <span class="action-text">{{ t('controls.danbooruManager') }}</span>
+          </button>
+        </div>
+
         <div class="action-item" v-if="props.hasPromptLoraStack">
           <button class="tag-manager-btn" @click="toggleLora" :title="t('controls.loraStack')">
             <svg sxmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" class="tag-icon" width="24" height="24">
@@ -148,6 +158,8 @@
             <span class="action-text">{{ t('controls.sponsor') }}</span>
           </button>
         </div>
+
+
 
         <SettingDialog ref="settingDialog" />
 
@@ -323,21 +335,18 @@
 
         <!-- 普通Tag 添加权重输入框 -->
         <div class="weight-control" v-if="!tokens[activeControls]?.isLoraTag">
-          <input type="number" v-model="weightValue" step="0.1" class="weight-input"
-            @change="applyWeight">
+          <input type="number" v-model="weightValue" step="0.1" class="weight-input" @change="applyWeight">
           <span class="weight-label">{{ t('promptBox.weight') }}</span>
         </div>
-        
+
         <!-- Lora标签的权重控制 -->
         <div class="lora-weight-controls" v-if="tokens[activeControls]?.isLoraTag">
           <div class="weight-control">
-            <input type="number" v-model="loraModelWeight" step="0.1" class="weight-input"
-              @change="applyLoraWeights">
+            <input type="number" v-model="loraModelWeight" step="0.1" class="weight-input" @change="applyLoraWeights">
             <span class="weight-label">{{ t('promptBox.modelWeight') }}</span>
           </div>
           <div class="weight-control">
-            <input type="number" v-model="loraTextWeight" step="0.1" class="weight-input"
-              @change="applyLoraWeights">
+            <input type="number" v-model="loraTextWeight" step="0.1" class="weight-input" @change="applyLoraWeights">
             <span class="weight-label">{{ t('promptBox.textWeight') }}</span>
           </div>
         </div>
@@ -1539,7 +1548,7 @@ const showControls = (index, event) => {
     top: `${rect.bottom + window.scrollY + rect.height + 10}px`,
     left: `${rect.left + rect.width / 2}px`
   };
-  if (!tokens.value[index].isLoraTag){
+  if (!tokens.value[index].isLoraTag) {
     showTagTipsBox.value = true;
   }
 }
@@ -2476,6 +2485,10 @@ const openGitHub = () => {
 
 const shareCloudData = () => {
   window.parent.postMessage({ type: 'weilin_prompt_ui_open_cloud_window' }, '*')
+}
+
+const openDanbooruManager = () => {
+  window.parent.postMessage({ type: 'weilin_prompt_ui_open_danbooru_manager_window' }, '*')
 }
 
 const openSponsor = () => {

@@ -362,8 +362,8 @@ def update_uuids(conn):
     try:
         
         # 从Gitee获取SQL文件内容
-        sql_url = "https://api.gitcode.com/api/v5/repos/qq_27627297/WeiLin-Comfyui-Tools-Prompt/raw/tags/2025_03_31/tags_2025_03_31.sql?access_token=y7S27_wDHXy1xaSQjupJk-Wy"
-        # sql_url = "https://raw.githubusercontent.com/weilin9999/WeiLin-Comfyui-Tools-Prompt/refs/heads/master/tags/2025_03_31/tags_2025_03_31.sql"
+        # sql_url = "https://api.gitcode.com/api/v5/repos/qq_27627297/WeiLin-Comfyui-Tools-Prompt/raw/tags/2025_03_31/tags_2025_03_31.sql?access_token=y7S27_wDHXy1xaSQjupJk-Wy"
+        sql_url = "https://raw.githubusercontent.com/weilin9999/WeiLin-Comfyui-Tools-Prompt/refs/heads/master/tags/2025_03_31/tags_2025_03_31.sql"
         response = requests.get(sql_url, headers=headers)
         response.raise_for_status()
         sql_content = response.text
@@ -676,11 +676,11 @@ def check_and_initialize_db(db_type):
     db_map = {
         'tags': {
             'path': tags_db_path,
-            'url': 'https://api.gitcode.com/api/v5/repos/qq_27627297/WeiLin-Comfyui-Tools-Prompt/contents/tags/2025_03_31?access_token=y7S27_wDHXy1xaSQjupJk-Wy'
+            'url': 'https://api.github.com/repos/weilin9999/WeiLin-Comfyui-Tools-Prompt/contents/tags/2025_03_31'
         },
         'danbooru': {
             'path': danbooru_db_path,
-            'url': 'https://api.gitcode.com/api/v5/repos/qq_27627297/WeiLin-Comfyui-Tools-Prompt/contents/danbooru/2025_04_01?access_token=y7S27_wDHXy1xaSQjupJk-Wy'
+            'url': 'https://api.github.com/repos/weilin9999/WeiLin-Comfyui-Tools-Prompt/contents/danbooru/2025_04_01'
         }
     }
     
@@ -716,7 +716,7 @@ def check_and_initialize_db(db_type):
                     print(f"正在处理文件: {file['name']}")
 
                     # 从GitCode获取SQL文件内容
-                    sql_url = "https://api.gitcode.com/api/v5/repos/qq_27627297/WeiLin-Comfyui-Tools-Prompt/raw/"+file['path']+"?access_token=y7S27_wDHXy1xaSQjupJk-Wy"
+                    sql_url = "https://raw.githubusercontent.com/weilin9999/WeiLin-Comfyui-Tools-Prompt/master/"+file['path']
                     response = requests.get(sql_url, headers=headers)
                     response.raise_for_status()
                     sql_content = response.text
@@ -757,7 +757,7 @@ def install_cloud_file_db(db_type, paths):
                     print(f"正在处理文件: {path_url}")
 
                     # 从GitCode获取SQL文件内容
-                    sql_url = "https://api.gitcode.com/api/v5/repos/qq_27627297/WeiLin-Comfyui-Tools-Prompt/raw/"+path_url+"?access_token=y7S27_wDHXy1xaSQjupJk-Wy"
+                    sql_url = "https://raw.githubusercontent.com/weilin9999/WeiLin-Comfyui-Tools-Prompt/master/"+path_url
                     response = requests.get(sql_url, headers=headers)
                     response.raise_for_status()
                     sql_content = response.text

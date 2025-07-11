@@ -131,6 +131,7 @@ export default {
         shareCloudData: '共享云数据',
         tutorialVideo: "教程视频",
         sponsor: "赞助我",
+        danbooruManager: "Danbooru管理器",
     },
     theme: {
         toggle: '切换主题'
@@ -298,6 +299,7 @@ export default {
         "targetGroup": "目标分组",
         "moveGroupBefore": "移动到目标分组之前",
         "moveGroupAfter": "移动到目标分组之后",
+        importDanbooru: "批量导入",
     },
     loraManager: {
         windowTitle: "Lora管理",
@@ -628,5 +630,21 @@ export default {
         newTemplate: "新建模板",
         rulesReminder: "提醒：第一个规则的范围必须从1开始！如果范围区间超过了随机的总数则直接显示全部不会随机！",
     },
-
+    danbooruManager:{
+        title: "Danbooru管理器",
+        controle: "操作",
+        translatePlaceholder: "请输入对应的翻译文本",
+        searchPlaceholder: "输入需要搜索的Danbooru标签...",
+        pageShow: "每页显示:",
+        pageLimit: "条",
+        hot: "热度",
+        aliases: "分区",
+        sureBatchDelete: "批量删除确认",
+        sureBatchDeleteTips1: "您确定要删除选中的",
+        sureBatchDeleteTips2: "个标签吗？此操作不可撤销。",
+        sureDelete: "确认删除",
+        import: "Danbooru格式导入",
+        importBatchTitle: "批量导入Danbooru数据",
+        importTitle: "Danbooru 导入数据展示",
+    }
 } 
