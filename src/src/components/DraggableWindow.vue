@@ -216,7 +216,7 @@ const handleHeaderMouseDown = (event) => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  z-index: calc(100 * 100 * 100 * 90);
+  z-index: 100;
 }
 
 .weilin_prompt_ui_window-header {

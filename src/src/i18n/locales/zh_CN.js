@@ -300,6 +300,19 @@ export default {
         "moveGroupBefore": "移动到目标分组之前",
         "moveGroupAfter": "移动到目标分组之后",
         importDanbooru: "批量导入",
+        // 标签尺寸相关
+        modifyTabSize: '修改标签尺寸',
+        tabSizeConfig: '标签尺寸配置',
+        primaryTabConfig: '一级分类标签配置',
+        groupTabConfig: '二级分类标签配置',
+        tabWidth: '标签宽度',
+        tabHeight: '标签高度',
+        fontSize: '字体大小',
+        fitContent: '自适应内容',
+        customWidth: '自定义宽度',
+        resetDefault: '重置为默认值',
+        tabSizeConfigSaved: '标签尺寸配置已保存',
+        tabSizeConfigSaveFailed: '标签尺寸配置保存失败',
     },
     loraManager: {
         windowTitle: "Lora管理",
@@ -364,6 +377,8 @@ export default {
         pleaseAddMainCeb: "请先添加一级分类",
         pleaseSelectGroup: "请选择完整的分组路径",
         isLoadingPleaseWait: "正在执行中，请查看后台进度",
+        shareGroupError: "分享失败，获取分组信息失败",
+        shareTagError: "分享失败，获取组Tag信息失败",
     },
     history: {
         "title": "历史记录",
@@ -646,5 +661,7 @@ export default {
         import: "Danbooru格式导入",
         importBatchTitle: "批量导入Danbooru数据",
         importTitle: "Danbooru 导入数据展示",
+        add: "添加Danbooru标签",
+        edit: "编辑Danbooru标签",
     }
 } 

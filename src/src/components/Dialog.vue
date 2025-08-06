@@ -85,6 +85,7 @@ const handleOverlayClick = () => {
   border: 1px solid var(--weilin-prompt-ui-border-color);
   display: flex;
   flex-direction: column;
+  z-index: 1099;
 }
 
 .weilin_prompt_ui_dialog-content {

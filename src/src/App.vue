@@ -72,12 +72,13 @@
     </DraggableWindow>
 
     <!-- Danbooru管理器窗口 -->
-    <DraggableWindow name="DanbooruManagerWindow" v-if="windows.danbooru_manager_window.visible" :title="t('controls.danbooruManager')"
-      :position="windows.danbooru_manager_window.position" :size="windows.danbooru_manager_window.size"
-      :z-index="windowManager.getZIndex('danbooru_manager_window')"
+    <DraggableWindow name="DanbooruManagerWindow" v-if="windows.danbooru_manager_window.visible"
+      :title="t('controls.danbooruManager')" :position="windows.danbooru_manager_window.position"
+      :size="windows.danbooru_manager_window.size" :z-index="windowManager.getZIndex('danbooru_manager_window')"
       @update:position="updatePosition('danbooru_manager_window', $event)"
       @update:size="updateSize('danbooru_manager_window', $event)"
-      @active="windowManager.setActiveWindow('danbooru_manager_window')" @close="closeWindow('danbooru_manager_window')">
+      @active="windowManager.setActiveWindow('danbooru_manager_window')"
+      @close="closeWindow('danbooru_manager_window')">
       <DanbooruManagerWindow ref="danbooruManagerRef" />
     </DraggableWindow>
 
@@ -91,6 +92,7 @@
         <span>{{ versionUpdateMessage }}</span>
         <div class="version-update-actions">
           <button class="goto-github-btn" @click="goToGitHub">前往GitHub</button>
+          <button class="no-remind-btn" @click="noRemindUpdate">不再提醒</button>
           <button class="close-version-update" @click="closeVersionUpdate">×</button>
         </div>
       </div>
@@ -146,6 +148,10 @@ const globalPrompt = ref('')
 const showVersionUpdate = ref(false);
 const versionUpdateMessage = ref('');
 const versionUpdateTimer = ref(null);
+// 在现有的版本更新相关变量后添加
+const VERSION_UPDATE_REMIND_KEY = `${STORAGE_PREFIX}version_update_remind`
+
+
 // 关闭版本更新提示
 const closeVersionUpdate = () => {
   showVersionUpdate.value = false;
@@ -159,6 +165,15 @@ const goToGitHub = () => {
   window.open('https://github.com/weilin9999/WeiLin-Comfyui-Tools', '_blank');
   closeVersionUpdate();
 };
+
+// 修改现有的函数
+// 不再提醒版本更新
+const noRemindUpdate = () => {
+  // 将当前远程版本保存到localStorage，表示此版本不再提醒
+  localStorage.setItem(VERSION_UPDATE_REMIND_KEY, 'false');
+  closeVersionUpdate();
+};
+
 
 // 默认窗口配置
 const DEFAULT_WINDOWS = {
@@ -525,7 +540,7 @@ const handleMessage = (event) => {
   } else if (event.data.type === "weilin_prompt_ui_openLoraDetail") {
     loraDetailLoraStackRef.value.open({ name: event.data.lora })
 
-  }else if(event.data.type === "weilin_prompt_ui_open_danbooru_manager_window"){
+  } else if (event.data.type === "weilin_prompt_ui_open_danbooru_manager_window") {
     windows.value.danbooru_manager_window.visible = true
     windowManager.setActiveWindow('danbooru_manager_window')
 
@@ -574,6 +589,13 @@ const getTagsData = async () => {
 // 检查版本更新
 const checkForUpdates = async () => {
   try {
+    // 检查是否禁用了版本更新提醒
+    const isRemindDisabled = localStorage.getItem(VERSION_UPDATE_REMIND_KEY) === 'false';
+    if (isRemindDisabled) {
+      console.info('WeiLin-Comfyui-Tools 版本更新提醒已禁用');
+      return;
+    }
+
     const response = await fetch('https://raw.githubusercontent.com/weilin9999/WeiLin-Comfyui-Tools/refs/heads/main/src/src/utils/version.js');
     if (!response.ok) {
       console.error('获取版本信息失败:', response.status);
@@ -608,6 +630,12 @@ const checkForUpdates = async () => {
   } catch (error) {
     console.error('WeiLin-Comfyui-Tools 检查更新失败:', error);
   }
+};
+
+// 重新启用版本更新提醒（可以在设置页面调用）
+const enableVersionUpdateRemind = () => {
+  localStorage.removeItem(VERSION_UPDATE_REMIND_KEY);
+  console.info('WeiLin-Comfyui-Tools 版本更新提醒已重新启用');
 };
 
 </script>
@@ -680,5 +708,30 @@ const checkForUpdates = async () => {
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+.no-remind-btn {
+  background-color: rgba(255, 255, 255, 0.8);
+  color: var(--primary-color, #4caf50);
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  margin-right: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+
+.no-remind-btn:hover {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+/* 调整按钮容器的间距 */
+.version-update-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+  gap: 5px;
+  /* 添加按钮间距 */
 }
 </style>

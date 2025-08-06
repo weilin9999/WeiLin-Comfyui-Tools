@@ -24,17 +24,29 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 # Version update introduction
 
-> Last updated: 2025-07-11 (Long time no see. I miss you so much.)
+> Last updated: 2025-08-06
 
-> 0.0.60 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.61 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+>
+> 1. Fixed a known BUG (running the process when the node is not loading can also cause the node to load) (random tag loading issue)
+>
+> 2. Fixed the issue where pop-up Windows were opened in some cases
+>
+> 3. Added the function of adjusting the size of Tag groups
+>
+> 4. Added the function of no longer prompting update pop-up Windows
+>
+
+<details>
+<summary>Click here for more updates from the past</summary>
+
+> 0.0.60 Public Beta Version  2025-07-11 
 >
 > 1. Fixed a known BUG (running the process when the node is not loading can also cause the node to load).
 >
 > 2. New feature: Danbooru Manager, which enables quick and convenient management of Danbooru data
 >
 
-<details>
-<summary>Click here for more updates from the past</summary>
 
 > 0.0.59 Public Beta Version 2025-05-08
 >

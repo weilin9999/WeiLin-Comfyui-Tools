@@ -1,10 +1,10 @@
 <template>
+    <!-- 加载遮罩层 -->
+    <div v-if="loading" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
     <Dialog v-model="dialogVisible" :title="t('importDialog.title')">
         <div class="settings-content">
-            <!-- 加载遮罩层 -->
-            <div v-if="loading" class="loading-overlay">
-                <div class="loading-spinner"></div>
-            </div>
             <div class="info-links">
                 <div class="info-link-item">
                     <span class="info-link-label">{{ t('importDialog.tips1') }}</span>
@@ -34,7 +34,7 @@
                 <button style="margin-left: 10px;" @click="openSelectGroup">{{ t('importDialog.selectGroup') }}</button>
                 <button style="margin-left: 10px;" @click="exportSQL">{{ t('importDialog.dumpSQL') }}</button>
                 <button style="margin-left: 10px;" @click="exportOnlyTagSQL">{{ t('importDialog.dumpOnlySQL')
-                    }}</button>
+                }}</button>
 
                 <input style="width: 300px;margin-left: 10px;" v-model="outPutName"
                     :placeholder="t('importDialog.settingOutputName')" />
@@ -47,16 +47,15 @@
                     style="display: none;" />
             </div>
             <div style="margin-bottom: 16px;">
-                <input  v-model="groupName" :placeholder="t('importDialog.pleaseMainCeb')" />
-                <button  @click="generateGroupSQL">{{ t('importDialog.setMainCeb') }}</button>
+                <input v-model="groupName" :placeholder="t('importDialog.pleaseMainCeb')" />
+                <button @click="generateGroupSQL">{{ t('importDialog.setMainCeb') }}</button>
                 <input style="width: 300px;margin-left: 10px;" v-model="mainClassUUID"
                     :placeholder="t('importDialog.pleaseMainCebUuid')" />
             </div>
             <div style="margin-bottom: 16px;">
-                <input v-model="subGroupName"
-                    :placeholder="t('importDialog.pleaseSubGroup')" />
+                <input v-model="subGroupName" :placeholder="t('importDialog.pleaseSubGroup')" />
                 <button @click="generateSubGroupSQL">{{ t('importDialog.setSubCeb')
-                    }}</button>
+                }}</button>
                 <input style="width: 300px;margin-left: 10px" v-model="subGroupUUID"
                     :placeholder="t('importDialog.pleaseSubGroupUuid')" />
             </div>
@@ -480,32 +479,32 @@ const sureToImportTags = async () => {
 }
 
 watch(groupSql, (newVal, oldVal) => {
-  if (!newVal || newVal === oldVal) return;
-  // 提取 p_uuid（最后一个单引号包裹的内容）
-  const newPUuid = newVal.match(/'([^']+)'\s*\)\s*;?$/)?.[1];
-  const oldPUuid = oldVal?.match(/'([^']+)'\s*\)\s*;?$/)?.[1];
+    if (!newVal || newVal === oldVal) return;
+    // 提取 p_uuid（最后一个单引号包裹的内容）
+    const newPUuid = newVal.match(/'([^']+)'\s*\)\s*;?$/)?.[1];
+    const oldPUuid = oldVal?.match(/'([^']+)'\s*\)\s*;?$/)?.[1];
 
-  if (newPUuid && oldPUuid && subGroupSql.value) {
-    // 只替换原有 oldPUuid 为 newPUuid
-    subGroupSql.value = subGroupSql.value.replace(
-      new RegExp(`'${oldPUuid}'`, 'g'),
-      `'${newPUuid}'`
-    );
-  }
+    if (newPUuid && oldPUuid && subGroupSql.value) {
+        // 只替换原有 oldPUuid 为 newPUuid
+        subGroupSql.value = subGroupSql.value.replace(
+            new RegExp(`'${oldPUuid}'`, 'g'),
+            `'${newPUuid}'`
+        );
+    }
 });
 
 
 watch(subGroupSql, (newVal, oldVal) => {
-  if (!newVal || newVal === oldVal) return;
-  // 提取 g_uuid（最后一个单引号包裹的内容）
-  const newGUuid = newVal.match(/'([^']+)'\s*\)\s*;?$/)?.[1];
-  const oldGUuid = oldVal?.match(/'([^']+)'\s*\)\s*;?$/)?.[1];
-  if (newGUuid && oldGUuid && tagGroups.value.length > 0) {
-    // 只替换原有 oldGUuid 为 newGUuid
-    tagGroups.value = tagGroups.value.map(sql =>
-      sql.replace(new RegExp(`'${oldGUuid}'`, 'g'), `'${newGUuid}'`)
-    );
-  }
+    if (!newVal || newVal === oldVal) return;
+    // 提取 g_uuid（最后一个单引号包裹的内容）
+    const newGUuid = newVal.match(/'([^']+)'\s*\)\s*;?$/)?.[1];
+    const oldGUuid = oldVal?.match(/'([^']+)'\s*\)\s*;?$/)?.[1];
+    if (newGUuid && oldGUuid && tagGroups.value.length > 0) {
+        // 只替换原有 oldGUuid 为 newGUuid
+        tagGroups.value = tagGroups.value.map(sql =>
+            sql.replace(new RegExp(`'${oldGUuid}'`, 'g'), `'${newGUuid}'`)
+        );
+    }
 });
 
 defineExpose({
@@ -524,6 +523,7 @@ defineExpose({
     color: var(--weilin-prompt-ui-primary-text);
     padding-bottom: 20px;
     box-sizing: border-box;
+    z-index: 1099;
 }
 
 input {

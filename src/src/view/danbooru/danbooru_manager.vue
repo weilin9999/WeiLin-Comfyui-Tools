@@ -9,7 +9,7 @@
           @input="debouncedSearch" />
         <button class="search-btn" @click="searchTags">{{ t('tagManager.search') }}</button>
       </div>
-      <button class="add-btn" @click="openAddDialog">{{ t('tagManager.addTag') }}</button>
+      <button class="add-btn" @click="openAddDialog">{{ t('danbooruManager.add') }}</button>
       <button class="add-btn" @click="openImportDialog">{{ t('tagManager.importDanbooru') }}</button>
       <button class="batch-delete-btn" :class="{ 'disabled': selectedItems.length === 0 }"
         :disabled="selectedItems.length === 0" @click="confirmBatchDelete">
@@ -76,9 +76,9 @@
     <div v-else class="no-results">{{ t('tagManager.noResults') }}</div>
 
     <!-- 添加/编辑对话框 -->
-    <div class="dialog" v-if="showDialog">
-      <div class="dialog-content">
-        <h3>{{ isEditing ? t('tagManager.editTag') : t('tagManager.addTag') }}</h3>
+    <div class="weilin-tools-dialog" v-if="showDialog">
+      <div class="weilin-tools-dialog-content">
+        <h3>{{ isEditing ? t('danbooruManager.edit') : t('danbooruManager.add') }}</h3>
         <div class="form-group">
           <label>{{ t('tagManager.description') }}</label>
           <input v-model="formData.tag" type="text" :placeholder="t('tagManager.descriptionPlaceholder')" />
@@ -104,7 +104,7 @@
           <label>Aliases</label>
           <input v-model.number="formData.aliases" type="number" min="0" />
         </div>
-        <div class="dialog-actions">
+        <div class="weilin-tools-dialog-actions">
           <button @click="closeDialog">{{ t('common.cancel') }}</button>
           <button @click="submitForm">{{ t('common.save') }}</button>
         </div>
@@ -112,11 +112,11 @@
     </div>
 
     <!-- 确认删除对话框 -->
-    <div class="dialog" v-if="showDeleteConfirm">
-      <div class="dialog-content">
+    <div class="weilin-tools-dialog" v-if="showDeleteConfirm">
+      <div class="weilin-tools-dialog-content">
         <h3>{{ t('common.confirmDelete') }}</h3>
         <p>{{ t('tagManager.deleteTagConfirm', { name: selectedTag?.tag || '' }) }}</p>
-        <div class="dialog-actions">
+        <div class="weilin-tools-dialog-actions">
           <button @click="showDeleteConfirm = false">{{ t('common.cancel') }}</button>
           <button class="delete-btn" @click="deleteTag">{{ t('common.delete') }}</button>
         </div>
@@ -124,11 +124,12 @@
     </div>
 
     <!-- 批量删除确认对话框 -->
-    <div class="dialog" v-if="showBatchDeleteConfirm">
-      <div class="dialog-content">
+    <div class="weilin-tools-dialog" v-if="showBatchDeleteConfirm">
+      <div class="weilin-tools-dialog-content">
         <h3>{{ t('danbooruManager.sureBatchDelete') }}</h3>
-        <p>{{ t('danbooruManager.sureBatchDeleteTips1') }} {{ selectedItems.length }} {{ t('danbooruManager.sureBatchDeleteTips2') }}</p>
-        <div class="dialog-actions">
+        <p>{{ t('danbooruManager.sureBatchDeleteTips1') }} {{ selectedItems.length }} {{
+          t('danbooruManager.sureBatchDeleteTips2') }}</p>
+        <div class="weilin-tools-dialog-actions">
           <button @click="showBatchDeleteConfirm = false">{{ t('common.cancel') }}</button>
           <button class="delete-btn" @click="batchDeleteTags">{{ t('danbooruManager.sureDelete') }}</button>
         </div>
@@ -643,23 +644,32 @@ tr:hover {
 }
 
 /* 对话框样式 */
-.dialog {
+.weilin-tools-dialog {
   position: fixed;
-  top: 40%;
-  z-index: 1001;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10099;
+}
+
+
+.weilin-tools-dialog-content {
+  padding: 20px;
   width: 400px;
   max-width: 90%;
   background-color: var(--weilin-prompt-ui-primary-bg, #fff);
   border-radius: 8px;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  z-index: 10100;
 }
 
-
-.dialog-content {
-  padding: 20px;
-}
-
-.dialog h3 {
+.weilin-tools-dialog h3 {
   margin-top: 0;
   margin-bottom: 20px;
   color: var(--weilin-prompt-ui-primary-text, #333);
@@ -693,13 +703,13 @@ tr:hover {
   border: 1px solid var(--weilin-prompt-ui-border-color, #ddd);
 }
 
-.dialog-actions {
+.weilin-tools-dialog-actions {
   display: flex;
   justify-content: flex-end;
   margin-top: 20px;
 }
 
-.dialog-actions button {
+.weilin-tools-dialog-actions button {
   padding: 8px 16px;
   border: none;
   border-radius: 4px;
@@ -707,12 +717,12 @@ tr:hover {
   margin-left: 10px;
 }
 
-.dialog-actions button:first-child {
+.weilin-tools-dialog-actions button:first-child {
   background-color: var(--weilin-prompt-ui-cancel-color, #909399);
   color: white;
 }
 
-.dialog-actions button:last-child {
+.weilin-tools-dialog-actions button:last-child {
   background-color: var(--weilin-prompt-ui-primary-color, #409eff);
   color: white;
 }

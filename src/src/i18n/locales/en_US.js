@@ -285,6 +285,20 @@ export default {
         "moveGroupBefore": "Move Before",
         "moveGroupAfter": "Move After",
         importDanbooru: "Batch import",
+        // Tag size related
+        modifyTabSize: 'Modify Tag Size',
+        tabSizeConfig: 'Tag Size Configuration',
+        primaryTabConfig: 'Primary Category Tab Configuration',
+        groupTabConfig: 'Group Category Tab Configuration',
+        tabWidth: 'Tab Width',
+        tabHeight: 'Tab Height',
+        fontSize: 'Font Size',
+        fitContent: 'Fit Content',
+        customWidth: 'Custom Width',
+        resetDefault: 'Reset to Default',
+        tabSizeConfigSaved: 'Tag size configuration saved',
+        tabSizeConfigSaveFailed: 'Failed to save tag size configuration',
+    
     },
     loraManager: {
         windowTitle: "Lora Manager",
@@ -348,6 +362,8 @@ export default {
         pleaseAddMainCeb: "Please add the first-level category first",
         pleaseSelectGroup: "Please select the complete grouping path",
         isLoadingPleaseWait: "It is being executed. Please check the progress in the background",
+        shareGroupError: "Failed to share and failed to obtain group information",
+        shareTagError: "Failed to share and failed to obtain group tag information",
     },
     cloudWindow: {
         "windowTitle": "Share Cloud Window",
@@ -641,5 +657,7 @@ export default {
         import: "Import in Danbooru format",
         importBatchTitle: "Batch import Danbooru data",
         importTitle: "Danbooru Import data display",
+        add: "Add Danbooru Tag",
+        edit: "Edit Danbooru Tag",
     }
 } 

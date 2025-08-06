@@ -1,10 +1,10 @@
 <template>
+    <!-- 加载遮罩层 -->
+    <div v-if="loading" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
     <Dialog v-model="dialogVisible" :title="t('danbooruManager.importBatchTitle')">
         <div class="settings-content">
-            <!-- 加载遮罩层 -->
-            <div v-if="loading" class="loading-overlay">
-                <div class="loading-spinner"></div>
-            </div>
             <div style="margin-bottom: 16px;">
                 <button @click="cleanAll" class="upload-btn">{{ t('importDialog.cleanAll') }}</button>
                 <button style="margin-left: 10px;" @click="exportSQL">{{ t('importDialog.dumpSQL') }}</button>
@@ -13,7 +13,8 @@
                     :placeholder="t('importDialog.settingOutputName')" />
 
                 <input type="file" ref="fileInput" @change="handleFileUpload" accept=".sql" style="display: none;" />
-                <input type="file" ref="danbooruTxtFileInput" @change="handleDanbooruTXTUpload" accept=".txt,.csv" style="display: none;" />
+                <input type="file" ref="danbooruTxtFileInput" @change="handleDanbooruTXTUpload" accept=".txt,.csv"
+                    style="display: none;" />
             </div>
             <div style="margin-bottom: 16px;">
                 <input v-model="tag" placeholder="Tag" />
@@ -21,7 +22,8 @@
                 <input v-model="hot" :placeholder="t('danbooruManager.hot')" type="number" />
                 <input v-model="aliases" :placeholder="t('danbooruManager.aliases')" type="number" />
                 <button @click="generateDanbooruSQL">{{ t('importDialog.add') }}</button>
-                <button style="margin-left: 10px;" @click="triggerDanbooruTXTUpload" class="upload-btn">{{ t('danbooruManager.import') }}</button>
+                <button style="margin-left: 10px;" @click="triggerDanbooruTXTUpload" class="upload-btn">{{
+                    t('danbooruManager.import') }}</button>
             </div>
             <div class="data-container">
                 <div v-if="groupSql">
@@ -31,16 +33,22 @@
                         <div class="tag-group-container">
                             <div v-for="(tag, index) in tagGroups" :key="index"
                                 style="display: flex;flex-direction: column;align-items: center;">
-                                <p v-if="isDanbooruFormat(tag)">{{ parseDanbooruSQL(tag).tag }} - {{ parseDanbooruSQL(tag).translate }} ({{ t('danbooruManager.hot') }}: {{ parseDanbooruSQL(tag).hot }}, {{ t('danbooruManager.aliases') }}: {{ parseDanbooruSQL(tag).aliases }})</p>
+                                <p v-if="isDanbooruFormat(tag)">{{ parseDanbooruSQL(tag).tag }} - {{
+                                    parseDanbooruSQL(tag).translate }} ({{ t('danbooruManager.hot') }}: {{
+                                    parseDanbooruSQL(tag).hot }}, {{ t('danbooruManager.aliases') }}: {{
+                                    parseDanbooruSQL(tag).aliases }})</p>
                                 <p v-else>{{ parseSQL(tag).text }} - {{ parseSQL(tag).desc }}</p>
                                 <div style="display: flex;align-items: center;">
                                     <div v-if="editingIndex === index">
                                         <input v-if="isDanbooruFormat(tag)" v-model="editText" placeholder="Tag" />
                                         <input v-else v-model="editText" placeholder="Tag" />
-                                        <input v-if="isDanbooruFormat(tag)" v-model="editDesc" :placeholder="t('importDialog.translate')" />
+                                        <input v-if="isDanbooruFormat(tag)" v-model="editDesc"
+                                            :placeholder="t('importDialog.translate')" />
                                         <input v-else v-model="editDesc" :placeholder="t('importDialog.translater')" />
-                                        <input v-if="isDanbooruFormat(tag)" v-model="editHot" :placeholder="t('danbooruManager.hot')" type="number" />
-                                        <input v-if="isDanbooruFormat(tag)" v-model="editAliases" :placeholder="t('danbooruManager.aliases')" type="number" />
+                                        <input v-if="isDanbooruFormat(tag)" v-model="editHot"
+                                            :placeholder="t('danbooruManager.hot')" type="number" />
+                                        <input v-if="isDanbooruFormat(tag)" v-model="editAliases"
+                                            :placeholder="t('danbooruManager.aliases')" type="number" />
                                         <button @click="confirmEdit(index)">{{ t('importDialog.sureYes') }}</button>
                                         <button style="margin-left: 10px;" @click="cancelEdit">{{
                                             t('importDialog.cancel') }}</button>
@@ -58,16 +66,21 @@
                     <div class="tag-group-container">
                         <div v-for="(tag, index) in tagGroups" :key="index"
                             style="display: flex;flex-direction: column;align-items: center;">
-                            <p v-if="isDanbooruFormat(tag)">{{ parseDanbooruSQL(tag).tag }} - {{ parseDanbooruSQL(tag).translate }} (热度: {{ parseDanbooruSQL(tag).hot }}, 别名: {{ parseDanbooruSQL(tag).aliases }})</p>
+                            <p v-if="isDanbooruFormat(tag)">{{ parseDanbooruSQL(tag).tag }} - {{
+                                parseDanbooruSQL(tag).translate }} (热度: {{ parseDanbooruSQL(tag).hot }}, 别名: {{
+                                parseDanbooruSQL(tag).aliases }})</p>
                             <p v-else>{{ parseSQL(tag).text }} - {{ parseSQL(tag).desc }}</p>
                             <div style="display: flex;align-items: center;">
                                 <div v-if="editingIndex === index">
                                     <input v-if="isDanbooruFormat(tag)" v-model="editText" placeholder="Tag" />
                                     <input v-else v-model="editText" placeholder="Tag" />
-                                    <input v-if="isDanbooruFormat(tag)" v-model="editDesc" :placeholder="t('importDialog.translater')" />
+                                    <input v-if="isDanbooruFormat(tag)" v-model="editDesc"
+                                        :placeholder="t('importDialog.translater')" />
                                     <input v-else v-model="editDesc" :placeholder="t('importDialog.translater')" />
-                                    <input v-if="isDanbooruFormat(tag)" v-model="editHot" :placeholder="t('danbooruManager.hot')" type="number" />
-                                    <input v-if="isDanbooruFormat(tag)" v-model="editAliases" :placeholder="t('danbooruManager.aliases')" type="number" />
+                                    <input v-if="isDanbooruFormat(tag)" v-model="editHot"
+                                        :placeholder="t('danbooruManager.hot')" type="number" />
+                                    <input v-if="isDanbooruFormat(tag)" v-model="editAliases"
+                                        :placeholder="t('danbooruManager.aliases')" type="number" />
                                     <button @click="confirmEdit(index)">{{ t('importDialog.sureYes') }}</button>
                                     <button style="margin-left: 10px;" @click="cancelEdit">{{
                                         t('importDialog.cancel') }}</button>
@@ -187,12 +200,12 @@ function handleDanbooruTXTUpload(event) {
             const content = e.target.result;
             const lines = content.split('\n').filter(line => line.trim());
             let index = 1;
-            
+
             lines.forEach(line => {
                 const parts = line.split(',');
                 if (parts.length >= 2) {
                     let tag, aliases, hot, translate;
-                    
+
                     if (parts.length === 2) {
                         // 只有两个参数：tag, translate
                         tag = parts[0].trim();
@@ -204,19 +217,19 @@ function handleDanbooruTXTUpload(event) {
                         tag = parts[0].trim();
                         aliases = parseInt(parts[1].trim()) || 0;
                         hot = parseInt(parts[2].trim()) || 0;
-                        
+
                         // 获取最后一个参数，将剩余的部分重新组合
                         const remainingParts = parts.slice(3);
                         translate = remainingParts.join(',').trim();
-                        
+
                         // 去除双引号
                         translate = translate.replace(/^"(.*)"$/, '$1');
                     }
-                    
+
                     // 转义单引号
                     const escapedTag = tag.replace(/'/g, "''");
                     const escapedTranslate = translate.replace(/'/g, "''");
-                    
+
                     const sql = `INSERT INTO "danbooru_tag" ("tag", "color_id", "translate", "hot", "aliases") VALUES ('${escapedTag}', '', '${escapedTranslate}', ${hot}, ${aliases});`;
                     tagGroups.value.push(sql);
                     index++;
@@ -251,7 +264,7 @@ function exportSQL() {
         // 原有格式导出所有数据
         sqlContent = [groupSql.value, subGroupSql.value, ...tagGroups.value].join('\n');
     }
-    
+
     const blob = new Blob([sqlContent], { type: 'text/sql' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -281,7 +294,7 @@ function parseDanbooruSQL(sql) {
     // 匹配当前生成的 danbooru_tag 表的 SQL 语句格式
     // INSERT INTO "danbooru_tag" ("tag", "color_id", "translate", "hot", "aliases") VALUES ('tag_name', '', 'translate_text', 123, 1);
     const match = sql.match(/VALUES\s*\(\s*'([^']+)'\s*,\s*'([^']*)'\s*,\s*'([^']*)'\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
-    
+
     if (match) {
         return {
             tag: match[1].replace(/''/g, "'"),
@@ -291,7 +304,7 @@ function parseDanbooruSQL(sql) {
             aliases: parseInt(match[5])
         };
     }
-    
+
     return {
         tag: '',
         color_id: '',
@@ -327,13 +340,13 @@ function startEdit(index) {
 function confirmEdit(index) {
     const escapedText = editText.value.replace(/'/g, "''");
     const escapedDesc = editDesc.value.replace(/'/g, "''");
-    
+
     if (isDanbooruFormat(tagGroups.value[index])) {
         // 更新 danbooru_tag 格式的 SQL
         const parsed = parseDanbooruSQL(tagGroups.value[index]);
         const hot = parseInt(editHot.value) || 0;
         const aliases = parseInt(editAliases.value) || 0;
-        
+
         tagGroups.value[index] = `INSERT INTO "danbooru_tag" ("tag", "color_id", "translate", "hot", "aliases") VALUES ('${escapedText}', '${parsed.color_id}', '${escapedDesc}', ${hot}, ${aliases});`;
     } else {
         // 更新原有格式的 SQL
@@ -360,10 +373,10 @@ function generateDanbooruSQL() {
     const escapedChinese = chinese.value.replace(/'/g, "''");
     const hotValue = parseInt(hot.value) || 0;
     const aliasesValue = parseInt(aliases.value) || 0;
-    
+
     const sql = `INSERT INTO "danbooru_tag" ("tag", "color_id", "translate", "hot", "aliases") VALUES ('${escapedTag}', '', '${escapedChinese}', ${hotValue}, ${aliasesValue});`;
     tagGroups.value.push(sql);
-    
+
     // 清空输入框
     tag.value = '';
     chinese.value = '';
@@ -429,32 +442,32 @@ const sureToImportTags = async () => {
 }
 
 watch(groupSql, (newVal, oldVal) => {
-  if (!newVal || newVal === oldVal) return;
-  // 提取 p_uuid（最后一个单引号包裹的内容）
-  const newPUuid = newVal.match(/'([^']+)'\s*\)\s*;?$/)?.[1];
-  const oldPUuid = oldVal?.match(/'([^']+)'\s*\)\s*;?$/)?.[1];
+    if (!newVal || newVal === oldVal) return;
+    // 提取 p_uuid（最后一个单引号包裹的内容）
+    const newPUuid = newVal.match(/'([^']+)'\s*\)\s*;?$/)?.[1];
+    const oldPUuid = oldVal?.match(/'([^']+)'\s*\)\s*;?$/)?.[1];
 
-  if (newPUuid && oldPUuid && subGroupSql.value) {
-    // 只替换原有 oldPUuid 为 newPUuid
-    subGroupSql.value = subGroupSql.value.replace(
-      new RegExp(`'${oldPUuid}'`, 'g'),
-      `'${newPUuid}'`
-    );
-  }
+    if (newPUuid && oldPUuid && subGroupSql.value) {
+        // 只替换原有 oldPUuid 为 newPUuid
+        subGroupSql.value = subGroupSql.value.replace(
+            new RegExp(`'${oldPUuid}'`, 'g'),
+            `'${newPUuid}'`
+        );
+    }
 });
 
 
 watch(subGroupSql, (newVal, oldVal) => {
-  if (!newVal || newVal === oldVal) return;
-  // 提取 g_uuid（最后一个单引号包裹的内容）
-  const newGUuid = newVal.match(/'([^']+)'\s*\)\s*;?$/)?.[1];
-  const oldGUuid = oldVal?.match(/'([^']+)'\s*\)\s*;?$/)?.[1];
-  if (newGUuid && oldGUuid && tagGroups.value.length > 0) {
-    // 只替换原有 oldGUuid 为 newGUuid
-    tagGroups.value = tagGroups.value.map(sql =>
-      sql.replace(new RegExp(`'${oldGUuid}'`, 'g'), `'${newGUuid}'`)
-    );
-  }
+    if (!newVal || newVal === oldVal) return;
+    // 提取 g_uuid（最后一个单引号包裹的内容）
+    const newGUuid = newVal.match(/'([^']+)'\s*\)\s*;?$/)?.[1];
+    const oldGUuid = oldVal?.match(/'([^']+)'\s*\)\s*;?$/)?.[1];
+    if (newGUuid && oldGUuid && tagGroups.value.length > 0) {
+        // 只替换原有 oldGUuid 为 newGUuid
+        tagGroups.value = tagGroups.value.map(sql =>
+            sql.replace(new RegExp(`'${oldGUuid}'`, 'g'), `'${newGUuid}'`)
+        );
+    }
 });
 
 defineExpose({
@@ -473,6 +486,7 @@ defineExpose({
     color: var(--weilin-prompt-ui-primary-text);
     padding-bottom: 20px;
     box-sizing: border-box;
+    z-index: 1099;
 }
 
 input {

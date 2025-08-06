@@ -39,12 +39,19 @@
       </div>
 
       <!-- 高级设置 -->
-      <div class="group-edit-mode">
-        <label>
-          <input type="checkbox" v-model="isAutoAddSearchTag" :true-value="1" :false-value="0" />
-          {{ t('tagManager.autoAddSearchTag') }}
-        </label>
+      <div class="toolbar-bottom">
+        <div class="group-edit-mode">
+          <label>
+            <input type="checkbox" v-model="isAutoAddSearchTag" :true-value="1" :false-value="0" />
+            {{ t('tagManager.autoAddSearchTag') }}
+          </label>
+        </div>
+        <!-- 新增修改标签尺寸按钮 -->
+        <button class="tab-size-btn" @click="showTabSizeDialog">
+          {{ t('tagManager.modifyTabSize') }}
+        </button>
       </div>
+
     </div>
 
     <!-- 分类导航区域 -->
@@ -55,7 +62,10 @@
           <div v-for="(category, index) in categories" :key="'Tabss-' + index" class="tab-item"
             :class="{ active: selectedCategory?.name === category.name }" :style="{
               backgroundColor: selectedCategory?.name === category.name ? 'var(--primary-color)' : category.color,
-              color: selectedCategory?.name === category.name ? '#ffffff' : getContrastColor(category.color)
+              color: selectedCategory?.name === category.name ? '#ffffff' : getContrastColor(category.color),
+              width: tabSizeConfig.primaryTab.width === 'fit-content' ? 'fit-content' : tabSizeConfig.primaryTab.width + 'px',
+              height: tabSizeConfig.primaryTab.height + 'px',
+              fontSize: tabSizeConfig.primaryTab.fontSize + 'px'
             }" @click="selectCategory(category)" @mouseenter="showTabActions(index)"
             @mouseleave="hideTabActions(index)">
             <span class="tab-text">{{ category.name }}</span>
@@ -106,7 +116,10 @@
           <div v-for="(group, index) in subCategories" :key="'TabsSw-' + index" class="tab-item"
             :class="{ active: selectedGroup?.name === group.name }" :style="{
               backgroundColor: selectedGroup?.name === group.name ? 'var(--primary-color)' : group.color,
-              color: selectedGroup?.name === group.name ? '#ffffff' : getContrastColor(group.color)
+              color: selectedGroup?.name === group.name ? '#ffffff' : getContrastColor(group.color),
+              width: tabSizeConfig.groupTab.width === 'fit-content' ? 'fit-content' : tabSizeConfig.groupTab.width + 'px',
+              height: tabSizeConfig.groupTab.height + 'px',
+              fontSize: tabSizeConfig.groupTab.fontSize + 'px'
             }" @click="selectGroup(group)" @mouseenter="showTabActionsGroup(index)"
             @mouseleave="hideTabActionsGroup(index)">
             <span class="tab-text">{{ group.name }}</span>
@@ -214,13 +227,13 @@
     </div>
 
     <!-- 分类对话框 -->
-    <div v-if="showCategoryDialog" class="dialog-overlay">
-      <div class="dialog-content" @mousedown.stop>
-        <div class="dialog-header">
+    <div v-if="showCategoryDialog" class="weilin-tools-dialog-overlay">
+      <div class="weilin-tools-dialog-content" @mousedown.stop>
+        <div class="weilin-tools-dialog-header">
           <h2>{{ getCategoryDialogTitle() }}</h2>
           <button class="close-btn" @click="closeCategoryDialog">×</button>
         </div>
-        <div class="dialog-body">
+        <div class="weilin-tools-dialog-body">
           <div class="form-group" v-if="categoryType == 'primary'">
             <label>{{ t('tagManager.categoryName') }}</label>
             <input type="text" v-model="currentCategory.name" :placeholder="t('tagManager.categoryNamePlaceholder')"
@@ -247,7 +260,7 @@
             </div>
           </div>
         </div>
-        <div class="dialog-footer">
+        <div class="weilin-tools-dialog-footer">
           <button class="cancel-btn" @click="closeCategoryDialog">{{ t('common.cancel') }}</button>
           <button class="confirm-btn" @click="saveCategory">{{ t('common.confirm') }}</button>
         </div>
@@ -255,13 +268,13 @@
     </div>
 
     <!-- 标签对话框 -->
-    <div v-if="showTagDialog" class="dialog-overlay">
-      <div class="dialog-content" @mousedown.stop>
-        <div class="dialog-header">
+    <div v-if="showTagDialog" class="weilin-tools-dialog-overlay">
+      <div class="weilin-tools-dialog-content" @mousedown.stop>
+        <div class="weilin-tools-dialog-header">
           <h2>{{ isEditingTag ? t('tagManager.editTag') : t('tagManager.addTag') }}</h2>
           <button class="close-btn" @click="closeTagDialog">×</button>
         </div>
-        <div class="dialog-body">
+        <div class="weilin-tools-dialog-body">
           <div class="form-group">
             <label>{{ t('tagManager.text') }}</label>
             <input type="text" v-model="currentTag.desc" :placeholder="t('tagManager.textPlaceholder')">
@@ -287,7 +300,7 @@
             </div>
           </div>
         </div>
-        <div class="dialog-footer">
+        <div class="weilin-tools-dialog-footer">
           <button class="cancel-btn" @click="closeTagDialog">{{ t('common.cancel') }}</button>
           <button class="confirm-btn" @click="saveTag">{{ t('common.confirm') }}</button>
         </div>
@@ -295,16 +308,16 @@
     </div>
 
     <!-- 确认删除对话框 -->
-    <div v-if="showDeleteDialog" class="dialog-overlay">
-      <div class="dialog-content confirm-dialog" @mousedown.stop>
-        <div class="dialog-header">
+    <div v-if="showDeleteDialog" class="weilin-tools-dialog-overlay">
+      <div class="weilin-tools-dialog-content confirm-weilin-tools-dialog" @mousedown.stop>
+        <div class="weilin-tools-dialog-header">
           <h2>{{ t('common.confirmDelete') }}</h2>
           <button class="close-btn" @click="closeDeleteDialog">×</button>
         </div>
-        <div class="dialog-body">
+        <div class="weilin-tools-dialog-body">
           <p class="confirm-message">{{ deleteConfirmMessage }}</p>
         </div>
-        <div class="dialog-footer">
+        <div class="weilin-tools-dialog-footer">
           <button class="cancel-btn" @click="closeDeleteDialog">{{ t('common.cancel') }}</button>
           <button class="delete-btn" @click="confirmDelete">{{ t('common.delete') }}</button>
         </div>
@@ -312,13 +325,13 @@
     </div>
 
     <!-- 移动标签对话框 -->
-    <div v-if="showMoveDialog" class="dialog-overlay">
-      <div class="dialog-content">
-        <div class="dialog-header">
+    <div v-if="showMoveDialog" class="weilin-tools-dialog-overlay">
+      <div class="weilin-tools-dialog-content">
+        <div class="weilin-tools-dialog-header">
           <h2>{{ t('tagManager.moveTag') }}</h2>
           <button class="close-btn" @click="showMoveDialog = false">×</button>
         </div>
-        <div class="dialog-body">
+        <div class="weilin-tools-dialog-body">
           <div class="form-group">
             <label>{{ t('tagManager.targetTag') }}</label>
             <select v-model="moveTargetTagId" class="form-select">
@@ -341,7 +354,7 @@
             </div>
           </div>
         </div>
-        <div class="dialog-footer">
+        <div class="weilin-tools-dialog-footer">
           <button class="cancel-btn" @click="showMoveDialog = false">{{ t('common.cancel') }}</button>
           <button class="confirm-btn" @click="confirmMove">{{ t('common.confirm') }}</button>
         </div>
@@ -350,13 +363,13 @@
 
 
     <!-- 移动分组对话框 -->
-    <div v-if="showMoveGroupDialog" class="dialog-overlay">
-      <div class="dialog-content">
-        <div class="dialog-header">
+    <div v-if="showMoveGroupDialog" class="weilin-tools-dialog-overlay">
+      <div class="weilin-tools-dialog-content">
+        <div class="weilin-tools-dialog-header">
           <h2>{{ t('tagManager.moveGroup') }}</h2>
           <button class="close-btn" @click="showMoveGroupDialog = false">×</button>
         </div>
-        <div class="dialog-body">
+        <div class="weilin-tools-dialog-body">
           <div class="form-group">
             <label>{{ t('tagManager.targetGroup') }}</label>
             <select v-model="moveTargetGroupId" class="form-select">
@@ -379,9 +392,85 @@
             </div>
           </div>
         </div>
-        <div class="dialog-footer">
+        <div class="weilin-tools-dialog-footer">
           <button class="cancel-btn" @click="showMoveGroupDialog = false">{{ t('common.cancel') }}</button>
           <button class="confirm-btn" @click="confirmMoveGroup">{{ t('common.confirm') }}</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 标签尺寸配置对话框 -->
+    <div v-if="showTabSizeConfig" class="weilin-tools-dialog-overlay">
+      <div class="weilin-tools-dialog-content tab-size-weilin-tools-dialog" @mousedown.stop>
+        <div class="weilin-tools-dialog-header">
+          <h2>{{ t('tagManager.tabSizeConfig') }}</h2>
+          <button class="close-btn" @click="closeTabSizeDialog">×</button>
+        </div>
+        <div class="weilin-tools-dialog-body">
+          <!-- 一级分类配置 -->
+          <div class="config-section">
+            <h3>{{ t('tagManager.primaryTabConfig') }}</h3>
+            <div class="form-group">
+              <label>{{ t('tagManager.tabWidth') }}</label>
+              <div class="width-control">
+                <label class="radio-label">
+                  <input type="radio" v-model="tabSizeConfig.primaryTab.width" value="fit-content" />
+                  {{ t('tagManager.fitContent') }}
+                </label>
+                <label class="radio-label">
+                  <input type="radio" v-model="tabSizeConfig.primaryTab.width" value="custom" />
+                  {{ t('tagManager.customWidth') }}
+                </label>
+                <input v-if="tabSizeConfig.primaryTab.width !== 'fit-content'" type="number"
+                  v-model.number="tabSizeConfig.primaryTab.width" min="50" max="300" class="number-input" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>{{ t('tagManager.tabHeight') }} ({{ tabSizeConfig.primaryTab.height }}px)</label>
+              <input type="range" v-model.number="tabSizeConfig.primaryTab.height" min="20" max="60"
+                class="range-input" />
+            </div>
+            <div class="form-group">
+              <label>{{ t('tagManager.fontSize') }} ({{ tabSizeConfig.primaryTab.fontSize }}px)</label>
+              <input type="range" v-model.number="tabSizeConfig.primaryTab.fontSize" min="8" max="20"
+                class="range-input" />
+            </div>
+          </div>
+
+          <!-- 二级分类配置 -->
+          <div class="config-section">
+            <h3>{{ t('tagManager.groupTabConfig') }}</h3>
+            <div class="form-group">
+              <label>{{ t('tagManager.tabWidth') }}</label>
+              <div class="width-control">
+                <label class="radio-label">
+                  <input type="radio" v-model="tabSizeConfig.groupTab.width" value="fit-content" />
+                  {{ t('tagManager.fitContent') }}
+                </label>
+                <label class="radio-label">
+                  <input type="radio" v-model="tabSizeConfig.groupTab.width" value="custom" />
+                  {{ t('tagManager.customWidth') }}
+                </label>
+                <input v-if="tabSizeConfig.groupTab.width !== 'fit-content'" type="number"
+                  v-model.number="tabSizeConfig.groupTab.width" min="50" max="300" class="number-input" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>{{ t('tagManager.tabHeight') }} ({{ tabSizeConfig.groupTab.height }}px)</label>
+              <input type="range" v-model.number="tabSizeConfig.groupTab.height" min="20" max="60"
+                class="range-input" />
+            </div>
+            <div class="form-group">
+              <label>{{ t('tagManager.fontSize') }} ({{ tabSizeConfig.groupTab.fontSize }}px)</label>
+              <input type="range" v-model.number="tabSizeConfig.groupTab.fontSize" min="8" max="20"
+                class="range-input" />
+            </div>
+          </div>
+        </div>
+        <div class="weilin-tools-dialog-footer">
+          <button class="reset-btn" @click="resetTabSizeConfig">{{ t('tagManager.resetDefault') }}</button>
+          <button class="cancel-btn" @click="closeTabSizeDialog">{{ t('common.cancel') }}</button>
+          <button class="confirm-btn" @click="saveTabSizeConfig">{{ t('common.confirm') }}</button>
         </div>
       </div>
     </div>
@@ -445,6 +534,35 @@ const isDeleteTagAction = ref(false);
 // 批量分享
 const isShareTagAction = ref(false);
 
+
+// 新增状态变量
+const showTabSizeConfig = ref(false)
+const tabSizeConfig = ref({
+  primaryTab: {
+    width: 'fit-content',
+    height: 34,
+    fontSize: 10
+  },
+  groupTab: {
+    width: 'fit-content',
+    height: 34,
+    fontSize: 10
+  }
+})
+
+// 默认配置
+const defaultTabSizeConfig = {
+  primaryTab: {
+    width: 'fit-content',
+    height: 34,
+    fontSize: 10
+  },
+  groupTab: {
+    width: 'fit-content',
+    height: 34,
+    fontSize: 10
+  }
+}
 
 const props = defineProps({
   tagManager: {
@@ -558,6 +676,10 @@ onMounted(() => {
   window.addEventListener('resize', updateSearchResultsStyle)
   window.addEventListener('message', handleMessage)
   window.addEventListener('keydown', handleKeydown) // 监听键盘事件
+
+  // 加载标签尺寸配置
+  loadTabSizeConfig()
+
   // categories.value = tagStore.categories
   // if (categories.value.length <= 0) {
   getTagsList()
@@ -1117,33 +1239,59 @@ const confirmDelete = async () => {
 
 
 // 分享整个一级目录
-const shareCategory = (category) => {
+const shareCategory = async (category) => {
+  // console.log(category)
   // 生成一级分类SQL
   const groupSql = `INSERT OR REPLACE INTO "tag_groups" ("name", "color", "create_time", "p_uuid") VALUES ('${category.name.replace(/'/g, "''")}', '${category.color}', ${category.create_time}, '${category.p_uuid}');`;
+  try {
+    await tagsApi.getTagSubGroup(category.p_uuid).then((res) => {
+      // console.log(res);
+      const groupData = res
+      // 生成二级分类和标签SQL
+      const tagSqls = [];
+      groupData.forEach(async (group) => {
+        const subGroupSql = `INSERT OR REPLACE INTO "tag_subgroups" ("name", "color", "create_time", "p_uuid", "g_uuid") VALUES ('${group.name.replace(/'/g, "''")}', '${group.color}', ${group.create_time}, '${group.p_uuid}', '${group.g_uuid}');`;
+        tagSqls.push(subGroupSql);
 
-  // 生成二级分类和标签SQL
-  const tagSqls = [];
-  category.groups.forEach(group => {
-    const subGroupSql = `INSERT OR REPLACE INTO "tag_subgroups" ("name", "color", "create_time", "p_uuid", "g_uuid") VALUES ('${group.name.replace(/'/g, "''")}', '${group.color}', ${group.create_time}, '${group.p_uuid}', '${group.g_uuid}');`;
-    tagSqls.push(subGroupSql);
+        try {
+          await tagsApi.getTagList(group.g_uuid).then((res) => {
+            // console.log(res);
+            const currentTags = res
+            currentTags.forEach(tag => {
+              const tagSql = `INSERT OR REPLACE INTO "tag_tags" ("text", "desc", "color", "create_time", "g_uuid", "t_uuid") VALUES ('${tag.text.replace(/'/g, "''")}', '${tag.desc.replace(/'/g, "''")}', '${tag.color}', ${tag.create_time}, '${tag.g_uuid}', '${uuidv7()}');`;
+              tagSqls.push(tagSql);
+            });
+          }).catch((err) => {
+            console.error(err);
+            message({ type: "warn", str: 'message.networkError' });
+          });
+        } catch (error) {
+          console.error('Tag列表失败:', error)
+          message({ type: "warn", str: 'message.shareTagError' });
+        }
+      });
 
-    group.tags.forEach(tag => {
-      const tagSql = `INSERT OR REPLACE INTO "tag_tags" ("text", "desc", "color", "create_time", "g_uuid", "t_uuid") VALUES ('${tag.text.replace(/'/g, "''")}', '${tag.desc.replace(/'/g, "''")}', '${tag.color}', ${tag.create_time}, '${tag.g_uuid}', '${uuidv7()}');`;
-      tagSqls.push(tagSql);
+      // 合并所有SQL语句
+      const sqlContent = [groupSql, ...tagSqls].join('\n');
+
+      // 创建下载链接
+      const blob = new Blob([sqlContent], { type: 'text/sql' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${category.name}_export_${Date.now()}.sql`;
+      link.click();
+
+      message({ type: "success", str: 'tagManager.outputSuccess' });
+    }).catch((err) => {
+      console.error(err);
+      message({ type: "warn", str: 'message.networkError' });
     });
-  });
 
-  // 合并所有SQL语句
-  const sqlContent = [groupSql, ...tagSqls].join('\n');
+  } catch (error) {
+    console.error('二级分类列表失败:', error)
+    message({ type: "warn", str: 'message.shareGroupError' });
+  }
 
-  // 创建下载链接
-  const blob = new Blob([sqlContent], { type: 'text/sql' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `${category.name}_export_${Date.now()}.sql`;
-  link.click();
-
-  message({ type: "success", str: 'tagManager.outputSuccess' });
 };
 
 // 打开移动对话框
@@ -1385,6 +1533,53 @@ const hideTabActionsGroup = (index) => {
 const importTagDialogItem = ref()
 const showImportDialog = () => {
   importTagDialogItem.value.open()
+}
+
+// 从localStorage读取配置
+const loadTabSizeConfig = () => {
+  const defaultTabData = JSON.parse(JSON.stringify(defaultTabSizeConfig))
+  try {
+    const saved = localStorage.getItem('weilin_tag_manager_tab_size_config')
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      tabSizeConfig.value = { ...defaultTabData, ...parsed }
+    } else {
+      tabSizeConfig.value = { ...defaultTabData }
+    }
+  } catch (error) {
+    console.error('读取标签尺寸配置失败:', error)
+    tabSizeConfig.value = { ...defaultTabData }
+  }
+}
+
+// 保存配置到localStorage
+const saveTabSizeConfig = () => {
+  try {
+    localStorage.setItem('weilin_tag_manager_tab_size_config', JSON.stringify(tabSizeConfig.value))
+    message({ type: "success", str: 'tagManager.tabSizeConfigSaved' });
+    showTabSizeConfig.value = false
+  } catch (error) {
+    console.error('保存标签尺寸配置失败:', error)
+    message({ type: "error", str: 'tagManager.tabSizeConfigSaveFailed' });
+  }
+}
+
+// 显示配置对话框
+const showTabSizeDialog = () => {
+  showTabSizeConfig.value = true
+}
+
+// 关闭配置对话框
+const closeTabSizeDialog = () => {
+  showTabSizeConfig.value = false
+  // 重新从localStorage加载，撤销未保存的更改
+  loadTabSizeConfig()
+}
+
+// 重置为默认值
+const resetTabSizeConfig = () => {
+  const defaultTabData = JSON.parse(JSON.stringify(defaultTabSizeConfig))
+  tabSizeConfig.value = { ...defaultTabData }
 }
 
 </script>
@@ -1701,7 +1896,7 @@ const showImportDialog = () => {
 }
 
 /* 对话框样式 */
-.dialog-overlay {
+.weilin-tools-dialog-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -1714,16 +1909,17 @@ const showImportDialog = () => {
   z-index: 9999;
 }
 
-.dialog-content {
+.weilin-tools-dialog-content {
   background: var(--weilin-prompt-ui-primary-bg);
   border-radius: 8px;
   min-width: 400px;
   max-width: 90%;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
   box-sizing: border-box;
+  z-index: 10099;
 }
 
-.dialog-header {
+.weilin-tools-dialog-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1731,18 +1927,18 @@ const showImportDialog = () => {
   border-bottom: 1px solid var(--weilin-prompt-ui-border-color);
 }
 
-.dialog-header h2 {
+.weilin-tools-dialog-header h2 {
   margin: 0;
   font-size: 18px;
   color: var(--primary-text);
 }
 
-.dialog-body {
+.weilin-tools-dialog-body {
   padding: 20px;
   box-sizing: border-box;
 }
 
-.dialog-footer {
+.weilin-tools-dialog-footer {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
@@ -1835,7 +2031,7 @@ const showImportDialog = () => {
 }
 
 /* 确认对话框特定样式 */
-.confirm-dialog {
+.confirm-weilin-tools-dialog {
   min-width: 300px !important;
   max-width: 400px !important;
   width: 90%;
@@ -1884,12 +2080,13 @@ const showImportDialog = () => {
 }
 
 /* 对话框动画 */
-.dialog-overlay {
+.weilin-tools-dialog-overlay {
   animation: fadeIn 0.2s ease;
 }
 
-.dialog-content {
+.weilin-tools-dialog-content {
   animation: slideIn 0.2s ease;
+  z-index: 10099;
 }
 
 @keyframes fadeIn {
@@ -2142,6 +2339,13 @@ const showImportDialog = () => {
   margin-top: 3px;
 }
 
+.toolbar-bottom {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 5px;
+}
+
 .group-edit-mode {
   display: inline-flex;
   align-items: center;
@@ -2259,5 +2463,105 @@ const showImportDialog = () => {
 .share-selected-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+
+/* 新增按钮样式 */
+.tab-size-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--weilin-prompt-ui-border-color);
+  border-radius: 4px;
+  background-color: var(--weilin-prompt-ui-secondary-bg);
+  color: var(--weilin-prompt-ui-primary-text);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.tab-size-btn:hover {
+  background-color: var(--weilin-prompt-ui-hover-bg);
+  border-color: var(--weilin-prompt-ui-primary-color);
+}
+
+/* 标签尺寸配置对话框样式 */
+.tab-size-weilin-tools-dialog {
+  min-width: 500px;
+  max-width: 600px;
+}
+
+.config-section {
+  margin-bottom: 24px;
+  padding: 16px;
+  border: 1px solid var(--weilin-prompt-ui-border-color);
+  border-radius: 8px;
+  background: var(--weilin-prompt-ui-secondary-bg);
+}
+
+.config-section h3 {
+  margin: 0 0 16px 0;
+  color: var(--weilin-prompt-ui-primary-text);
+  font-size: 16px;
+}
+
+.width-control {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.radio-label input[type="radio"] {
+  width: auto !important;
+  margin: 0;
+}
+
+.number-input {
+  width: 100px !important;
+  margin-top: 8px;
+}
+
+.range-input {
+  width: 100%;
+  height: 8px;
+  -webkit-appearance: none;
+  background: var(--weilin-prompt-ui-border-color);
+  border-radius: 4px;
+  outline: none;
+}
+
+.range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--weilin-prompt-ui-primary-color);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+}
+
+.reset-btn {
+  background: var(--weilin-prompt-ui-warning-color, #faad14);
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.reset-btn:hover {
+  opacity: 0.9;
 }
 </style>

@@ -70,7 +70,6 @@ class WeiLinPromptUI:
     def IS_CHANGED(self, auto_random, **kwargs):
         if auto_random:
             return float("nan")
-        return auto_random
     
     @classmethod
     def INPUT_TYPES(self):
@@ -317,7 +316,6 @@ class WeiLinPromptUIWithoutLora:
     def IS_CHANGED(self, auto_random, **kwargs):
         if auto_random:
             return float("nan")
-        return auto_random
     
     @classmethod
     def INPUT_TYPES(self):

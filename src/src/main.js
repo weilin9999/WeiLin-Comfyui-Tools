@@ -8,10 +8,10 @@ import i18n, { initI18n } from './i18n'
 import { version } from "./utils/version.js"
 const {toClipboard} = VueClipboard()
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
-import 'vue3-json-viewer/dist/index.css';
+import '@/styles/vue3-json-viewer.css';
 
 const div = document.createElement('div')
-div.id  = 'weilin_comfyui_tools_prompt_ui_div'  
+div.id  = 'weilin_comfyui_tools_prompt_ui_div'
 const body=document.querySelector('body')
 body.appendChild(div)
 

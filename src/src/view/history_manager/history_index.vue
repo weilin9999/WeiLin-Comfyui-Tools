@@ -166,13 +166,13 @@
         </div>
 
         <!-- 标签对话框 -->
-        <div v-if="showTagDialog" class="dialog-overlay">
-            <div class="dialog-content" @mousedown.stop>
-                <div class="dialog-header">
+        <div v-if="showTagDialog" class="weilin-tools-dialog-overlay">
+            <div class="weilin-tools-dialog-content" @mousedown.stop>
+                <div class="weilin-tools-dialog-header">
                     <h2>{{ isEditingTag ? t('history.dialog.edit_tag') : t('history.dialog.add_tag') }}</h2>
                     <button class="close-btn" @click="closeTagDialog">×</button>
                 </div>
-                <div class="dialog-body">
+                <div class="weilin-tools-dialog-body">
                     <div class="form-group">
                         <label>{{ t('history.dialog.name') }}</label>
                         <input type="text" v-model="currentTag.name"
@@ -200,7 +200,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="dialog-footer">
+                <div class="weilin-tools-dialog-footer">
                     <button class="cancel-btn" @click="closeTagDialog">{{ t('common.cancel') }}</button>
                     <button class="confirm-btn" @click="saveTag">{{ t('common.confirm') }}</button>
                 </div>
@@ -208,16 +208,16 @@
         </div>
 
         <!-- 确认删除对话框 -->
-        <div v-if="showDeleteDialog" class="dialog-overlay">
-            <div class="dialog-content confirm-dialog" @mousedown.stop>
-                <div class="dialog-header">
+        <div v-if="showDeleteDialog" class="weilin-tools-dialog-overlay">
+            <div class="weilin-tools-dialog-content confirm-weilin-tools-dialog" @mousedown.stop>
+                <div class="weilin-tools-dialog-header">
                     <h2>{{ t('common.confirmDelete') }}</h2>
                     <button class="close-btn" @click="closeDeleteDialog">×</button>
                 </div>
-                <div class="dialog-body">
+                <div class="weilin-tools-dialog-body">
                     <p class="confirm-message">{{ deleteConfirmMessage }}</p>
                 </div>
-                <div class="dialog-footer">
+                <div class="weilin-tools-dialog-footer">
                     <button class="cancel-btn" @click="closeDeleteDialog">{{ t('common.cancel') }}</button>
                     <button class="delete-btn" @click="confirmDelete">{{ t('common.delete') }}</button>
                 </div>
@@ -794,7 +794,7 @@ h1 {
 
 
 /* 对话框样式 */
-.dialog-overlay {
+.weilin-tools-dialog-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -807,16 +807,17 @@ h1 {
     z-index: 9999;
 }
 
-.dialog-content {
+.weilin-tools-dialog-content {
     background: var(--weilin-prompt-ui-primary-bg);
     border-radius: 8px;
     min-width: 400px;
     max-width: 90%;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
     box-sizing: border-box;
+    z-index: 1099;
 }
 
-.dialog-header {
+.weilin-tools-dialog-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -824,18 +825,18 @@ h1 {
     border-bottom: 1px solid var(--weilin-prompt-ui-border-color);
 }
 
-.dialog-header h2 {
+.weilin-tools-dialog-header h2 {
     margin: 0;
     font-size: 18px;
     color: var(--primary-text);
 }
 
-.dialog-body {
+.weilin-tools-dialog-body {
     padding: 20px;
     box-sizing: border-box;
 }
 
-.dialog-footer {
+.weilin-tools-dialog-footer {
     display: flex;
     justify-content: flex-end;
     gap: 12px;
@@ -928,7 +929,7 @@ h1 {
 }
 
 /* 确认对话框特定样式 */
-.confirm-dialog {
+.confirm-weilin-tools-dialog {
     min-width: 300px !important;
     max-width: 400px !important;
     width: 90%;
@@ -987,12 +988,13 @@ h1 {
 }
 
 /* 对话框动画 */
-.dialog-overlay {
+.weilin-tools-dialog-overlay {
     animation: fadeIn 0.2s ease;
 }
 
-.dialog-content {
+.weilin-tools-dialog-content {
     animation: slideIn 0.2s ease;
+    z-index: 1099;
 }
 
 @keyframes fadeIn {
