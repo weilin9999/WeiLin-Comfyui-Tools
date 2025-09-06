@@ -647,9 +647,9 @@ const applyWeight = () => {
 };
 
 
-// Lora权重控制（新增默认值为1）
-const loraModelWeight = ref(1);
-const loraTextWeight = ref(1);
+// Lora权重控制
+const loraModelWeight = ref(0.5);
+const loraTextWeight = ref(0.5);
 
 // 当选择一个Lora标签时，解析其权重
 watch(activeControls, (newVal) => {
