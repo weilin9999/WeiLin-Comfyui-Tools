@@ -2192,7 +2192,7 @@ const handleKeydown = (event) => {
       scrollToSelectedItem();
     } else if (event.key === 'Tab' || event.key === 'Enter') {
       event.preventDefault();
-      selectAutocomplete(selectedAutocompleteIndex.value);
+      selectAutocomplete(selectedAutocompleteIndex.value, null, true);
     } else if (event.key === 'Escape') {
       event.preventDefault();
       closeAutocomplete();
@@ -2305,19 +2305,25 @@ const selectAutocomplete = (index, event) => {
   }
 
   // 向后查找单词边界
-  while (replaceEnd < currentText.length &&
+  while (false && replaceEnd < currentText.length &&
     !/[,\s]/.test(currentText[replaceEnd])) {
     replaceEnd++;
   }
 
   // 执行替换
-  const newText =
+  let newText =
     currentText.substring(0, replaceStart) +
     tagText +
     currentText.substring(replaceEnd);
 
+  // 如果右侧不是分隔符，在新 tag 与右侧之间补上分隔符，避免覆盖后续 tag
+  if (currentText[replaceEnd] && !(/[\,\s]/.test(currentText[replaceEnd]))) {
+    newText = currentText.substring(0, replaceStart) + tagText + ', ' + currentText.substring(replaceEnd);
+  }
+
   // 计算新光标位置
-  const newCursorPosition = replaceStart + tagText.length;
+  const separatorAdded = currentText[replaceEnd] && !(/[\,\s]/.test(currentText[replaceEnd]));
+  const newCursorPosition = replaceStart + tagText.length + (separatorAdded ? 2 : 0);
 
   // 更新输入文本
   inputText.value = newText;

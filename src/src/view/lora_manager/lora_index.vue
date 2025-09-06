@@ -548,6 +548,7 @@ const selectLora = (lora) => {
       type: 'weilin_prompt_ui_selectLora',
       lora: {
         name: lora.model_name,
+        display_name: retLoraName(lora),
         lora: lora.name,
         weight: lora.local_info?.strengthMin ? lora.local_info.strengthMin : 0.5,
         text_encoder_weight: lora.local_info?.strWeight ? lora.local_info.strWeight : 0.5,
@@ -559,6 +560,7 @@ const selectLora = (lora) => {
       type: 'weilin_prompt_ui_selectLora_stack_' + seed.value,
       lora: {
         name: lora.model_name,
+        display_name: retLoraName(lora),
         lora: lora.name,
         weight: lora.local_info?.strengthMin ? lora.local_info.strengthMin : 0.5,
         text_encoder_weight: lora.local_info?.strWeight ? lora.local_info.strWeight : 0.5,
@@ -570,6 +572,7 @@ const selectLora = (lora) => {
       type: 'weilin_prompt_ui_selectLora_stack_node_' + seed.value,
       lora: {
         name: lora.model_name,
+        display_name: retLoraName(lora),
         lora: lora.name,
         weight: lora.local_info?.strengthMin ? lora.local_info.strengthMin : 0.5,
         text_encoder_weight: lora.local_info?.strWeight ? lora.local_info.strWeight : 0.5,

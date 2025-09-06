@@ -1,4 +1,4 @@
-.lora-stack {
+﻿.lora-stack {
     height: 100%;
     width: 100%;
     background: var(--p-dialog-background);
@@ -67,8 +67,8 @@
 .lora-item {
     background: var(--comfy-menu-secondary-bg);
     border: 1px solid var(--p-dialog-border-color);
-    border-radius: 8px;
-    margin-bottom: 12px;
+    border-radius: 6px;
+    margin-bottom: 8px;
     overflow: hidden;
     transition: all 0.3s ease;
 }
@@ -93,7 +93,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 12px;
+    padding: 6px 10px 6px 20px;
     background: var(--p-dialog-background);
     border-bottom: 1px solid var(--p-dialog-border-color);
 }
@@ -122,6 +122,73 @@
     gap: 8px;
 }
 
+/* Compact horizontal layout for weights */
+.lora-weights.compact {
+    padding: 8px 12px;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+}
+
+.toggle-item {
+    margin-left: auto;
+}
+
+/* Toggle switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 28px;  /* 更短 */
+    height: 20px; /* 略高 */
+}
+
+.switch input { 
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0;  bottom: 0; width: 45px;
+    background-color: var(--toggle-track-off, rgba(255,255,255,0.1));
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);
+    transition: background-color .18s ease, border-color .18s ease, box-shadow .18s ease;
+    border-radius: 9999px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px; width: 16px; /* 与高度匹配的滑块 */
+    left: 2px; top: 2px;  /* 垂直水平等距居中 */
+    background-color: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.35);
+    transition: left .18s ease, background-color .18s ease, box-shadow .18s ease;
+    border-radius: 50%;
+}
+
+.switch input:checked + .slider {
+    background-color: var(--weilin-prompt-ui-primary-color, #22c55e);
+    border-color: rgba(0,0,0,0.2);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12);
+}
+
+.switch input:checked + .slider:before {
+    left: calc(100% - 18px); /* 100% - knob(16) - margin(2) */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+}
+
+/* Hover and focus states */
+.toggle-item:hover .slider {
+    background-color: rgba(255,255,255,0.16);
+}
+.toggle-item:focus-within .slider {
+    box-shadow: 0 0 0 2px rgba(16,185,129,0.35);
+}
+
 .weight-item {
     display: flex;
     align-items: center;
@@ -135,14 +202,14 @@
 }
 
 .lora-weight {
-    flex: 1;
-    width: 100%;
-    padding: 6px 8px;
+    flex: 0 0 80px;
+    width: 80px;
+    padding: 4px 6px;
     border: 1px solid var(--p-dialog-border-color);
     border-radius: 4px;
     background: var(--comfy-input-bg);
     color: var(--fg-color);
-    font-size: 13px;
+    font-size: 12px;
     transition: all 0.3s ease;
 }
 
@@ -157,7 +224,8 @@
 }
 
 .remove-btn,
-.look-on-btn {
+.look-on-btn,
+.toggle-hide-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -170,12 +238,14 @@
 }
 
 .remove-btn:hover,
-.look-on-btn:hover {
+.look-on-btn:hover,
+.toggle-hide-btn:hover {
     background-color: var(--weilin-prompt-ui-hover-bg-color);
 }
 
 .remove-btn svg,
-.look-on-btn svg {
+.look-on-btn svg,
+.toggle-hide-btn svg {
     fill: var(--fg-color);
 }
 
@@ -219,4 +289,38 @@
 
 .hide-btn:hover svg {
     fill: var(--p-dialog-border-color);
+}
+
+.lora-item {
+    /* 现有样式 */
+    transition: transform 0.2s ease, margin 0.2s ease;
+}
+
+.lora-item.dragging {
+    opacity: 0.5;
+    transform: rotate(2deg);
+    z-index: 1000;
+}
+
+.lora-item.shift-down {
+    transform: translateY(100%);
+}
+
+.lora-placeholder {
+    height: 100px; /* 调整为实际lora-item高度 */
+    border: 2px dashed var(--weilin-prompt-ui-primary-color, #22c55e);
+    border-radius: 6px;
+    background: rgba(34, 197, 94, 0.1);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--weilin-prompt-ui-primary-color, #22c55e);
+    font-size: 12px;
+}
+
+/* 移除之前的drag-over样式 */
+.lora-item.drag-over-top,
+.lora-item.drag-over-bottom {
+    border: none;
 }

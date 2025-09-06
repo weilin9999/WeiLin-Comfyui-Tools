@@ -216,3 +216,170 @@ Two lines of js html automatic translation, page without change, no language con
  * Licensed MIT © Zeno Rocha
  */var clipboard=clipboard$1.exports,hasRequiredClipboard;function requireClipboard(){return hasRequiredClipboard||(hasRequiredClipboard=1,function(e,t){(function(n,o){e.exports=o()})(clipboard,function(){return function(){var a={686:function(r,s,l){l.d(s,{default:function(){return me}});var c=l(279),f=l.n(c),u=l(370),d=l.n(u),m=l(817),g=l.n(m);function _(Z){try{return document.execCommand(Z)}catch{return!1}}var b=function(re){var ce=g()(re);return _("cut"),ce},T=b;function k(Z){var re=document.documentElement.getAttribute("dir")==="rtl",ce=document.createElement("textarea");ce.style.fontSize="12pt",ce.style.border="0",ce.style.padding="0",ce.style.margin="0",ce.style.position="absolute",ce.style[re?"right":"left"]="-9999px";var he=window.pageYOffset||document.documentElement.scrollTop;return ce.style.top="".concat(he,"px"),ce.setAttribute("readonly",""),ce.value=Z,ce}var C=function(re,ce){var he=k(re);ce.container.appendChild(he);var ne=g()(he);return _("copy"),he.remove(),ne},F=function(re){var ce=arguments.length>1&&arguments[1]!==void 0?arguments[1]:{container:document.body},he="";return typeof re=="string"?he=C(re,ce):re instanceof HTMLInputElement&&!["text","search","url","tel","password"].includes(re==null?void 0:re.type)?he=C(re.value,ce):(he=g()(re),_("copy")),he},y=F;function E(Z){"@babel/helpers - typeof";return typeof Symbol=="function"&&typeof Symbol.iterator=="symbol"?E=function(ce){return typeof ce}:E=function(ce){return ce&&typeof Symbol=="function"&&ce.constructor===Symbol&&ce!==Symbol.prototype?"symbol":typeof ce},E(Z)}var R=function(){var re=arguments.length>0&&arguments[0]!==void 0?arguments[0]:{},ce=re.action,he=ce===void 0?"copy":ce,ne=re.container,N=re.target,H=re.text;if(he!=="copy"&&he!=="cut")throw new Error('Invalid "action" value, use either "copy" or "cut"');if(N!==void 0)if(N&&E(N)==="object"&&N.nodeType===1){if(he==="copy"&&N.hasAttribute("disabled"))throw new Error('Invalid "target" attribute. Please use "readonly" instead of "disabled" attribute');if(he==="cut"&&(N.hasAttribute("readonly")||N.hasAttribute("disabled")))throw new Error(`Invalid "target" attribute. You can't cut text from elements with "readonly" or "disabled" attributes`)}else throw new Error('Invalid "target" value, use a valid Element');if(H)return y(H,{container:ne});if(N)return he==="cut"?T(N):y(N,{container:ne})},P=R;function M(Z){"@babel/helpers - typeof";return typeof Symbol=="function"&&typeof Symbol.iterator=="symbol"?M=function(ce){return typeof ce}:M=function(ce){return ce&&typeof Symbol=="function"&&ce.constructor===Symbol&&ce!==Symbol.prototype?"symbol":typeof ce},M(Z)}function x(Z,re){if(!(Z instanceof re))throw new TypeError("Cannot call a class as a function")}function Q(Z,re){for(var ce=0;ce<re.length;ce++){var he=re[ce];he.enumerable=he.enumerable||!1,he.configurable=!0,"value"in he&&(he.writable=!0),Object.defineProperty(Z,he.key,he)}}function G(Z,re,ce){return re&&Q(Z.prototype,re),ce&&Q(Z,ce),Z}function U(Z,re){if(typeof re!="function"&&re!==null)throw new TypeError("Super expression must either be null or a function");Z.prototype=Object.create(re&&re.prototype,{constructor:{value:Z,writable:!0,configurable:!0}}),re&&X(Z,re)}function X(Z,re){return X=Object.setPrototypeOf||function(he,ne){return he.__proto__=ne,he},X(Z,re)}function J(Z){var re=ee();return function(){var he=L(Z),ne;if(re){var N=L(this).constructor;ne=Reflect.construct(he,arguments,N)}else ne=he.apply(this,arguments);return Y(this,ne)}}function Y(Z,re){return re&&(M(re)==="object"||typeof re=="function")?re:ae(Z)}function ae(Z){if(Z===void 0)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return Z}function ee(){if(typeof Reflect>"u"||!Reflect.construct||Reflect.construct.sham)return!1;if(typeof Proxy=="function")return!0;try{return Date.prototype.toString.call(Reflect.construct(Date,[],function(){})),!0}catch{return!1}}function L(Z){return L=Object.setPrototypeOf?Object.getPrototypeOf:function(ce){return ce.__proto__||Object.getPrototypeOf(ce)},L(Z)}function D(Z,re){var ce="data-clipboard-".concat(Z);if(re.hasAttribute(ce))return re.getAttribute(ce)}var se=function(Z){U(ce,Z);var re=J(ce);function ce(he,ne){var N;return x(this,ce),N=re.call(this),N.resolveOptions(ne),N.listenClick(he),N}return G(ce,[{key:"resolveOptions",value:function(){var ne=arguments.length>0&&arguments[0]!==void 0?arguments[0]:{};this.action=typeof ne.action=="function"?ne.action:this.defaultAction,this.target=typeof ne.target=="function"?ne.target:this.defaultTarget,this.text=typeof ne.text=="function"?ne.text:this.defaultText,this.container=M(ne.container)==="object"?ne.container:document.body}},{key:"listenClick",value:function(ne){var N=this;this.listener=d()(ne,"click",function(H){return N.onClick(H)})}},{key:"onClick",value:function(ne){var N=ne.delegateTarget||ne.currentTarget,H=this.action(N)||"copy",K=P({action:H,container:this.container,target:this.target(N),text:this.text(N)});this.emit(K?"success":"error",{action:H,text:K,trigger:N,clearSelection:function(){N&&N.focus(),window.getSelection().removeAllRanges()}})}},{key:"defaultAction",value:function(ne){return D("action",ne)}},{key:"defaultTarget",value:function(ne){var N=D("target",ne);if(N)return document.querySelector(N)}},{key:"defaultText",value:function(ne){return D("text",ne)}},{key:"destroy",value:function(){this.listener.destroy()}}],[{key:"copy",value:function(ne){var N=arguments.length>1&&arguments[1]!==void 0?arguments[1]:{container:document.body};return y(ne,N)}},{key:"cut",value:function(ne){return T(ne)}},{key:"isSupported",value:function(){var ne=arguments.length>0&&arguments[0]!==void 0?arguments[0]:["copy","cut"],N=typeof ne=="string"?[ne]:ne,H=!!document.queryCommandSupported;return N.forEach(function(K){H=H&&!!document.queryCommandSupported(K)}),H}}]),ce}(f()),me=se},828:function(r){var s=9;if(typeof Element<"u"&&!Element.prototype.matches){var l=Element.prototype;l.matches=l.matchesSelector||l.mozMatchesSelector||l.msMatchesSelector||l.oMatchesSelector||l.webkitMatchesSelector}function c(f,u){for(;f&&f.nodeType!==s;){if(typeof f.matches=="function"&&f.matches(u))return f;f=f.parentNode}}r.exports=c},438:function(r,s,l){var c=l(828);function f(m,g,_,b,T){var k=d.apply(this,arguments);return m.addEventListener(_,k,T),{destroy:function(){m.removeEventListener(_,k,T)}}}function u(m,g,_,b,T){return typeof m.addEventListener=="function"?f.apply(null,arguments):typeof _=="function"?f.bind(null,document).apply(null,arguments):(typeof m=="string"&&(m=document.querySelectorAll(m)),Array.prototype.map.call(m,function(k){return f(k,g,_,b,T)}))}function d(m,g,_,b){return function(T){T.delegateTarget=c(T.target,g),T.delegateTarget&&b.call(m,T)}}r.exports=u},879:function(r,s){s.node=function(l){return l!==void 0&&l instanceof HTMLElement&&l.nodeType===1},s.nodeList=function(l){var c=Object.prototype.toString.call(l);return l!==void 0&&(c==="[object NodeList]"||c==="[object HTMLCollection]")&&"length"in l&&(l.length===0||s.node(l[0]))},s.string=function(l){return typeof l=="string"||l instanceof String},s.fn=function(l){var c=Object.prototype.toString.call(l);return c==="[object Function]"}},370:function(r,s,l){var c=l(879),f=l(438);function u(_,b,T){if(!_&&!b&&!T)throw new Error("Missing required arguments");if(!c.string(b))throw new TypeError("Second argument must be a String");if(!c.fn(T))throw new TypeError("Third argument must be a Function");if(c.node(_))return d(_,b,T);if(c.nodeList(_))return m(_,b,T);if(c.string(_))return g(_,b,T);throw new TypeError("First argument must be a String, HTMLElement, HTMLCollection, or NodeList")}function d(_,b,T){return _.addEventListener(b,T),{destroy:function(){_.removeEventListener(b,T)}}}function m(_,b,T){return Array.prototype.forEach.call(_,function(k){k.addEventListener(b,T)}),{destroy:function(){Array.prototype.forEach.call(_,function(k){k.removeEventListener(b,T)})}}}function g(_,b,T){return f(document.body,_,b,T)}r.exports=u},817:function(r){function s(l){var c;if(l.nodeName==="SELECT")l.focus(),c=l.value;else if(l.nodeName==="INPUT"||l.nodeName==="TEXTAREA"){var f=l.hasAttribute("readonly");f||l.setAttribute("readonly",""),l.select(),l.setSelectionRange(0,l.value.length),f||l.removeAttribute("readonly"),c=l.value}else{l.hasAttribute("contenteditable")&&l.focus();var u=window.getSelection(),d=document.createRange();d.selectNodeContents(l),u.removeAllRanges(),u.addRange(d),c=u.toString()}return c}r.exports=s},279:function(r){function s(){}s.prototype={on:function(l,c,f){var u=this.e||(this.e={});return(u[l]||(u[l]=[])).push({fn:c,ctx:f}),this},once:function(l,c,f){var u=this;function d(){u.off(l,d),c.apply(f,arguments)}return d._=c,this.on(l,d,f)},emit:function(l){var c=[].slice.call(arguments,1),f=((this.e||(this.e={}))[l]||[]).slice(),u=0,d=f.length;for(u;u<d;u++)f[u].fn.apply(f[u].ctx,c);return this},off:function(l,c){var f=this.e||(this.e={}),u=f[l],d=[];if(u&&c)for(var m=0,g=u.length;m<g;m++)u[m].fn!==c&&u[m].fn._!==c&&d.push(u[m]);return d.length?f[l]=d:delete f[l],this}},r.exports=s,r.exports.TinyEmitter=s}},n={};function o(r){if(n[r])return n[r].exports;var s=n[r]={exports:{}};return a[r](s,s.exports,o),s.exports}return function(){o.n=function(r){var s=r&&r.__esModule?function(){return r.default}:function(){return r};return o.d(s,{a:s}),s}}(),function(){o.d=function(r,s){for(var l in s)o.o(s,l)&&!o.o(r,l)&&Object.defineProperty(r,l,{enumerable:!0,get:s[l]})}}(),function(){o.o=function(r,s){return Object.prototype.hasOwnProperty.call(r,s)}}(),o(686)}().default})}(clipboard$1)),clipboard$1.exports}var clipboardExports=requireClipboard();const Clipboard=getDefaultExportFromCjs(clipboardExports),VueClipboard=e=>({toClipboard(t,a){return new Promise((n,o)=>{const r=document.createElement("button"),s=new Clipboard(r,{text:()=>t,action:()=>"copy",container:a!==void 0?a:document.body});s.on("success",l=>{s.destroy(),n(l)}),s.on("error",l=>{s.destroy(),o(l)}),document.body.appendChild(r),r.click(),document.body.removeChild(r)})}}),suspectProtoRx=/"(?:_|\\u0{2}5[Ff]){2}(?:p|\\u0{2}70)(?:r|\\u0{2}72)(?:o|\\u0{2}6[Ff])(?:t|\\u0{2}74)(?:o|\\u0{2}6[Ff])(?:_|\\u0{2}5[Ff]){2}"\s*:/,suspectConstructorRx=/"(?:c|\\u0063)(?:o|\\u006[Ff])(?:n|\\u006[Ee])(?:s|\\u0073)(?:t|\\u0074)(?:r|\\u0072)(?:u|\\u0075)(?:c|\\u0063)(?:t|\\u0074)(?:o|\\u006[Ff])(?:r|\\u0072)"\s*:/,JsonSigRx=/^\s*["[{]|^\s*-?\d{1,16}(\.\d{1,17})?([Ee][+-]?\d+)?\s*$/;function jsonParseTransform(e,t){if(e==="__proto__"||e==="constructor"&&t&&typeof t=="object"&&"prototype"in t){warnKeyDropped(e);return}return t}function warnKeyDropped(e){console.warn(`[destr] Dropping "${e}" key to prevent prototype pollution.`)}function destr(e,t={}){if(typeof e!="string")return e;const a=e.trim();if(e[0]==='"'&&e.endsWith('"')&&!e.includes("\\"))return a.slice(1,-1);if(a.length<=9){const n=a.toLowerCase();if(n==="true")return!0;if(n==="false")return!1;if(n==="undefined")return;if(n==="null")return null;if(n==="nan")return Number.NaN;if(n==="infinity")return Number.POSITIVE_INFINITY;if(n==="-infinity")return Number.NEGATIVE_INFINITY}if(!JsonSigRx.test(e)){if(t.strict)throw new SyntaxError("[destr] Invalid JSON");return e}try{if(suspectProtoRx.test(e)||suspectConstructorRx.test(e)){if(t.strict)throw new Error("[destr] Possible prototype pollution");return JSON.parse(e,jsonParseTransform)}return JSON.parse(e)}catch(n){if(t.strict)throw n;return e}}function get(e,t){if(e==null)return;let a=e;for(let n=0;n<t.length;n++){if(a==null||a[t[n]]==null)return;a=a[t[n]]}return a}function set(e,t,a){if(a.length===0)return t;const n=a[0];return a.length>1&&(t=set(typeof e!="object"||e===null||!Object.prototype.hasOwnProperty.call(e,n)?Number.isInteger(Number(a[1]))?[]:{}:e[n],t,Array.prototype.slice.call(a,1))),Number.isInteger(Number(n))&&Array.isArray(e)?e.slice()[n]:Object.assign({},e,{[n]:t})}function unset(e,t){if(e==null||t.length===0)return e;if(t.length===1){if(e==null)return e;if(Number.isInteger(t[0])&&Array.isArray(e))return Array.prototype.slice.call(e,0).splice(t[0],1);const a={};for(const n in e)a[n]=e[n];return delete a[t[0]],a}if(e[t[0]]==null){if(Number.isInteger(t[0])&&Array.isArray(e))return Array.prototype.concat.call([],e);const a={};for(const n in e)a[n]=e[n];return a}return set(e,unset(e[t[0]],Array.prototype.slice.call(t,1)),[t[0]])}function deepPickUnsafe(e,t){return t.map(a=>a.split(".")).map(a=>[a,get(e,a)]).filter(a=>a[1]!==void 0).reduce((a,n)=>set(a,n[1],n[0]),{})}function deepOmitUnsafe(e,t){return t.map(a=>a.split(".")).reduce((a,n)=>unset(a,n),e)}function hydrateStore(e,{storage:t,serializer:a,key:n,debug:o,pick:r,omit:s,beforeHydrate:l,afterHydrate:c},f,u=!0){try{u&&(l==null||l(f));const d=t.getItem(n);if(d){const m=a.deserialize(d),g=r?deepPickUnsafe(m,r):m,_=s?deepOmitUnsafe(g,s):g;e.$patch(_)}u&&(c==null||c(f))}catch(d){o&&console.error("[pinia-plugin-persistedstate]",d)}}function persistState(e,{storage:t,serializer:a,key:n,debug:o,pick:r,omit:s}){try{const l=r?deepPickUnsafe(e,r):e,c=s?deepOmitUnsafe(l,s):l,f=a.serialize(c);t.setItem(n,f)}catch(l){o&&console.error("[pinia-plugin-persistedstate]",l)}}function createPersistence(e,t,a){const{pinia:n,store:o,options:{persist:r=a}}=e;if(!r)return;if(!(o.$id in n.state.value)){const c=n._s.get(o.$id.replace("__hot:",""));c&&Promise.resolve().then(()=>c.$persist());return}const l=(Array.isArray(r)?r:r===!0?[{}]:[r]).map(t);o.$hydrate=({runHooks:c=!0}={})=>{l.forEach(f=>{hydrateStore(o,f,e,c)})},o.$persist=()=>{l.forEach(c=>{persistState(o.$state,c)})},l.forEach(c=>{hydrateStore(o,c,e),o.$subscribe((f,u)=>persistState(u,c),{detached:!0})})}function createPersistedState(e={}){return function(t){createPersistence(t,a=>({key:(e.key?e.key:n=>n)(a.key??t.store.$id),debug:a.debug??e.debug??!1,serializer:a.serializer??e.serializer??{serialize:n=>JSON.stringify(n),deserialize:n=>destr(n)},storage:a.storage??e.storage??window.localStorage,beforeHydrate:a.beforeHydrate,afterHydrate:a.afterHydrate,pick:a.pick,omit:a.omit}),e.auto??!1)}}var src_default=createPersistedState();const{toClipboard}=VueClipboard(),div=document.createElement("div");div.id="weilin_comfyui_tools_prompt_ui_div";const body=document.querySelector("body");body.appendChild(div);const pinia=createPinia();pinia.use(src_default);const app=createApp(App);app.use(pinia),app.use(i18n),initI18n(),app.config.globalProperties.$copyText=toClipboard,app.mount(div),console.log("WeiLin Prompt UI is running - version "+version),console.log("WeiLin 节点插件已运行 - 版本 "+version)});
 //# sourceMappingURL=main.entry.js.map
+// --- BEGIN: baked-in hotfix for safe autocomplete insertion ---
+(function(){
+  try {
+    // Prevent textarea blur when clicking a suggestion (keep focus to avoid onBlur side-effects)
+    document.addEventListener('mousedown', function(e){
+      var item = e.target && (e.target.closest ? e.target.closest('.weilin_prompt_ui_prompt-box .autocomplete-item') : null);
+      if (!item) return;
+      e.preventDefault();
+    }, true);
+
+    // Intercept Enter/Tab selection on autocomplete panel – perform safe insertion
+    document.addEventListener('keydown', function(e){
+      if (!(e.key === 'Enter' || e.key === 'Tab')) return;
+      var container = document.querySelector('.weilin_prompt_ui_prompt-box .autocomplete-container');
+      if (!container || container.style.display === 'none') return;
+      var selected = container.querySelector('.autocomplete-item.selected') || container.querySelector('.autocomplete-item');
+      if (!selected) return;
+
+      var root = selected.closest ? selected.closest('.weilin_prompt_ui_prompt-box') : null;
+      var textarea = root ? root.querySelector('textarea.input-area') : null;
+      if (!textarea) return;
+
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+      if (e.stopPropagation) e.stopPropagation();
+      if (e.preventDefault) e.preventDefault();
+
+      var tagNode = selected.querySelector ? selected.querySelector('.tag') : null;
+      var tagText = tagNode && tagNode.textContent ? tagNode.textContent.trim() : '';
+
+      try {
+        if (localStorage.getItem('weilin_prompt_ui_comma_conversion') !== 'false') { tagText = tagText.replace(/，/g, ','); }
+        if (localStorage.getItem('weilin_prompt_ui_period_conversion') !== 'false') { tagText = tagText.replace(/。/g, '.'); }
+        if (localStorage.getItem('weilin_prompt_ui_bracket_conversion') !== 'false') { tagText = tagText.replace(/【/g, '[').replace(/】/g, ']').replace(/（/g, '(').replace(/）/g, ')'); }
+        if (localStorage.getItem('weilin_prompt_ui_angle_bracket_conversion') !== 'false') { tagText = tagText.replace(/《/g, '<').replace(/》/g, '>'); }
+        if (localStorage.getItem('weilin_prompt_ui_underscore_to_bracket') === 'true') { tagText = tagText.replace(/_/g, ' '); }
+      } catch(_){}
+
+      var currentText = textarea.value || '';
+      var cursorStart = textarea.selectionStart || 0;
+      var cursorEnd = textarea.selectionEnd || cursorStart;
+
+      var replaceStart = cursorStart;
+      while (replaceStart > 0 && !(/[\,\s]/.test(currentText.charAt(replaceStart - 1)))) { replaceStart--; }
+
+      // If no typed prefix and the previous token equals the selected tag, do nothing (avoid duplicates like "solo, solo,")
+      var typedPrefix = currentText.substring(replaceStart, cursorEnd);
+      if (!typedPrefix || typedPrefix.trim() === '') {
+        var liK = replaceStart - 1;
+        while (liK >= 0 && /[\s,]/.test(currentText.charAt(liK))) liK--;
+        var wordEndK = liK + 1;
+        while (liK >= 0 && !(/[\s,]/.test(currentText.charAt(liK)))) liK--;
+        var prevTokenK = currentText.substring(liK + 1, wordEndK);
+        if (prevTokenK && prevTokenK.toLowerCase() === tagText.toLowerCase()) {
+          try { textarea.focus(); } catch(_){}
+          var cont = root ? root.querySelector('.autocomplete-container') : null;
+          if (cont) cont.style.display = 'none';
+          try { textarea.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); } catch(_){}
+          return;
+        }
+      }
+
+      var nextPart = currentText.substring(cursorEnd);
+      var startsWithComma = nextPart.startsWith(',');
+      var rightSep = startsWithComma ? '' : ', ';
+
+      var newText = currentText.substring(0, replaceStart) + tagText + rightSep + currentText.substring(cursorEnd);
+      textarea.value = newText;
+
+      var newPos = replaceStart + tagText.length + rightSep.length;
+      try { textarea.setSelectionRange(newPos, newPos); } catch(_){}
+      try { textarea.dispatchEvent(new Event('input', { bubbles: true })); } catch(_){}
+      try { textarea.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); } catch(_){}
+      setTimeout(function(){ try { textarea.setSelectionRange(newPos, newPos); textarea.focus(); } catch(_){} }, 0);
+    }, true);
+
+    // Intercept click on autocomplete items
+    document.addEventListener('click', function(e){
+      var item = e.target && (e.target.closest ? e.target.closest('.weilin_prompt_ui_prompt-box .autocomplete-item') : null);
+      if (!item) return;
+
+      var root = item.closest ? item.closest('.weilin_prompt_ui_prompt-box') : null;
+      var textarea = root ? root.querySelector('textarea.input-area') : null;
+      var container = root ? root.querySelector('.autocomplete-container') : null;
+      if (!textarea) return;
+
+      // Stop Vue handler to avoid replacing the right-side token
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+      if (e.stopPropagation) e.stopPropagation();
+      if (e.preventDefault) e.preventDefault();
+
+      var tagNode = item.querySelector ? item.querySelector('.tag') : null;
+      var tagText = tagNode && tagNode.textContent ? tagNode.textContent.trim() : '';
+
+      // Follow user's format conversion settings
+      try {
+        if (localStorage.getItem('weilin_prompt_ui_comma_conversion') !== 'false') {
+          tagText = tagText.replace(/，/g, ',');
+        }
+        if (localStorage.getItem('weilin_prompt_ui_period_conversion') !== 'false') {
+          tagText = tagText.replace(/。/g, '.');
+        }
+        if (localStorage.getItem('weilin_prompt_ui_bracket_conversion') !== 'false') {
+          tagText = tagText.replace(/【/g, '[').replace(/】/g, ']').replace(/（/g, '(').replace(/）/g, ')');
+        }
+        if (localStorage.getItem('weilin_prompt_ui_angle_bracket_conversion') !== 'false') {
+          tagText = tagText.replace(/《/g, '<').replace(/》/g, '>');
+        }
+        if (localStorage.getItem('weilin_prompt_ui_underscore_to_bracket') === 'true') {
+          tagText = tagText.replace(/_/g, ' ');
+        }
+      } catch (_) {}
+
+      var currentText = textarea.value || '';
+      var cursorStart = textarea.selectionStart || 0;
+      var cursorEnd = textarea.selectionEnd || cursorStart;
+
+      // Expand only to the left until comma/space (typed prefix)
+      var replaceStart = cursorStart;
+      while (replaceStart > 0 && !(/[\,\s]/.test(currentText.charAt(replaceStart - 1)))) {
+        replaceStart--;
+      }
+
+      // Deduplicate only if typed prefix is empty and previous token equals selected tag
+      var _dedup = false;
+      (function(){
+        var typed = currentText.substring(replaceStart, cursorEnd);
+        if (typed && typed.trim() !== '') { _dedup = false; return; }
+        var li = replaceStart - 1;
+        // skip trailing separators (e.g. when cursor is after a comma)
+        while (li >= 0 && /[\s,]/.test(currentText.charAt(li))) li--;
+        var wordEnd = li + 1;
+        while (li >= 0 && !(/[\s,]/.test(currentText.charAt(li)))) li--;
+        var prevToken = currentText.substring(li + 1, wordEnd);
+        if (prevToken && prevToken.toLowerCase() === tagText.toLowerCase()) {
+          _dedup = true;
+        }
+      })();
+      if (_dedup) {
+        try { textarea.focus(); } catch(_){}
+        if (container) container.style.display = 'none';
+        try { textarea.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); } catch(_){}
+        return;
+      }
+
+      // If next part doesn't start with a comma, always add ", " to end the token
+      var nextPart = currentText.substring(cursorEnd);
+      var rightSep = nextPart.startsWith(',') ? '' : ', ';
+
+      var newText = currentText.substring(0, replaceStart) + tagText + rightSep + currentText.substring(cursorEnd);
+
+      textarea.value = newText;
+      var newPos = replaceStart + tagText.length + rightSep.length;
+      try { textarea.setSelectionRange(newPos, newPos); } catch (_) {}
+      try { textarea.dispatchEvent(new Event('input', { bubbles: true })); } catch (_) {}
+      // Forcibly hide the autocomplete panel to avoid lingering UI
+      if (container) container.style.display = 'none';
+      try { textarea.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); } catch (_) {}
+      // ensure caret remains after async processing
+      setTimeout(function(){ try { textarea.setSelectionRange(newPos, newPos); textarea.focus(); } catch(_){} }, 0);
+      // some upstream logic may still move the caret after nextTick/processInput; enforce once more
+      setTimeout(function(){ try { textarea.setSelectionRange(newPos, newPos); textarea.focus(); } catch(_){} }, 80);
+    }, true);
+  } catch (err) {
+    console.error('weilin prompt ui baked-in hotfix error', err);
+  }
+})();
+// --- END: baked-in hotfix for safe autocomplete insertion ---
