@@ -132,6 +132,16 @@ function renderLoraItem(seed, index, lora) {
    // Add input change listeners
    const weightInputs = loraItem.querySelectorAll('.lora-weight');
    weightInputs.forEach(input => {
+
+        input.addEventListener('mousedown', (e) => {
+            e.stopPropagation();
+        });
+
+        input.addEventListener('dragstart', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
        input.addEventListener('change', (e) => {
            const lora = window.weilinGlobalSelectedLoras[seed][index];
            if (lora) {
@@ -180,6 +190,13 @@ function renderLoraItem(seed, index, lora) {
            }
        });
    }
+   loraItem.querySelector('.look-on-btn').addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+        });
+
+    loraItem.querySelector('.remove-btn').addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+        });
 }
 
 // Get hide button content
