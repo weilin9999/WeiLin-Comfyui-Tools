@@ -31,9 +31,9 @@ baseUrl = "/weilin/prompt_ui/api/"
 
 @PromptServer.instance.routes.get("/weilin/prompt_ui/webjs")
 async def _getWeiLinPromptUIWebJs(request):
-    # 合并JS
+    # 合并JS（按文件名排序，确保补丁在最后加载）
     js = ''
-    for file in os.listdir(dir):
+    for file in sorted(os.listdir(dir)):
         if file.endswith('.js'):
             with open(os.path.join(dir, file), 'r', encoding='utf-8') as f:
                 js += f.read() + '\n'

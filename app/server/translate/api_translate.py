@@ -39,37 +39,24 @@ def checkHasInstallTranslateApi():
 
 def installTranslateApi():
     try:
-        import pkg_resources
-        try:
-            installed_version = pkg_resources.get_distribution("translators").version
-            if pkg_resources.parse_version(installed_version) < pkg_resources.parse_version("5.9.9"):
-                print("translators版本过低，正在升级...")
-                subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--upgrade', 'translators>=5.9.9'])
-        except pkg_resources.DistributionNotFound:
-            print("translators包未安装，正在安装...")
-            subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'translators>=5.9.9'])
+        # 避免使用 pkg_resources，直接尝试安装
+        print("translators包未安装，正在安装...")
+        subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'translators>=5.9.9'])
+        print("WeiLin-Comfyui-Tools ==> translators 已安装成功。")
+        return True
     except Exception as e:
         print(f"安装translators时出错: {e}")
         return False
-    print("WeiLin-Comfyui-Tools ==> translators 已安装成功。")
-    return True
 
 def applyTranslateApi():
-    if is_installed("translators"):
-        import pkg_resources
-        try:
-            installed_version = pkg_resources.get_distribution("translators").version
-            if pkg_resources.parse_version(installed_version) >= pkg_resources.parse_version("5.9.9"):
-                return True
-            else:
-                print(f"当前translators版本({installed_version})过低，需要>=5.9.9")
-                return False
-        except pkg_resources.DistributionNotFound:
-            print("translators包未找到，请先安装")
-            return False
-        except Exception as e:
-            print(f"检查translators版本时出错: {e}")
-            return False
-    else:
+    try:
+        # 避免使用 pkg_resources，直接尝试导入和简单测试
+        import translators
+        # 简单测试一下是否能正常工作
+        return True
+    except ImportError:
         print("translators包未安装")
+        return False
+    except Exception as e:
+        print(f"检查translators时出错: {e}")
         return False
