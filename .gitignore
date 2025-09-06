@@ -5,3 +5,4 @@ __pycache__
 /loras_userdatas/info
 init.json
 /panel
+user_cloud_package.json

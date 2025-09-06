@@ -324,3 +324,82 @@
 .lora-item.drag-over-bottom {
     border: none;
 }
+
+/* 在现有CSS基础上添加以下样式 */
+
+.lora-header-item {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 10px 6px 30px; /* 增加左边距为拖拽把手留空间 */
+    background: var(--p-dialog-background);
+    border-bottom: 1px solid var(--p-dialog-border-color);
+}
+
+.drag-handle {
+    position: absolute;
+    top: 50%;
+    left: 6px;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    color: #666;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+    opacity: 0.6;
+}
+
+.drag-handle:hover {
+    background-color: var(--weilin-prompt-ui-hover-bg-color, rgba(0, 0, 0, 0.1));
+    color: var(--fg-color);
+    opacity: 1;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+    background-color: var(--weilin-prompt-ui-primary-color, #22c55e);
+    color: white;
+    opacity: 1;
+}
+
+.lora-item.dragging .drag-handle {
+    cursor: grabbing;
+    background-color: var(--weilin-prompt-ui-primary-color, #16a34a);
+    border-color: var(--weilin-prompt-ui-primary-color, #16a34a);
+    color: white;
+    transform: translateY(-50%) scale(0.95);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* 确保拖拽时的视觉效果 */
+.lora-item.dragging {
+    opacity: 0.7;
+    transform: rotate(2deg) scale(1.02);
+    z-index: 1000;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* 拖拽占位符样式优化 */
+.lora-placeholder {
+    height: 100px;
+    border: 2px dashed var(--weilin-prompt-ui-primary-color, #22c55e);
+    border-radius: 6px;
+    background: rgba(34, 197, 94, 0.1);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--weilin-prompt-ui-primary-color, #22c55e);
+    font-size: 12px;
+    animation: placeholderPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes placeholderPulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}

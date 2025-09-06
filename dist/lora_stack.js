@@ -66,7 +66,8 @@ function getSystemLanguage() {
    return lang.startsWith('zh') ? 'zh' : 'en';
 }
 
-// Render a Lora item
+// 修改renderLoraItem函数中的HTML结构
+// 修改renderLoraItem函数中的HTML结构
 function renderLoraItem(seed, index, lora) {
    const loraListContainer = document.getElementById('loraListContainer_' + seed);
 
@@ -74,8 +75,7 @@ function renderLoraItem(seed, index, lora) {
    loraItem.className = `lora-item ${lora.hidden ? 'hidden-lora' : ''}`;
    loraItem.id = `lora-item-${seed}-${index}`;
    
-   // 添加拖动属性
-   loraItem.setAttribute('draggable', 'true');
+   // 移除整体拖拽属性
    loraItem.setAttribute('data-index', index.toString());
 
    const displayName = lora.display_name || lora.name || lora.lora;
@@ -83,6 +83,19 @@ function renderLoraItem(seed, index, lora) {
    loraItem.innerHTML = `
    <div class="lora-info">
        <div class="lora-header-item">
+           <div class="drag-handle" draggable="true" title="${getSystemLanguage() === 'zh' ? '拖拽排序' : 'Drag to reorder'}">
+               <svg viewBox="0 0 24 24" width="14" height="14">
+                   <circle cx="7" cy="7" r="1.5" fill="currentColor"/>
+                   <circle cx="12" cy="7" r="1.5" fill="currentColor"/>
+                   <circle cx="17" cy="7" r="1.5" fill="currentColor"/>
+                   <circle cx="7" cy="12" r="1.5" fill="currentColor"/>
+                   <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+                   <circle cx="17" cy="12" r="1.5" fill="currentColor"/>
+                   <circle cx="7" cy="17" r="1.5" fill="currentColor"/>
+                   <circle cx="12" cy="17" r="1.5" fill="currentColor"/>
+                   <circle cx="17" cy="17" r="1.5" fill="currentColor"/>
+               </svg>
+           </div>
            <span class="lora-name" title="${displayName}">${displayName}</span>
            <div class="lora-actions">
                <button class="look-on-btn" title="${getSystemLanguage() === 'zh' ? '查看Lora' : 'Look on Lora'}">
@@ -119,20 +132,22 @@ function renderLoraItem(seed, index, lora) {
    </div>
    `;
 
-   // 添加拖动事件监听器
-   loraItem.addEventListener('dragstart', (e) => handleDragStart(e, seed, index));
-//    loraItem.addEventListener('dragover', handleDragOver);
-//    loraItem.addEventListener('drop', (e) => handleDrop(e, seed));
-   loraItem.addEventListener('dragend', handleDragEnd);
+   // 只在拖拽把手上添加拖拽事件
+   const dragHandle = loraItem.querySelector('.drag-handle');
+   dragHandle.addEventListener('dragstart', (e) => handleDragStart(e, seed, index));
+   dragHandle.addEventListener('dragend', handleDragEnd);
+   
+   // 防止把手事件冒泡
+   dragHandle.addEventListener('mousedown', (e) => {
+       e.stopPropagation();
+   });
 
-   // Add event listeners
+   // 其余事件监听器保持不变
    loraItem.querySelector('.look-on-btn').addEventListener('click', () => lookOnLora(lora.lora));
    loraItem.querySelector('.remove-btn').addEventListener('click', () => removeLora(seed, index));
 
-   // Add input change listeners
    const weightInputs = loraItem.querySelectorAll('.lora-weight');
    weightInputs.forEach(input => {
-
         input.addEventListener('mousedown', (e) => {
             e.stopPropagation();
         });
@@ -157,7 +172,7 @@ function renderLoraItem(seed, index, lora) {
 
    loraListContainer.appendChild(loraItem);
 
-   // If display name is missing, try to fetch it from server and update UI
+   // 其余代码保持不变...
    if (!lora.display_name && lora.lora) {
        try {
            fetch(`/weilin/prompt_ui/api/lorainfo/api/loras/info?file=${encodeURIComponent(lora.lora)}`)
@@ -178,7 +193,6 @@ function renderLoraItem(seed, index, lora) {
        } catch (e) { /* ignore */ }
    }
 
-   // Bind visibility toggle switch
    const visToggle = loraItem.querySelector(`#visible-toggle-${seed}-${index}`);
    if (visToggle) {
        visToggle.addEventListener('change', (e) => {
@@ -190,13 +204,23 @@ function renderLoraItem(seed, index, lora) {
            }
        });
    }
+   
    loraItem.querySelector('.look-on-btn').addEventListener('mousedown', (e) => {
         e.stopPropagation();
-        });
+   });
 
-    loraItem.querySelector('.remove-btn').addEventListener('mousedown', (e) => {
+   loraItem.querySelector('.remove-btn').addEventListener('mousedown', (e) => {
         e.stopPropagation();
-        });
+   });
+}
+
+// 修改handleDragStart函数，从把手获取父元素信息
+function handleDragStart(e, seed, index) {
+    draggedIndex = index;
+    const loraItem = e.target.closest('.lora-item');
+    loraItem.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', loraItem.outerHTML);
 }
 
 // Get hide button content
