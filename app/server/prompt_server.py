@@ -9,6 +9,7 @@ from .history.collect_history_contl import *
 from .fast_autocomplete.autocomplete import fuzzy_search
 from .user_init.user_init import *
 from .translate.local_translate import translate_phrase
+from .translate.openai_translate import openai_translate
 from .translate.api_translate import installTranslateApi,applyTranslateApi,translateText
 from .cloud_warehouse.warehouse import get_main_warehouse,get_warehouse_tree
 from .dao.dao import install_cloud_file_db
@@ -727,17 +728,27 @@ async def _getTranslaterSettingData(request):
 @PromptServer.instance.routes.post(baseUrl+"translate/apply_setting")
 async def _apply_translater_setting(request):
     data = await request.json()
-    if data['setting'] == "translater":
+    setting = data['setting']
+
+    if setting == "translater":
         apply = applyTranslateApi()
-        if  apply == False :
+        if apply == False:
             return web.json_response({"info": 'fail'})
-    
+
+    elif setting == "openai":
+        # 可选：这里加一层检测，比如确认 openai 的 api_key 是否已配置
+        from .ai_translator.ai_translator import initialize_config
+        cfg = initialize_config()
+        if not cfg.get("api_key"):
+            return web.json_response({"info": "fail", "msg": "OpenAI API key 未配置"})
+
     try:
-        update_translate_setting(data['setting'])
+        update_translate_setting(setting)
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
     return web.json_response({"info": 'ok'})
+
 
 @PromptServer.instance.routes.post(baseUrl+"translate/install/translaterpackage")
 async def _apply_translater_install_package(request):
@@ -769,28 +780,55 @@ async def _save_translater_setting(request):
     return web.json_response({"info": 'ok'})
 
 # 翻译文本
+# POST /translate/tran/text
 @PromptServer.instance.routes.post(baseUrl+"translate/tran/text")
 async def _tanslater_text(request):
     data = await request.json()
     try:
-       data_setting = get_translate_settings()
-       result = translateText(data['text'],data_setting['translate_service'],data_setting['translate_source_lang'],data_setting['translate_target_lang'])
-       return web.json_response({"text": result})
+        # 已有方法：读取翻译器选择 & 详细设置
+        current_setting = get_translate_setting()   # 'translater' / 'openai' / （兼容）'network' ...
+        data_setting = get_translate_settings()     # service/source_lang/target_lang
+
+        text = data['text']
+        if current_setting == "openai":
+            # OpenAI 只需要目标语种来写 prompt
+            result = await openai_translate(text, data_setting['translate_target_lang'])
+        else:
+            # 仍然走 translators（含 'translater' 与历史的 'network'）
+            result = translateText(
+                text,
+                data_setting['translate_service'],
+                data_setting['translate_source_lang'],
+                data_setting['translate_target_lang']
+            )
+        return web.json_response({"text": result})
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
 
-# 翻译输入的文本
+# POST /translate/tran/input  （输入框反向翻译：目标 -> 源）
 @PromptServer.instance.routes.post(baseUrl+"translate/tran/input")
 async def _tanslater_input_text(request):
     data = await request.json()
     try:
-       data_setting = get_translate_settings()
-       result = translateText(data['text'],data_setting['translate_service'],data_setting['translate_target_lang'],data_setting['translate_source_lang'])
-       return web.json_response({"text": result})
+        current_setting = get_translate_setting()
+        data_setting = get_translate_settings()
+        text = data['text']
+        if current_setting == "openai":
+            # 反向时把“源语种代码”当成目标，复用同一 prompt 模板
+            result = await openai_translate(text, data_setting['translate_source_lang'])
+        else:
+            result = translateText(
+                text,
+                data_setting['translate_service'],
+                data_setting['translate_target_lang'],
+                data_setting['translate_source_lang']
+            )
+        return web.json_response({"text": result})
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
+
 # =====================================================================================================
 
 # =================================================== 云仓库获取 =======================================

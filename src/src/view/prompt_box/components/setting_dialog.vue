@@ -34,6 +34,7 @@
             <select style="margin-left: 10px;" v-model="settingTranslater">
               <option value="network"> {{ t('promptBox.settings.selectOptionNetworkTranslater') }}</option>
               <option value="translater">{{ t('promptBox.settings.selectOptionPythonTranslater') }}</option>
+              <option value="openai">OpenAI API 翻译</option>
             </select>
             <button class="install-button" @click="applyTranslaterSetting">
               {{ t('promptBox.settings.apply') }}
