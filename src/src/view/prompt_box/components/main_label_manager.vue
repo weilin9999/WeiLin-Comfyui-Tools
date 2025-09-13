@@ -375,14 +375,14 @@ defineExpose({ updateSelectedContent })
   transition: background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
 }
 .mlm-item.dragging { opacity: 0.6; }
-.mlm-item.drag-over { outline: 2px dashed var(--weilin-prompt-ui-primary-color); }
+.mlm-item.drag-over { outline: 2px dashed var(--weilin-prompt-ui-primary-color); outline-offset: 2px; box-shadow: none !important; }
 .mlm-item:hover {
   background: color-mix(in srgb, var(--weilin-prompt-ui-secondary-bg) 90%, #fff 10%);
   border-color: color-mix(in srgb, var(--weilin-prompt-ui-border-color) 40%, #fff 20%);
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   transform: translateY(-1px);
 }
-.mlm-item.active {
+.mlm-item.active:not(.drag-over) {
   outline: none;
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--weilin-prompt-ui-primary-color) 35%, transparent);
 }
