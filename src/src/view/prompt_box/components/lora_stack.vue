@@ -20,9 +20,10 @@
       </div>
       <div :class="`${prefix}lora-body`">
         <div :class="`${prefix}lora-list`">
-          <div v-for="lora in selectedLoras" ref="loraStackItemRef" :key="lora.name" class="lora-item"
+          <div v-for="(lora, idx) in selectedLoras" ref="loraStackItemRef" :key="lora.name" class="lora-item"
             :class="{ 'hidden-lora': lora.hidden }" @mouseover="(e) => handleMouseHover(lora.lora, e)"
-            @mouseleave="handleMouseLeave">
+            @mouseleave="handleMouseLeave" draggable="true" @dragstart="handleDragStart(idx)" @dragover.prevent
+            @drop="handleDrop(idx)">
             <div class="lora-info">
               <div class="lora-header">
                 <span class="lora-name" :title="lora.name">{{ lora.name }}</span>
@@ -51,30 +52,26 @@
                   </button>
                 </div>
               </div>
-              <div class="lora-weights">
-                <div class="weight-item">
+              <!-- 输入框一行显示 -->
+              <div class="lora-weights-row">
+                <div class="weight-item-col">
                   <label>{{ t('loraManager.modelWeight') }}</label>
                   <input type="number" v-model="lora.weight" class="lora-weight" step="0.1" />
                 </div>
-                <div class="weight-item">
+                <div class="weight-item-col">
                   <label>{{ t('loraManager.textEncoderWeight') }}</label>
                   <input type="number" v-model="lora.text_encoder_weight" class="lora-weight" step="0.1" />
                 </div>
+                <!-- Switch 开关 -->
+                <div class="switch-item-col">
+                  <label>{{ lora.hidden ? t('lora.hideLora') : t('lora.showLora') }}</label>
+                  <label class="switch">
+                    <input type="checkbox" :checked="!lora.hidden" @change="toggleHideLora(lora)">
+                    <span class="slider"></span>
+                  </label>
+                </div>
               </div>
-
-              <div class="lora-footer">
-                <button class="hide-btn" @click="toggleHideLora(lora)"
-                  :title="lora.hidden ? t('lora.showLora') : t('lora.hideLora')">
-                  <svg viewBox="0 0 24 24" width="14" height="14">
-                    <path v-if="!lora.hidden"
-                      d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z" />
-                    <path v-else
-                      d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
-                  </svg>
-                  {{ lora.hidden ? t('lora.showLora') : t('lora.hideLora') }}
-                </button>
-              </div>
-
+              <!-- lora-footer 移除 -->
             </div>
           </div>
         </div>
@@ -144,7 +141,7 @@ const handleMouseHover = (fileName, event) => {
 
   paddingLeftValue.value = position.left;
   paddingTopValue.value = position.top;
-  
+
   showCard.value = true;
   hoveFileName.value = fileName;
   // console.log(fileName)
@@ -184,8 +181,9 @@ const openLoraManager = () => {
 
 // 添加切换隐藏状态的方法
 const toggleHideLora = (lora) => {
+  // console.log('toggleHideLora', lora)
   lora.hidden = !lora.hidden;
-  emit('update:selectedLoras', props.selectedLoras);
+  // emit('update:selectedLoras', props.selectedLoras);
 };
 
 
@@ -227,6 +225,19 @@ window.addEventListener('message', (event) => {
     addLora(event.data.lora)
   }
 })
+
+// 拖拽相关
+const dragIndex = ref(null)
+const handleDragStart = (idx) => {
+  dragIndex.value = idx
+}
+const handleDrop = (idx) => {
+  if (dragIndex.value === null || dragIndex.value === idx) return
+  const moved = props.selectedLoras.splice(dragIndex.value, 1)[0]
+  props.selectedLoras.splice(idx, 0, moved)
+  dragIndex.value = null
+  emit('update:selectedLoras', props.selectedLoras)
+}
 
 defineExpose({
   addLora,
@@ -387,35 +398,52 @@ defineExpose({
   gap: 8px;
 }
 
-.lora-weights {
+/* 输入框一行显示，label在上方 */
+.lora-weights-row {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  align-items: flex-end;
   padding: 12px;
   background: var(--weilin-prompt-ui-secondary-bg);
+}
+
+.weight-item-col {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 2px;
+  width: 60px;
 }
 
-.weight-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.weight-item label {
-  font-size: 12px;
+.weight-item-col label {
+  font-size: 11px;
   color: var(--weilin-prompt-ui-secondary-text);
-  min-width: 60px;
+  margin-bottom: 2px;
+}
+
+/* Switch标签上方且字体小 */
+.switch-item-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.switch-item-col label {
+  font-size: 11px;
+  color: var(--weilin-prompt-ui-secondary-text);
+  margin-bottom: 2px;
 }
 
 .lora-weight {
   flex: 1;
   width: 100%;
-  padding: 6px 8px;
+  padding: 4px 6px;
   border: 1px solid var(--weilin-prompt-ui-border-color);
   border-radius: 4px;
   background: var(--weilin-prompt-ui-input-bg);
   color: var(--weilin-prompt-ui-primary-text);
-  font-size: 13px;
+  font-size: 12px;
   transition: all 0.3s ease;
 }
 
@@ -460,37 +488,52 @@ defineExpose({
   fill: var(--weilin-prompt-ui-primary-color);
 }
 
-.lora-footer {
-  padding: 8px 12px;
-  border-top: 1px solid var(--weilin-prompt-ui-border-color);
-  display: flex;
-  justify-content: flex-end;
-}
-
-.hide-btn {
+/* Switch 开关样式 */
+.switch-item {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  border: none;
-  background: transparent;
+  gap: 6px;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
   cursor: pointer;
-  border-radius: 4px;
-  font-size: 12px;
-  color: var(--weilin-prompt-ui-secondary-text);
-  transition: all 0.3s ease;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 20px;
 }
 
-.hide-btn:hover {
-  background-color: var(--weilin-prompt-ui-hover-bg-color);
-  color: var(--weilin-prompt-ui-primary-text);
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
 }
 
-.hide-btn svg {
-  fill: var(--weilin-prompt-ui-secondary-text);
+.switch input:checked+.slider {
+  background-color: var(--weilin-prompt-ui-primary-color);
 }
 
-.hide-btn:hover svg {
-  fill: var(--weilin-prompt-ui-primary-color);
-}
 </style>

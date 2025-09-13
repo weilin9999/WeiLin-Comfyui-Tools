@@ -59,12 +59,9 @@ const handleOverlayClick = () => {
 
 <style scoped>
 .weilin_prompt_ui_dialog-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.4);
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.18);
   backdrop-filter: blur(2px);
   display: flex;
   justify-content: center;
@@ -74,53 +71,35 @@ const handleOverlayClick = () => {
 
 .weilin_prompt_ui_dialog {
   background: var(--weilin-prompt-ui-primary-bg);
-  border-radius: 12px;
-  box-shadow: 0 4px 24px var(--weilin-prompt-ui-shadow-color);
-  width: 50vh;
-  height: 80vh;
-  width: fit-content;
-  margin: 20px;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px var(--weilin-prompt-ui-shadow-color);
+  margin: 0;
   position: relative;
   overflow: hidden;
-  border: 1px solid var(--weilin-prompt-ui-border-color);
+  border: none;
   display: flex;
   flex-direction: column;
-  z-index: 1099;
-}
-
-.weilin_prompt_ui_dialog-content {
-  padding: 20px;
-  color: var(--weilin-prompt-ui-primary-text);
-  overflow-y: auto;
-  max-height: calc(90vh - 140px);
-  line-height: 1.6;
-  flex: 1;
-}
-
-.weilin_prompt_ui_dialog-footer {
-  padding: 16px 20px;
-  border-top: 1px solid var(--weilin-prompt-ui-border-color);
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  background: var(--weilin-prompt-ui-secondary-bg);
-  margin-top: auto;
+  min-width: 400px;
+  width: 70%;
+  max-width: 70%;
+  min-height: 200px;
+  max-height: 75vh;
 }
 
 .weilin_prompt_ui_dialog-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--weilin-prompt-ui-border-color);
+  padding: 20px 28px 12px 28px;
+  border-bottom: none;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--weilin-prompt-ui-secondary-bg);
+  background: transparent;
 }
 
 .weilin_prompt_ui_dialog-title {
   margin: 0;
-  font-size: 16px;
-  color: var(--weilin-prompt-ui-primary-text);
-  font-weight: 600;
+  font-size: 18px;
+  color: var(--weilin-prompt-ui-title-color);
+  font-weight: 700;
   letter-spacing: 0.01em;
 }
 
@@ -130,33 +109,35 @@ const handleOverlayClick = () => {
   cursor: pointer;
   width: 32px;
   height: 32px;
-  border-radius: 6px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: background 0.2s;
   padding: 0;
 }
 
 .weilin_prompt_ui_dialog-close:hover {
-  background-color: var(--weilin-prompt-ui-hover-bg-color);
+  background: var(--weilin-prompt-ui-hover-bg-color);
 }
 
 .weilin_prompt_ui_dialog-close svg {
   fill: var(--weilin-prompt-ui-secondary-text);
-  transition: fill 0.2s ease;
+  transition: fill 0.2s;
 }
 
 .weilin_prompt_ui_dialog-close:hover svg {
-  fill: #ff4d4f;
+  fill: var(--weilin-prompt-ui-danger-color);
 }
 
 .weilin_prompt_ui_dialog-content {
-  padding: 20px;
+  padding: 0 28px 20px 28px;
   color: var(--weilin-prompt-ui-primary-text);
   overflow-y: auto;
-  max-height: calc(90vh - 140px);
-  line-height: 1.6;
+  flex: 1;
+  line-height: 1.7;
+  font-size: 15px;
+  max-height: calc(75vh - 120px);
 }
 
 .weilin_prompt_ui_dialog-content::-webkit-scrollbar {
@@ -171,7 +152,7 @@ const handleOverlayClick = () => {
 .weilin_prompt_ui_dialog-content::-webkit-scrollbar-thumb {
   background: var(--weilin-prompt-ui-scrollbar-thumb);
   border-radius: 3px;
-  transition: background 0.2s ease;
+  transition: background 0.2s;
 }
 
 .weilin_prompt_ui_dialog-content::-webkit-scrollbar-thumb:hover {
@@ -179,70 +160,64 @@ const handleOverlayClick = () => {
 }
 
 .weilin_prompt_ui_dialog-footer {
-  padding: 16px 20px;
-  border-top: 1px solid var(--weilin-prompt-ui-border-color);
+  padding: 16px 28px;
+  border-top: none;
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  background: var(--weilin-prompt-ui-secondary-bg);
+  background: transparent;
+  margin-top: auto;
 }
 
-/* 遮罩层动画 */
 .weilin_prompt_ui_dialog-fade-enter-active,
 .weilin_prompt_ui_dialog-fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.25s;
 }
-
 .weilin_prompt_ui_dialog-fade-enter-from,
 .weilin_prompt_ui_dialog-fade-leave-to {
   opacity: 0;
 }
 
-/* 对话框动画 */
 .weilin_prompt_ui_dialog-slide-enter-active {
-  transition: all 0.3s ease-out;
+  transition: all 0.25s cubic-bezier(.4,0,.2,1);
 }
-
 .weilin_prompt_ui_dialog-slide-leave-active {
-  transition: all 0.2s ease-in;
+  transition: all 0.18s cubic-bezier(.4,0,.2,1);
 }
-
 .weilin_prompt_ui_dialog-slide-enter-from {
   opacity: 0;
-  transform: translateY(-20px);
+  transform: translateY(-16px) scale(0.98);
 }
-
 .weilin_prompt_ui_dialog-slide-leave-to {
   opacity: 0;
-  transform: translateY(20px);
+  transform: translateY(16px) scale(0.98);
 }
 
-/* 按钮样式 */
+/* 按钮样式简约化 */
 .weilin_prompt_ui_dialog-footer :slotted(button) {
-  padding: 8px 16px;
-  border-radius: 6px;
-  border: 1px solid var(--weilin-prompt-ui-border-color);
-  background: var(--weilin-prompt-ui-primary-bg);
-  color: var(--weilin-prompt-ui-primary-text);
+  padding: 8px 22px;
+  border-radius: 10px;
+  border: none;
+  background: var(--weilin-prompt-ui-btn-gradient);
+  color: #fff;
   cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s ease;
+  font-size: 15px;
+  font-weight: 500;
+  box-shadow: var(--weilin-prompt-ui-btn-shadow);
+  transition: background 0.2s;
 }
 
 .weilin_prompt_ui_dialog-footer :slotted(button:hover) {
-  border-color: #40a9ff;
-  color: #40a9ff;
+  background: var(--weilin-prompt-ui-btn-gradient-hover);
 }
 
 .weilin_prompt_ui_dialog-footer :slotted(button:last-child) {
-  background: #1890ff;
-  color: white;
-  border-color: #1890ff;
+  background: var(--weilin-prompt-ui-btn-gradient);
+  color: #fff;
 }
 
 .weilin_prompt_ui_dialog-footer :slotted(button:last-child:hover) {
-  background: #40a9ff;
-  border-color: #40a9ff;
-  color: white;
+  background: var(--weilin-prompt-ui-btn-gradient-hover);
+  color: #fff;
 }
 </style>

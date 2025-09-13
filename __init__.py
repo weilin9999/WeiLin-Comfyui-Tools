@@ -1,4 +1,5 @@
 
+from .app.server.prompt_server import *
 import comfy.lora
 import comfy.utils
 import logging
@@ -10,7 +11,6 @@ import re
 # Server Init
 from .install_request import *
 install_requirements()
-from .app.server.prompt_server import *
 
 # 检测系统语言
 localLan = locale.getdefaultlocale()[0]
@@ -46,11 +46,13 @@ def is_json(myjson):
         return False
     return True
 
+
 class AnyType(str):
     """
     A class representing any type in ComfyUI nodes.
     Used for parameters that can accept any type of input.
     """
+
     def __ne__(self, __value: object) -> bool:
         return False
 
@@ -58,19 +60,22 @@ class AnyType(str):
     def INPUT_TYPE(cls):
         return (ANY, {})
 
+
 ANY = AnyType("*")
 
 # 提示词UI
+
+
 class WeiLinPromptUI:
 
     def __init__(self):
         self.loaded_loraA = None
-    
+
     @classmethod
     def IS_CHANGED(self, auto_random, **kwargs):
-        if auto_random:
+        if auto_random == True:
             return float("nan")
-    
+
     @classmethod
     def INPUT_TYPES(self):
         return {
@@ -123,31 +128,31 @@ class WeiLinPromptUI:
 
     # 加载Lora
     def load_lora_ing(self, positive="", auto_random=False, lora_str="",
-     temp_str="", temp_lora_str="", random_template="", opt_text="",
-      opt_clip=None, opt_model=None):
+                      temp_str="", temp_lora_str="", random_template="", opt_text="",
+                      opt_clip=None, opt_model=None):
 
         model_lora_secondA = opt_model
         clip_lora_secondA = opt_clip
 
         text_dec = ""
-        lora_list= None
+        lora_list = None
 
         if is_json(positive):
             json_object = json.loads(positive)
             lora_list = json_object.get("lora", None)
             if len(opt_text) > 0:
-                text_dec = opt_text +", "+ json_object.get("prompt", "")
+                text_dec = opt_text + ", " + json_object.get("prompt", "")
             else:
                 text_dec = json_object.get("prompt", "")
         else:
             if len(opt_text) > 0:
-                text_dec = opt_text +", "+positive
+                text_dec = opt_text + ", "+positive
             else:
                 text_dec = positive
         if len(lora_str) > 0:
             json_object = json.loads(lora_str)
             lora_list = json_object
-        
+
         if auto_random:
             if len(random_template) > 0:
                 # 随机Tag获取
@@ -156,11 +161,10 @@ class WeiLinPromptUI:
                     positive = random_tag["random_tags"]
                     self.positive = positive
                     if len(opt_text) > 0:
-                        text_dec = opt_text +", "+positive
+                        text_dec = opt_text + ", "+positive
                     else:
                         text_dec = positive
-        
-        
+
         wlr_pattern = r'<wlr:([^:]+):([^:]+):([^>]+)>'
         wlr_matches = re.findall(wlr_pattern, text_dec)
 
@@ -174,14 +178,14 @@ class WeiLinPromptUI:
                     "weight": float(model_weight.strip()),
                     "text_encoder_weight": float(text_weight.strip())
                 })
-            
+
             # print(extracted_loras)
             # 如果已经有lora_list，合并它们
             if lora_list is not None:
                 lora_list.extend(extracted_loras)
             else:
                 lora_list = extracted_loras
-            
+
             # 从text_dec中移除这些标签
             clean_text_dec = re.sub(wlr_pattern, '', text_dec)
             # 清理连续的逗号
@@ -189,7 +193,6 @@ class WeiLinPromptUI:
             # 清理开头和结尾的逗号
             clean_text_dec = clean_text_dec.strip().strip(',').strip()
             text_dec = clean_text_dec
-                
 
         # 当模型不为空时
         if opt_model != None and lora_list != None:
@@ -197,12 +200,14 @@ class WeiLinPromptUI:
                 # print(loar_sim_path,str_n_arr)
                 strength_model = float(str_lora_item["weight"])
                 strength_clip = float(str_lora_item["text_encoder_weight"])
-                print("模型权重strength_model：",strength_model,"文本权重strength_clip：",strength_clip)
+                print("模型权重strength_model：", strength_model,
+                      "文本权重strength_clip：", strength_clip)
 
-                lora_path = folder_paths.get_full_path("loras", str_lora_item["lora"])
+                lora_path = folder_paths.get_full_path(
+                    "loras", str_lora_item["lora"])
                 if lora_path == None:
                     raise ValueError(f'无法找到Lora文件: {str_lora_item["lora"]}')
-                print("加载Lora lora_path:",lora_path)
+                print("加载Lora lora_path:", lora_path)
                 lora = None
                 if self.loaded_loraA is not None:
                     if self.loaded_loraA[0] == lora_path:
@@ -213,18 +218,25 @@ class WeiLinPromptUI:
                         del temp
 
                 if lora is None:
-                    lora = comfy.utils.load_torch_file(lora_path, safe_load=True)
+                    lora = comfy.utils.load_torch_file(
+                        lora_path, safe_load=True)
                     self.loaded_loraA = (lora_path, lora)
 
-                model_lora_secondA, clip_lora_secondA = load_lora_for_models(model_lora_secondA, clip_lora_secondA, lora, strength_model, strength_clip)
-        
+                model_lora_secondA, clip_lora_secondA = load_lora_for_models(
+                    model_lora_secondA, clip_lora_secondA, lora, strength_model, strength_clip)
+
         if opt_clip != None:
             tokensA = clip_lora_secondA.tokenize(text_dec)
-            outputA = clip_lora_secondA.encode_from_tokens(tokensA, return_pooled=True, return_dict=True)
+            outputA = clip_lora_secondA.encode_from_tokens(
+                tokensA, return_pooled=True, return_dict=True)
             condA = outputA.pop("cond")
-            return {"ui": {"positive": [str(positive)]}, "result":  (text_dec,[[condA, outputA]], clip_lora_secondA, model_lora_secondA,)}
-        
-        return {"ui": {"positive": [str(positive)]}, "result":  (text_dec, clip_lora_secondA, clip_lora_secondA, model_lora_secondA,)}
+            if auto_random == True:
+                return {"ui": {"positive": [str(positive)]}, "result":  (text_dec, [[condA, outputA]], clip_lora_secondA, model_lora_secondA,)}
+            return (text_dec, [[condA, outputA]], clip_lora_secondA, model_lora_secondA,)
+
+        if auto_random == True:
+            return {"ui": {"positive": [str(positive)]}, "result":  (text_dec, None, clip_lora_secondA, model_lora_secondA,)}
+        return (text_dec, clip_lora_secondA, clip_lora_secondA, model_lora_secondA,)
         # return (model_lora_second, clip_lora_second)
 
 
@@ -255,8 +267,8 @@ class WeiLinPromptUIOnlyLoraStack:
             }
         }
 
-    RETURN_TYPES = ( "CLIP", "MODEL", )
-    RETURN_NAMES = ( "CLIP", "MODEL", )
+    RETURN_TYPES = ("CLIP", "MODEL", )
+    RETURN_NAMES = ("CLIP", "MODEL", )
 
     # FUNCTION = "encode"
     FUNCTION = "load_lora_ing"
@@ -270,7 +282,7 @@ class WeiLinPromptUIOnlyLoraStack:
         model_lora_secondA = model
         clip_lora_secondA = clip
 
-        lora_list= None
+        lora_list = None
 
         if len(lora_str) > 0:
             json_object = json.loads(lora_str)
@@ -282,12 +294,14 @@ class WeiLinPromptUIOnlyLoraStack:
                 # print(loar_sim_path,str_n_arr)
                 strength_model = float(str_lora_item["weight"])
                 strength_clip = float(str_lora_item["text_encoder_weight"])
-                print("模型权重strength_model：",strength_model,"文本权重strength_clip：",strength_clip)
+                print("模型权重strength_model：", strength_model,
+                      "文本权重strength_clip：", strength_clip)
 
-                lora_path = folder_paths.get_full_path("loras", str_lora_item["lora"])
+                lora_path = folder_paths.get_full_path(
+                    "loras", str_lora_item["lora"])
                 if lora_path == None:
                     raise ValueError(f'无法找到Lora文件: {str_lora_item["lora"]}')
-                print("加载Lora lora_path:",lora_path)
+                print("加载Lora lora_path:", lora_path)
                 lora = None
                 if self.loaded_loraA is not None:
                     if self.loaded_loraA[0] == lora_path:
@@ -298,25 +312,29 @@ class WeiLinPromptUIOnlyLoraStack:
                         del temp
 
                 if lora is None:
-                    lora = comfy.utils.load_torch_file(lora_path, safe_load=True)
+                    lora = comfy.utils.load_torch_file(
+                        lora_path, safe_load=True)
                     self.loaded_loraA = (lora_path, lora)
 
-                model_lora_secondA, clip_lora_secondA = load_lora_for_models(model_lora_secondA, clip_lora_secondA, lora, strength_model, strength_clip)
+                model_lora_secondA, clip_lora_secondA = load_lora_for_models(
+                    model_lora_secondA, clip_lora_secondA, lora, strength_model, strength_clip)
 
         return (clip_lora_secondA, model_lora_secondA)
         # return (model_lora_second, clip_lora_second)
 
 # 提示词UI - 不加载Lora
+
+
 class WeiLinPromptUIWithoutLora:
 
     def __init__(self):
         pass
-    
+
     @classmethod
     def IS_CHANGED(self, auto_random, **kwargs):
-        if auto_random:
+        if auto_random == True:
             return float("nan")
-    
+
     @classmethod
     def INPUT_TYPES(self):
         return {
@@ -356,17 +374,17 @@ class WeiLinPromptUIWithoutLora:
     CATEGORY = node_name_text
 
     def encode(self, positive="", auto_random=False, temp_str="", random_template="",
-     opt_text="", opt_clip=None, unique_id=None, extra_pnginfo=None):
+               opt_text="", opt_clip=None, unique_id=None, extra_pnginfo=None):
         text_dec = ""
         if is_json(positive):
             json_object = json.loads(positive)
             if len(opt_text) > 0:
-                text_dec = opt_text +", "+ json_object.get("prompt", "")
+                text_dec = opt_text + ", " + json_object.get("prompt", "")
             else:
                 text_dec = json_object.get("prompt", "")
         else:
             if len(opt_text) > 0:
-                text_dec = opt_text +", "+positive
+                text_dec = opt_text + ", "+positive
             else:
                 text_dec = positive
 
@@ -377,16 +395,18 @@ class WeiLinPromptUIWithoutLora:
                 if len(random_tag["random_tags"]) > 0:
                     positive = random_tag["random_tags"]
                     if len(opt_text) > 0:
-                        text_dec = opt_text +", "+positive
+                        text_dec = opt_text + ", "+positive
                     else:
                         text_dec = positive
-        
+
         if opt_clip is not None:
             tokens = opt_clip.tokenize(text_dec)
-            return {"ui": {"positive": [str(positive)]}, "result":  (text_dec, opt_clip.encode_from_tokens_scheduled(tokens), opt_clip,)}
-        
-        return {"ui": {"positive": [str(positive)]}, "result":  (text_dec, opt_clip, opt_clip,)}
-
+            if auto_random == True:
+                return {"ui": {"positive": [str(positive)]}, "result":  (text_dec, opt_clip.encode_from_tokens_scheduled(tokens), opt_clip,)}
+            return (text_dec, opt_clip.encode_from_tokens_scheduled(tokens), opt_clip,)
+        if auto_random == True:
+            return {"ui": {"positive": [str(positive)]}, "result":  (text_dec, opt_clip, opt_clip,)}
+        return (text_dec, opt_clip, opt_clip,)
 
 
 def load_lora_for_models(model, clip, lora, strength_model, strength_clip):
@@ -419,6 +439,7 @@ def load_lora_for_models(model, clip, lora, strength_model, strength_clip):
 
     return (new_modelpatcher, new_clip)
 
+
 def copy_folder(source_folder, destination_folder):
     if not os.path.exists(destination_folder):
         os.makedirs(destination_folder)
@@ -431,8 +452,6 @@ def copy_folder(source_folder, destination_folder):
             copy_folder(source, destination)
         else:
             shutil.copy2(source, destination)
-
-
 
 
 # A dictionary that contains all nodes you want to export with their names
@@ -461,5 +480,5 @@ else:
 
 WEB_DIRECTORY = "./js_node"
 
-__all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "WEB_DIRECTORY"]
-
+__all__ = ["NODE_CLASS_MAPPINGS",
+           "NODE_DISPLAY_NAME_MAPPINGS", "WEB_DIRECTORY"]

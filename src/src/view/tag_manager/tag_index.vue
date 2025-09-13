@@ -141,6 +141,12 @@
                   <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
                 </svg>
               </button>
+              <button class="action-btn share" @click.stop="shareCategorySecond(group)" :title="t('tagManager.share')">
+                <svg viewBox="0 0 24 24" class="action-icon">
+                  <path
+                    d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z" />
+                </svg>
+              </button>
             </div>
           </div>
           <button class="add-tab" v-if="selectedCategory" @click="showAddCategoryDialog('group')">
@@ -220,7 +226,7 @@
             </div>
             <div class="tag-desc">{{ tag.text }}</div>
           </div>
-          <input v-if="isSelectTagAction" type="checkbox" v-model="selectedTags" :value="tag.id_index"
+          <input v-if="isSelectTagAction" type="checkbox" v-model="selectedTags" :value="tag"
             class="tag-checkbox" />
         </div>
       </div>
@@ -1240,58 +1246,77 @@ const confirmDelete = async () => {
 
 // 分享整个一级目录
 const shareCategory = async (category) => {
-  // console.log(category)
-  // 生成一级分类SQL
   const groupSql = `INSERT OR REPLACE INTO "tag_groups" ("name", "color", "create_time", "p_uuid") VALUES ('${category.name.replace(/'/g, "''")}', '${category.color}', ${category.create_time}, '${category.p_uuid}');`;
   try {
-    await tagsApi.getTagSubGroup(category.p_uuid).then((res) => {
-      // console.log(res);
-      const groupData = res
-      // 生成二级分类和标签SQL
-      const tagSqls = [];
-      groupData.forEach(async (group) => {
-        const subGroupSql = `INSERT OR REPLACE INTO "tag_subgroups" ("name", "color", "create_time", "p_uuid", "g_uuid") VALUES ('${group.name.replace(/'/g, "''")}', '${group.color}', ${group.create_time}, '${group.p_uuid}', '${group.g_uuid}');`;
-        tagSqls.push(subGroupSql);
+    const groupData = await tagsApi.getTagSubGroup(category.p_uuid);
+    let tagSqls = [];
+    tagSqls.push(groupSql);
 
-        try {
-          await tagsApi.getTagList(group.g_uuid).then((res) => {
-            // console.log(res);
-            const currentTags = res
-            currentTags.forEach(tag => {
-              const tagSql = `INSERT OR REPLACE INTO "tag_tags" ("text", "desc", "color", "create_time", "g_uuid", "t_uuid") VALUES ('${tag.text.replace(/'/g, "''")}', '${tag.desc.replace(/'/g, "''")}', '${tag.color}', ${tag.create_time}, '${tag.g_uuid}', '${uuidv7()}');`;
-              tagSqls.push(tagSql);
-            });
-          }).catch((err) => {
-            console.error(err);
-            message({ type: "warn", str: 'message.networkError' });
-          });
-        } catch (error) {
-          console.error('Tag列表失败:', error)
-          message({ type: "warn", str: 'message.shareTagError' });
-        }
-      });
+    for (const group of groupData) {
+      const subGroupSql = `INSERT OR REPLACE INTO "tag_subgroups" ("name", "color", "create_time", "p_uuid", "g_uuid") VALUES ('${group.name.replace(/'/g, "''")}', '${group.color}', ${group.create_time}, '${group.p_uuid}', '${group.g_uuid}');`;
+      tagSqls.push(subGroupSql);
 
-      // 合并所有SQL语句
-      const sqlContent = [groupSql, ...tagSqls].join('\n');
+      try {
+        const currentTags = await tagsApi.getTagList(group.g_uuid);
+        currentTags.forEach(tag => {
+          const tagSql = `INSERT OR REPLACE INTO "tag_tags" ("text", "desc", "color", "create_time", "g_uuid", "t_uuid") VALUES ('${tag.text != null && tag.text.length > 0 ? tag.text.replace(/'/g, "''") : ''}', '${tag.desc != null && tag.desc.length > 0 ? tag.desc.replace(/'/g, "''") : ''}', '${tag.color}', ${tag.create_time}, '${tag.g_uuid}', '${uuidv7()}');`;
+          tagSqls.push(tagSql);
+        });
+      } catch (error) {
+        console.error('Tag列表失败:', error)
+        message({ type: "warn", str: 'message.shareTagError' });
+      }
+    }
 
-      // 创建下载链接
-      const blob = new Blob([sqlContent], { type: 'text/sql' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `${category.name}_export_${Date.now()}.sql`;
-      link.click();
 
-      message({ type: "success", str: 'tagManager.outputSuccess' });
-    }).catch((err) => {
-      console.error(err);
-      message({ type: "warn", str: 'message.networkError' });
-    });
+    // 创建下载链接
+    const blob = new Blob([tagSqls.join('\n')], { type: 'text/sql' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${category.name}_export_${Date.now()}.sql`;
+    link.click();
 
+    message({ type: "success", str: 'tagManager.outputSuccess' });
   } catch (error) {
     console.error('二级分类列表失败:', error)
     message({ type: "warn", str: 'message.shareGroupError' });
   }
+};
 
+
+
+// 分享整个二级目录
+const shareCategorySecond = async (group) => {
+  try {
+    let tagSqls = [];
+
+    const subGroupSql = `INSERT OR REPLACE INTO "tag_subgroups" ("name", "color", "create_time", "p_uuid", "g_uuid") VALUES ('${group.name.replace(/'/g, "''")}', '${group.color}', ${group.create_time}, '${group.p_uuid}', '${group.g_uuid}');`;
+    tagSqls.push(subGroupSql);
+
+    try {
+      const currentTags = await tagsApi.getTagList(group.g_uuid);
+      currentTags.forEach(tag => {
+        const tagSql = `INSERT OR REPLACE INTO "tag_tags" ("text", "desc", "color", "create_time", "g_uuid", "t_uuid") VALUES ('${tag.text != null && tag.text.length > 0 ? tag.text.replace(/'/g, "''") : ''}', '${tag.desc != null && tag.desc.length > 0 ? tag.desc.replace(/'/g, "''") : ''}', '${tag.color}', ${tag.create_time}, '${tag.g_uuid}', '${uuidv7()}');`;
+        tagSqls.push(tagSql);
+      });
+    } catch (error) {
+      console.error('Tag列表失败:', error)
+      message({ type: "warn", str: 'message.shareTagError' });
+    }
+
+
+    // 创建下载链接
+    const blob = new Blob([tagSqls.join('\n')], { type: 'text/sql' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${group.name}_export_${Date.now()}.sql`;
+    link.click();
+
+    message({ type: "success", str: 'tagManager.outputSuccess' });
+  } catch (error) {
+    console.error('二级分类列表失败:', error)
+    message({ type: "warn", str: 'message.shareGroupError' });
+  }
 };
 
 // 打开移动对话框
@@ -1417,14 +1442,9 @@ const shareSelectedTags = () => {
     return;
   }
 
-  // 获取选中的标签
-  const selectedTagItems = selectedGroup.value.tags.filter(tag =>
-    selectedTags.value.includes(tag.id_index)
-  );
-
   // 生成YAML内容
   const yamlContent = {};
-  selectedTagItems.forEach(tag => {
+  selectedTags.value.forEach(tag => {
     yamlContent[tag.text] = tag.desc;
   });
 
@@ -1438,7 +1458,6 @@ const shareSelectedTags = () => {
   message({ type: "success", str: 'tagManager.outputSuccess' });
   cancelShareAction();
 };
-
 
 // 关闭删除对话框
 const closeDeleteDialog = () => {

@@ -1,119 +1,109 @@
 <template>
   <Dialog v-model="dialogVisible" :title="t('promptBox.settings.title')">
-    <div class="settings-content">
-      <div class="settings-sidebar">
+    <div class="weilin-comfyui-settings-content">
+      <div class="weilin-comfyui-settings-sidebar">
         <ul>
-          <li :class="{ active: selectedSetting === 'translator' }" @click="selectSetting('translator')">{{
-            t('promptBox.settings.translator') }}</li>
-          <li :class="{ active: selectedSetting === 'setting_auto_complete_limit' }"
+          <li :class="{ 'weilin-comfyui-active': selectedSetting === 'translator' }"
+            @click="selectSetting('translator')">{{
+              t('promptBox.settings.translator') }}</li>
+          <li :class="{ 'weilin-comfyui-active': selectedSetting === 'setting_auto_complete_limit' }"
             @click="selectSetting('setting_auto_complete_limit')">{{
               t('promptBox.settings.setting_auto_complete_limit') }}</li>
-          <li :class="{ active: selectedSetting === 'setting_floating_ball' }"
+          <li :class="{ 'weilin-comfyui-active': selectedSetting === 'setting_floating_ball' }"
             @click="selectSetting('setting_floating_ball')">{{
               t('promptBox.settings.setting_floating_ball') }}</li>
-          <li :class="{ active: selectedSetting === 'setting_prompt_box' }"
+          <li :class="{ 'weilin-comfyui-active': selectedSetting === 'setting_prompt_box' }"
             @click="selectSetting('setting_prompt_box')">{{
               t('promptBox.settings.setting_prompt_box') }}</li>
-          <li :class="{ active: selectedSetting === 'setting_openai_box' }"
+          <li :class="{ 'weilin-comfyui-active': selectedSetting === 'setting_openai_box' }"
             @click="selectSetting('setting_openai_box')">{{
               t('promptBox.settings.setting_openai_box') }}</li>
-          <!-- <li :class="{ active: selectedSetting === 'setting_start_panel' }"
+          <!-- <li :class="{ 'weilin-comfyui-active': selectedSetting === 'setting_start_panel' }"
             @click="selectSetting('setting_start_panel')">{{
               t('promptBox.settings.setting_start_panel') }}</li> -->
-          <li :class="{ active: selectedSetting === 'setting_sponsor_me' }"
+          <li :class="{ 'weilin-comfyui-active': selectedSetting === 'setting_sponsor_me' }"
             @click="selectSetting('setting_sponsor_me')">{{
               t('promptBox.settings.setting_sponsor_me') }}</li>
         </ul>
       </div>
-      <div class="settings-main">
+      <div class="weilin-comfyui-settings-main">
         <div v-if="selectedSetting === 'translator'">
           <h3>{{ t('promptBox.settings.translator') }}</h3>
-
-          <div class="setting-select">
+          <div class="weilin-comfyui-setting-select">
             <label> {{ t('promptBox.settings.selectTranslater') }}</label>
-            <select style="margin-left: 10px;" v-model="settingTranslater">
+            <select style="margin-left: 10px;" v-model="settingTranslater" class="weilin-comfyui-common-select">
               <option value="network"> {{ t('promptBox.settings.selectOptionNetworkTranslater') }}</option>
               <option value="translater">{{ t('promptBox.settings.selectOptionPythonTranslater') }}</option>
               <option value="openai">OpenAI API 翻译</option>
             </select>
-            <button class="install-button" @click="applyTranslaterSetting">
+            <button class="weilin-comfyui-install-button" @click="applyTranslaterSetting">
               {{ t('promptBox.settings.apply') }}
             </button>
           </div>
-
-          <div class="translator-settings">
-            <div class="group-box" v-if="settingTranslater == 'network'">
-              <div class="group-title">{{ t('promptBox.settings.selectOptionNetworkTranslaterTitle') }}</div>
-              <div class="note-top">{{ t('promptBox.settings.selectOptionNetworkTranslaterInfo')
+          <div class="weilin-comfyui-translator-settings">
+            <div class="weilin-comfyui-group-box" v-if="settingTranslater == 'network'">
+              <div class="weilin-comfyui-group-title">{{ t('promptBox.settings.selectOptionNetworkTranslaterTitle') }}
+              </div>
+              <div class="weilin-comfyui-note-top">{{ t('promptBox.settings.selectOptionNetworkTranslaterInfo')
               }}：https://github.com/xnx3/translate</div>
-              <!-- 选择源语言 -->
-              <div class="setting-item">
+              <div class="weilin-comfyui-setting-item">
                 <label>{{ t('promptBox.settings.sourceLanguage') }}</label>
-                <select v-model="savedSourceLanguage">
+                <select v-model="savedSourceLanguage" class="weilin-comfyui-common-select">
                   <option value="auto">{{ t('promptBox.settings.auto_detect') }}</option>
                   <option value="chinese_simplified">{{ t('promptBox.settings.chinese_simplified') }}</option>
                   <option value="english">{{ t('promptBox.settings.english') }}</option>
                 </select>
               </div>
-
-              <!-- 选择目标语言 -->
-              <div class="setting-item">
+              <div class="weilin-comfyui-setting-item">
                 <label>{{ t('promptBox.settings.targetLanguage') }}</label>
-                <select v-model="savedTargetLanguage" class="common-select">
+                <select v-model="savedTargetLanguage" class="weilin-comfyui-common-select">
                   <option value="chinese_simplified">{{ t('promptBox.settings.chinese_simplified') }}</option>
                   <option value="english">{{ t('promptBox.settings.english') }}</option>
                 </select>
               </div>
-
-              <!-- 保存按钮 -->
-              <button class="save-button" @click="saveTranslatorSettings">
+              <button class="weilin-comfyui-save-button" @click="saveTranslatorSettings">
                 {{ t('promptBox.settings.save') }}
               </button>
             </div>
-            <div class="group-box" v-if="settingTranslater == 'translater'">
-              <div class="group-title">{{ t('promptBox.settings.selectOptionPythonTranslaterTitle') }}</div>
-              <div class="note-top">{{ t('promptBox.settings.selectOptionPythonTranslaterInfo')
+            <div class="weilin-comfyui-group-box" v-if="settingTranslater == 'translater'">
+              <div class="weilin-comfyui-group-title">{{ t('promptBox.settings.selectOptionPythonTranslaterTitle') }}
+              </div>
+              <div class="weilin-comfyui-note-top">{{ t('promptBox.settings.selectOptionPythonTranslaterInfo')
               }}：https://github.com/UlionTse/translators</div>
-
-              <!-- 三方库安装状态 -->
-              <div class="translater-innstall-status">
-                <div class="translater-install-label">
+              <div class="weilin-comfyui-translater-innstall-status">
+                <div class="weilin-comfyui-translater-install-label">
                   {{ t('promptBox.settings.nowTranlaterPackageState') }} {{ hasTranslaterPackage ?
                     t('promptBox.settings.tranlaterPackageStateTrue') : t('promptBox.settings.tranlaterPackageStateFlase')
                   }}
                 </div>
-                <div class="translater-install-label" v-if="installTranslater">
+                <div class="weilin-comfyui-translater-install-label" v-if="installTranslater">
                   {{ t('promptBox.settings.installTranslaterPackageInfo') }}
                 </div>
-                <div class="translater-install-control" v-if="!hasTranslaterPackage">
-                  <button :disabled="installTranslater" class="install-button" @click="installTranslaterPackage">
+                <div class="weilin-comfyui-translater-install-control" v-if="!hasTranslaterPackage">
+                  <button :disabled="installTranslater" class="weilin-comfyui-install-button"
+                    @click="installTranslaterPackage">
                     {{ installTranslater ? t('promptBox.settings.installed') : t('promptBox.settings.install') }}
                   </button>
                 </div>
               </div>
-
-              <div class="translater-setting-box" v-if="hasTranslaterPackage">
-                <div class="setting-small-titile">{{ t('promptBox.settings.translaterSetting') }}</div>
-
-                <!-- 选择翻译服务 -->
-                <div class="setting-item">
+              <div class="weilin-comfyui-translater-setting-box" v-if="hasTranslaterPackage">
+                <div class="weilin-comfyui-setting-small-titile">{{ t('promptBox.settings.translaterSetting') }}</div>
+                <div class="weilin-comfyui-setting-item">
                   <label>{{ t('promptBox.settings.chooseTranslaterSetting') }}</label>
                   <select v-model="selectedTranslatorService">
                     <option v-for="(item, index) in translaterSerives" :index="index" :key="'tran-item_' + index"
                       :value="item">{{ t('translaterService.' + item) }}</option>
                   </select>
                 </div>
-
-                <!-- 翻译语言和目标语言 -->
-                <div class="language-selectors">
-                  <div class="setting-item">
+                <div class="weilin-comfyui-language-selectors">
+                  <div class="weilin-comfyui-setting-item">
                     <label>{{ t('promptBox.settings.translaterLangSourceSetting') }}</label>
                     <select v-model="sourceLanguage">
                       <option v-for="(item, index) in language" :index="index" :key="'lan-item_' + index"
                         :value="item.translator">{{ t('translaterLanguage.' + item.language) }}</option>
                     </select>
                   </div>
-                  <div class="setting-item">
+                  <div class="weilin-comfyui-setting-item">
                     <label>{{ t('promptBox.settings.translaterLangTargeSetting') }}</label>
                     <select v-model="targetLanguage">
                       <option v-for="(item, index) in language" :index="index" :key="'lan-mu-item_' + index"
@@ -121,134 +111,103 @@
                     </select>
                   </div>
                 </div>
-
-                <button class="install-button" @click="saveTranslaterSetting">
+                <button class="weilin-comfyui-install-button" @click="saveTranslaterSetting">
                   {{ t('promptBox.settings.saveTranslaterSetting') }}
                 </button>
               </div>
-
-              <div class="tranlater-text-box" v-if="hasTranslaterPackage">
-                <div class="setting-small-titile">{{ t('promptBox.settings.testTranslaterTitle') }}</div>
-                <div class="setting-item">
+              <div class="weilin-comfyui-tranlater-text-box" v-if="hasTranslaterPackage">
+                <div class="weilin-comfyui-setting-small-titile">{{ t('promptBox.settings.testTranslaterTitle') }}</div>
+                <div class="weilin-comfyui-setting-item">
                   <label>{{ t('promptBox.settings.inputTestTranslater') }}</label>
                   <input type="text" v-model="testTranslaterInputText"
                     :placeholder="t('promptBox.settings.inputTestTranslaterPlaceholder')" />
                 </div>
-                <div class="setting-item">
+                <div class="weilin-comfyui-setting-item">
                   <label>{{ t('promptBox.settings.outPutTestTranslater') }}</label>
                   <input type="text" v-model="testTranslaterOutputText" readonly
                     :placeholder="t('promptBox.settings.outPutTestTranslaterPlaceholder')" />
                 </div>
-                <button class="install-button" @click="translaterTextTest">
+                <button class="weilin-comfyui-install-button" @click="translaterTextTest">
                   {{ t('promptBox.settings.testingTranslater') }}
                 </button>
               </div>
-
             </div>
-
           </div>
         </div>
-
         <div v-if="selectedSetting === 'setting_auto_complete_limit'">
           <h3>{{ t('promptBox.settings.setting_auto_complete_limit') }}</h3>
-          <div class="floating-ball-settings">
-            <!-- 补全显示条数 -->
-            <div class="setting-item">
+          <div class="weilin-comfyui-floating-ball-settings">
+            <div class="weilin-comfyui-setting-item">
               <label>{{ t('promptBox.settings.show_auto_limit') }}</label>
               <input type="number" v-model.number="saveAutoCompleteLimit" min="1" max="99999999" style="width: 100px;"
                 :placeholder="t('promptBox.settings.showAutoLimitPlaceholder')" />
             </div>
-
-            <!-- 设置补全提示框宽度 -->
-            <div class="setting-item">
+            <div class="weilin-comfyui-setting-item">
               <label>{{ t('promptBox.settings.settingAutoCompleteWidth') }}</label>
               <input type="number" v-model.number="saveAutoCompleteWidth" min="5" style="width: 100px;"
                 :placeholder="t('promptBox.settings.settingAutoCompleteWidthPlaceholder')" />
             </div>
-
-            <!-- 设置补全提示框最大高度 -->
-            <div class="setting-item">
+            <div class="weilin-comfyui-setting-item">
               <label>{{ t('promptBox.settings.settingAutoCompleteHeight') }}</label>
               <input type="number" v-model.number="saveAutoCompleteHeight" min="5" style="width: 100px;"
                 :placeholder="t('promptBox.settings.settingAutoCompleteHeightPlaceholder')" />
             </div>
-
-            <!-- 保存按钮 -->
-            <button class="save-button" @click="saveAutoCompleteSetting">
+            <button class="weilin-comfyui-save-button" @click="saveAutoCompleteSetting">
               {{ t('promptBox.settings.save') }}
             </button>
           </div>
         </div>
-
         <div v-if="selectedSetting === 'setting_floating_ball'">
           <h3>{{ t('promptBox.settings.setting_floating_ball') }}</h3>
-          <div class="floating-ball-settings" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
-            <!-- 第一列 -->
-            <div class="settings-column">
-              <!-- 是否启用悬浮球 -->
-              <div class="setting-item">
+          <div class="weilin-comfyui-floating-ball-settings"
+            style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+            <div class="weilin-comfyui-settings-column">
+              <div class="weilin-comfyui-setting-item">
                 <label>
                   <input type="checkbox" v-model="isFloatingBallEnabled" />
                   {{ t('promptBox.settings.enableFloatingBall') }}
                 </label>
               </div>
-
-              <!-- 悬浮球数量 -->
-              <div class="setting-item">
+              <div class="weilin-comfyui-setting-item">
                 <label>{{ t('promptBox.settings.floatingBallCount') }}</label>
                 <input type="number" v-model.number="savedFloatingBallCount" min="1" max="100"
                   :placeholder="t('promptBox.settings.floatingBallCountPlaceholder')" />
               </div>
-
-              <!-- 悬浮球大小 -->
-              <div class="setting-item">
+              <div class="weilin-comfyui-setting-item">
                 <label>{{ t('promptBox.settings.floatingBallSize') }}</label>
                 <input type="number" v-model.number="savedFloatingBallSize" min="5" max="999999"
                   :placeholder="t('promptBox.settings.floatingBallSizePlaceholder')" />
               </div>
-
-              <!-- 新增悬浮球高度设置 -->
-              <div class="setting-item">
-                  <label>{{ t('promptBox.settings.floatingBallHeight') }}</label>
-                  <input type="number" v-model.number="savedFloatingBallHeight" min="5" max="999999"
-                      :placeholder="t('promptBox.settings.floatingBallHeightPlaceholder')" />
+              <div class="weilin-comfyui-setting-item">
+                <label>{{ t('promptBox.settings.floatingBallHeight') }}</label>
+                <input type="number" v-model.number="savedFloatingBallHeight" min="5" max="999999"
+                  :placeholder="t('promptBox.settings.floatingBallHeightPlaceholder')" />
               </div>
-
-
             </div>
-
-            <!-- 第二列 -->
-            <div class="settings-column">
-              <!-- 皮肤设置 -->
-              <div class="setting-item">
+            <div class="weilin-comfyui-settings-column">
+              <div class="weilin-comfyui-setting-item">
                 <label>{{ t('promptBox.settings.skinSetting') }}</label>
                 <select v-model="ballSkinType">
                   <option value="default">{{ t('promptBox.settings.defaultSkin') }}</option>
                   <option value="custom">{{ t('promptBox.settings.customSkin') }}</option>
                 </select>
               </div>
-
-              <!-- 自定义皮肤上传 -->
-              <div class="setting-item" v-if="ballSkinType === 'custom'">
+              <div class="weilin-comfyui-setting-item" v-if="ballSkinType === 'custom'">
                 <label>{{ t('promptBox.settings.uploadSkin') }}</label>
                 <input type="file" accept="image/*" @change="handleSkinUpload" ref="skinUploader">
-                <div class="skin-preview" v-if="customSkinUrl">
+                <div class="weilin-comfyui-skin-preview" v-if="customSkinUrl">
                   <img :src="customSkinUrl" alt="Custom Skin Preview">
                 </div>
               </div>
             </div>
-
-            <!-- 全宽设置项 -->
-            <div class="setting-item" style="grid-column: span 2;">
+            <div class="weilin-comfyui-setting-item" style="grid-column: span 2;">
               <label>{{ t('promptBox.settings.bgSetting') }}</label>
               <select v-model="bgType">
                 <option value="gradient">{{ t('promptBox.settings.gradientBg') }}</option>
                 <option value="transparent">{{ t('promptBox.settings.transparentBg') }}</option>
               </select>
             </div>
-
-            <!-- 渐变颜色选择器 -->
-            <div class="setting-item" v-if="bgType === 'gradient'" style="grid-column: span 2;">
+            <div class="weilin-comfyui-setting-item" v-if="bgType === 'gradient'" style="grid-column: span 2;">
               <label>{{ t('promptBox.settings.gradientColor') }}</label>
               <div style="display: flex; gap: 10px; align-items: center;">
                 <input type="color" v-model="gradientColor1">
@@ -258,71 +217,57 @@
                 </button>
               </div>
             </div>
-
-            <!-- 圆角设置 -->
-            <div class="setting-item" style="grid-column: span 2;">
+            <div class="weilin-comfyui-setting-item" style="grid-column: span 2;">
               <label>{{ t('promptBox.settings.borderRadius') }}</label>
               <input type="number" v-model.number="ballBorderRadius" min="0" max="50">
             </div>
-
-            <!-- 保存按钮 -->
-            <button class="save-button" style="grid-column: span 2;" @click="saveFloatingBallSettings" >
+            <button class="weilin-comfyui-save-button" style="grid-column: span 2;" @click="saveFloatingBallSettings">
               {{ t('promptBox.settings.save') }}
             </button>
           </div>
         </div>
         <div v-if="selectedSetting === 'setting_prompt_box'">
           <h3>{{ t('promptBox.settings.setting_prompt_box') }}</h3>
-          <div class="floating-ball-settings">
-
-            <!-- 是否启用全角逗号转半角逗号 -->
-            <div class="setting-item">
+          <div class="weilin-comfyui-floating-ball-settings">
+            <div class="weilin-comfyui-setting-item">
               <label>
                 <input type="checkbox" v-model="isCommaConversionEnabled" />
                 {{ t('promptBox.settings.enableCommaConversion') }}
               </label>
             </div>
-            <!-- 是否启用全角句号转半角句号 -->
-            <div class="setting-item">
+            <div class="weilin-comfyui-setting-item">
               <label>
                 <input type="checkbox" v-model="isPeriodConversionEnabled" />
                 {{ t('promptBox.settings.enablePeriodConversion') }}
               </label>
             </div>
-            <!-- 是否启用全角括号转半角括号 -->
-            <div class="setting-item">
+            <div class="weilin-comfyui-setting-item">
               <label>
                 <input type="checkbox" v-model="isBracketConversionEnabled" />
                 {{ t('promptBox.settings.enableBracketConversion') }}
               </label>
             </div>
-            <!-- 是否启用全角尖括号转半角尖括号 -->
-            <div class="setting-item">
+            <div class="weilin-comfyui-setting-item">
               <label>
                 <input type="checkbox" v-model="isAngleBracketConversionEnabled" />
                 {{ t('promptBox.settings.enableAngleBracketConversion') }}
               </label>
             </div>
-
-            <!-- 是否启用下划线替换成括号 -->
-            <div class="setting-item">
+            <div class="weilin-comfyui-setting-item">
               <label>
                 <input type="checkbox" v-model="isUnderscoreToBracketEnabled" />
                 {{ t('promptBox.settings.enableUnderscoreToBracket') }}
               </label>
             </div>
-
-            <!-- 保存按钮 -->
-            <button class="save-button" @click="savePromptBoxSettings">
+            <button class="weilin-comfyui-save-button" @click="savePromptBoxSettings">
               {{ t('promptBox.settings.save') }}
             </button>
           </div>
         </div>
         <div v-if="selectedSetting === 'setting_openai_box'">
           <h3>{{ t('promptBox.settings.openaiSettings') }}</h3>
-          <div class="openai-settings">
-            <!-- 当前选择的 OpenAI 配置 -->
-            <div class="setting-item">
+          <div class="weilin-comfyui-openai-settings">
+            <div class="weilin-comfyui-setting-item">
               <label>{{ t('promptBox.settings.selectedOpenaiConfig') }}</label>
               <select v-model="selectedOpenaiIndex" @change="setOpenAiSelect">
                 <option v-for="(item, index) in openaiSettings" :key="index" :value="index">
@@ -330,95 +275,85 @@
                 </option>
               </select>
             </div>
-
-            <!-- 配置列表 -->
-            <div class="config-list">
-              <div v-for="(config, index) in openaiSettings" :key="index" class="config-item">
-                <div class="config-header">
+            <div class="weilin-comfyui-config-list">
+              <div v-for="(config, index) in openaiSettings" :key="index" class="weilin-comfyui-config-item">
+                <div class="weilin-comfyui-config-header">
                   <span>{{ config.model }}</span>
-                  <div class="config-actions">
+                  <div class="weilin-comfyui-config-actions">
                     <button @click="toggleEditForm(index)">
                       {{ editingIndex === index ? t('promptBox.settings.cancel') : t('promptBox.settings.edit') }}
                     </button>
                     <button @click="deleteOpenaiConfig(index)">{{ t('promptBox.settings.delete') }}</button>
                   </div>
                 </div>
-
-                <!-- 编辑表单 -->
-                <div class="config-form" v-if="editingIndex === index">
-                  <div class="form-group">
+                <div class="weilin-comfyui-config-form" v-if="editingIndex === index">
+                  <div class="weilin-comfyui-form-group">
                     <label>{{ t('promptBox.settings.openai_api_key') }}:</label>
                     <input type="text" v-model="currentConfig.api_key"
                       :placeholder="t('promptBox.settings.openai_api_key_placeholder')" />
                   </div>
-                  <div class="form-group">
+                  <div class="weilin-comfyui-form-group">
                     <label>{{ t('promptBox.settings.openai_base_url') }}:</label>
                     <input type="text" v-model="currentConfig.base_url"
                       :placeholder="t('promptBox.settings.openai_base_url_placeholder')" />
                   </div>
-                  <div class="form-group">
+                  <div class="weilin-comfyui-form-group">
                     <label>{{ t('promptBox.settings.openai_model') }}:</label>
                     <input type="text" v-model="currentConfig.model"
                       :placeholder="t('promptBox.settings.openai_model_placeholder')" />
                   </div>
-                  <div class="form-actions">
+                  <div class="weilin-comfyui-form-actions">
                     <button @click="saveOpenaiConfig(index)">{{ t('promptBox.settings.save') }}</button>
                   </div>
                 </div>
-
-                <!-- 配置详情 -->
-                <div class="config-details" v-else>
+                <div class="weilin-comfyui-config-details" v-else>
                   <div>{{ t('promptBox.settings.openai_api_key') }}: {{ config.api_key ? '******' :
                     t('promptBox.settings.not_set') }}</div>
                   <div>{{ t('promptBox.settings.openai_base_url') }}: {{ config.base_url }}</div>
                 </div>
               </div>
             </div>
-
-            <!-- 新增/编辑表单 -->
-            <div class="config-form" v-if="showOpenaiForm">
-              <div class="form-group">
+            <div class="weilin-comfyui-config-form" v-if="showOpenaiForm">
+              <div class="weilin-comfyui-form-group">
                 <label>{{ t('promptBox.settings.openai_api_key') }}:</label>
                 <input type="text" v-model="currentConfig.api_key"
                   :placeholder="t('promptBox.settings.openai_api_key_placeholder')" />
               </div>
-              <div class="form-group">
+              <div class="weilin-comfyui-form-group">
                 <label>{{ t('promptBox.settings.openai_base_url') }}:</label>
                 <input type="text" v-model="currentConfig.base_url"
                   :placeholder="t('promptBox.settings.openai_base_url_placeholder')" />
               </div>
-              <div class="form-group">
+              <div class="weilin-comfyui-form-group">
                 <label>{{ t('promptBox.settings.openai_model') }}:</label>
                 <input type="text" v-model="currentConfig.model"
                   :placeholder="t('promptBox.settings.openai_model_placeholder')" />
               </div>
-              <div class="form-actions">
+              <div class="weilin-comfyui-form-actions">
                 <button @click="cancelOpenaiConfig">{{ t('promptBox.settings.cancel') }}</button>
                 <button @click="addOpenaiNewConfig">{{ t('promptBox.settings.save') }}</button>
               </div>
             </div>
-
-            <!-- 新增按钮 -->
-            <button class="add-button" @click="addOpenaiConfig" v-if="!showOpenaiForm">
+            <button class="weilin-comfyui-add-button" @click="addOpenaiConfig" v-if="!showOpenaiForm">
               {{ t('promptBox.settings.addNewConfig') }}
             </button>
           </div>
         </div>
         <div v-if="selectedSetting === 'setting_sponsor_me'">
           <h3>{{ t('promptBox.settings.setting_sponsor_me') }}</h3>
-          <div class="sponsor-me-settings">
+          <div class="weilin-comfyui-sponsor-me-settings">
             <h1>{{ t('promptBox.settings.sponsorMeTip') }}</h1>
             <h2>{{ t('promptBox.settings.sponsorMeLink') }}</h2>
-            <button class="sponsor-me-button" @click="sponsorMe">
+            <button class="weilin-comfyui-sponsor-me-button" @click="sponsorMe">
               {{ t('promptBox.settings.sponsorMe') }}
             </button>
           </div>
         </div>
         <div v-if="selectedSetting === 'setting_start_panel'">
           <h3>{{ t('promptBox.settings.setting_start_panel') }}</h3>
-          <div class="start-panel-settings">
+          <div class="weilin-comfyui-start-panel-settings">
             <h4>{{ t('promptBox.settings.startPanelTip') }}</h4>
-            <button class="start-panel-button" @click="startPanel">
+            <button class="weilin-comfyui-start-panel-button" @click="startPanel">
               {{ t('promptBox.settings.startPanel') }}
             </button>
           </div>
@@ -893,427 +828,438 @@ defineExpose({
 </script>
 
 <style scoped>
-.settings-content {
+.weilin-comfyui-settings-content {
   display: flex;
-  min-width: 600px;
-  background-color: var(--weilin-prompt-ui-primary-bg);
+  min-width: 700px;
+  background: var(--weilin-prompt-ui-gradient-bg);
   color: var(--weilin-prompt-ui-primary-text);
+  border-radius: var(--weilin-prompt-ui-border-radius, 18px);
+  box-shadow: var(--weilin-prompt-ui-box-shadow);
+  padding: 18px 0;
 }
 
-.settings-sidebar {
-  width: 200px;
+.weilin-comfyui-settings-sidebar {
+  width: 220px;
   border-right: 1px solid var(--weilin-prompt-ui-border-color);
-  padding-right: 10px;
-  background-color: var(--weilin-prompt-ui-secondary-bg);
+  padding: 18px 0 18px 18px;
+  background: var(--weilin-prompt-ui-gradient-bg);
+  border-radius: 16px 0 0 16px;
+  box-shadow: 2px 0 12px 0 var(--weilin-prompt-ui-card-shadow);
 }
 
-.settings-sidebar ul {
+.weilin-comfyui-settings-sidebar ul {
   list-style-type: none;
   padding: 0;
 }
 
-.settings-sidebar li {
+.weilin-comfyui-settings-sidebar li {
   cursor: pointer;
-  padding: 10px;
-  transition: background-color 0.3s;
+  padding: 12px 18px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  transition: background 0.3s, color 0.3s;
+  font-weight: 500;
+  font-size: 16px;
+  color: var(--weilin-prompt-ui-title-color);
+  letter-spacing: 0.5px;
 }
 
-.settings-sidebar li:hover {
-  background-color: var(--weilin-prompt-ui-hover-bg-color);
+.weilin-comfyui-settings-sidebar li:hover {
+  background: var(--weilin-prompt-ui-hover-bg-color);
+  color: var(--weilin-prompt-ui-label-color);
 }
 
-.settings-sidebar li.active {
-  background-color: var(--weilin-prompt-ui-primary-color);
-  color: white;
+.weilin-comfyui-settings-sidebar .weilin-comfyui-active {
+  background: var(--weilin-prompt-ui-gradient-primary);
+  color: #fff;
+  box-shadow: 0 2px 8px 0 var(--weilin-prompt-ui-btn-shadow);
 }
 
-.settings-main {
+.weilin-comfyui-settings-main {
   flex: 1;
-  padding-left: 20px;
+  padding: 0 32px;
 }
 
-.settings-main h3 {
+.weilin-comfyui-settings-main h3 {
   margin-top: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--weilin-prompt-ui-title-color);
+  margin-bottom: 18px;
 }
 
-.translator-settings,
-.floating-ball-settings {
+.weilin-comfyui-translator-settings,
+.weilin-comfyui-floating-ball-settings {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   margin-bottom: 20px;
   flex-direction: column;
+  gap: 10px;
 }
 
-.translator-settings select {
+.weilin-comfyui-translator-settings select {
   margin-right: 10px;
 }
 
-.translation-input {
-  display: flex;
-  align-items: center;
+.weilin-comfyui-setting-item {
+  margin-bottom: 18px;
+  background: var(--weilin-prompt-ui-card-bg);
+  border-radius: 8px;
+  padding: 12px 18px;
+  box-shadow: 0 1px 4px 0 var(--weilin-prompt-ui-card-shadow);
 }
 
-.translation-input input {
-  flex: 1;
-  margin-right: 10px;
-}
-
-
-.setting-item {
-  margin-bottom: 20px;
-}
-
-
-.setting-item label {
+.weilin-comfyui-setting-item label {
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
+  color: var(--weilin-prompt-ui-label-color);
 }
 
-.setting-item select {
+.weilin-comfyui-setting-item select,
+.weilin-comfyui-setting-item input[type="number"],
+.weilin-comfyui-setting-item input[type="text"] {
   width: 100%;
-  padding: 8px;
-  border: 1px solid var(--weilin-prompt-ui-border-color);
-  border-radius: 4px;
-  background-color: var(--weilin-prompt-ui-primary-bg);
-  color: var(--weilin-prompt-ui-primary-text);
+  padding: 8px 12px;
+  border: 1px solid var(--weilin-prompt-ui-input-border);
+  border-radius: 6px;
+  background-color: var(--weilin-prompt-ui-input-bg);
+  color: var(--weilin-prompt-ui-label-color);
+  font-size: 15px;
+  transition: border-color 0.2s;
 }
 
-.save-button {
+.weilin-comfyui-setting-item select:focus,
+.weilin-comfyui-setting-item input:focus {
+  border-color: var(--weilin-prompt-ui-input-focus);
+  outline: none;
+}
+
+.weilin-comfyui-save-button,
+.weilin-comfyui-install-button {
   width: 100%;
-  padding: 10px;
-  background-color: var(--weilin-prompt-ui-primary-color);
+  padding: 12px;
+  background: var(--weilin-prompt-ui-btn-gradient);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  margin-top: 8px;
+  box-shadow: var(--weilin-prompt-ui-btn-shadow);
+  transition: background 0.2s;
+}
+
+.weilin-comfyui-save-button:hover,
+.weilin-comfyui-install-button:hover {
+  background: var(--weilin-prompt-ui-btn-gradient-hover);
+}
+
+.weilin-comfyui-setting-select {
+  margin-bottom: 20px;
+  background: var(--weilin-prompt-ui-card-bg);
+  border-radius: 8px;
+  padding: 12px 18px;
+  box-shadow: 0 1px 4px 0 var(--weilin-prompt-ui-card-shadow);
+}
+
+.weilin-comfyui-group-box {
+  padding: 20px;
+  border: 1px solid var(--weilin-prompt-ui-card-border);
+  border-radius: 10px;
+  margin-bottom: 20px;
+  background: var(--weilin-prompt-ui-primary-bg);
+  box-shadow: 0 1px 8px 0 var(--weilin-prompt-ui-card-shadow);
+}
+
+.weilin-comfyui-group-title {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--weilin-prompt-ui-title-color);
+}
+
+.weilin-comfyui-note-top {
+  margin: 10px 0;
+  padding: 8px 12px;
+  background: #e8f4ff;
+  border: 1px solid #b3d8ff;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #004085;
+  word-break: break-all;
+}
+
+.weilin-comfyui-tranlater-text-box {
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--weilin-prompt-ui-card-bg);
+  border-radius: 10px;
+  border: 1px solid var(--weilin-prompt-ui-card-border);
+  box-shadow: 0 1px 8px 0 var(--weilin-prompt-ui-card-shadow);
+}
+
+.weilin-comfyui-tranlater-text-box .weilin-comfyui-setting-item {
+  margin-bottom: 12px;
+}
+
+.weilin-comfyui-tranlater-text-box .weilin-comfyui-setting-item label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+  color: var(--weilin-prompt-ui-label-color);
+}
+
+.weilin-comfyui-tranlater-text-box .weilin-comfyui-setting-item input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--weilin-prompt-ui-input-border);
+  border-radius: 6px;
+  background-color: var(--weilin-prompt-ui-input-bg);
+  color: var(--weilin-prompt-ui-label-color);
+  transition: border-color 0.2s;
+}
+
+.weilin-comfyui-tranlater-text-box .weilin-comfyui-setting-item input:focus {
+  outline: none;
+  border-color: var(--weilin-prompt-ui-input-focus);
+}
+
+.weilin-comfyui-tranlater-text-box .weilin-comfyui-install-button {
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px 16px;
+  background: var(--weilin-prompt-ui-btn-gradient);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background 0.2s;
 }
 
-.save-button:hover {
-  background-color: var(--weilin-prompt-ui-primary-color-hover);
+.weilin-comfyui-tranlater-text-box .weilin-comfyui-install-button:hover {
+  background: var(--weilin-prompt-ui-btn-gradient-hover);
 }
 
-
-#weilin_comfyui_tools_prompt_ui_div button {
-  margin-left: 8px;
-  padding: 6px 12px;
-  border-radius: 4px;
-  border: 1px solid var(--weilin-prompt-ui-border-color);
-  cursor: pointer;
-  background-color: var(--weilin-prompt-ui-button-bg);
-  color: var(--weilin-prompt-ui-button-text);
+.weilin-comfyui-translater-setting-box {
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--weilin-prompt-ui-card-bg);
+  border-radius: 10px;
+  border: 1px solid var(--weilin-prompt-ui-card-border);
+  box-shadow: 0 1px 8px 0 var(--weilin-prompt-ui-card-shadow);
 }
 
-#weilin_comfyui_tools_prompt_ui_div button:last-child {
-  background: var(--weilin-prompt-ui-primary-color);
-  color: white;
-  border-color: var(--weilin-prompt-ui-primary-color);
+.weilin-comfyui-translater-setting-box .weilin-comfyui-language-selectors {
+  display: flex;
+  gap: 16px;
+  margin: 12px 0;
 }
 
-.openai-settings {
+.weilin-comfyui-translater-setting-box .weilin-comfyui-language-selectors .weilin-comfyui-setting-item {
+  flex: 1;
+}
+
+.weilin-comfyui-setting-small-titile {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--weilin-prompt-ui-title-color);
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--weilin-prompt-ui-card-border);
+}
+
+.weilin-comfyui-common-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--weilin-prompt-ui-input-border);
+  border-radius: 6px;
+  background-color: var(--weilin-prompt-ui-input-bg);
+  color: var(--weilin-prompt-ui-label-color);
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.weilin-comfyui-common-select:focus {
+  outline: none;
+  border-color: var(--weilin-prompt-ui-input-focus);
+}
+
+.weilin-comfyui-skin-preview {
+  max-width: 200px;
+  max-height: 300px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--weilin-prompt-ui-btn-shadow);
+  margin-top: 8px;
+}
+
+.weilin-comfyui-skin-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.weilin-comfyui-settings-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.weilin-comfyui-openai-settings {
   max-width: 800px;
   margin: 0 auto;
+  background: var(--weilin-prompt-ui-card-bg);
+  border-radius: var(--weilin-prompt-ui-border-radius);
+  padding: 18px;
+  box-shadow: var(--weilin-prompt-ui-card-shadow);
 }
 
-.config-list {
+.weilin-comfyui-config-list {
   margin-top: 20px;
 }
 
-.config-item {
-  border: 1px solid var(--weilin-prompt-ui-border-color);
-  border-radius: 4px;
-  padding: 10px;
-  margin-bottom: 10px;
+.weilin-comfyui-config-item {
+  border: 1px solid var(--weilin-prompt-ui-card-border);
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 12px;
+  background: var(--weilin-prompt-ui-primary-bg);
+  box-shadow: 0 1px 6px 0 var(--weilin-prompt-ui-card-shadow);
 }
 
-.config-header {
+.weilin-comfyui-config-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
 }
 
-.config-actions button {
+.weilin-comfyui-config-actions button {
   margin-left: 5px;
-  padding: 2px 8px;
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--weilin-prompt-ui-input-border);
+  cursor: pointer;
+  background: var(--weilin-prompt-ui-card-bg);
+  color: var(--weilin-prompt-ui-label-color);
+  font-weight: 500;
+  transition: background 0.2s;
 }
 
-.config-details {
-  font-size: 0.9em;
+.weilin-comfyui-config-actions button:hover {
+  background: var(--weilin-prompt-ui-gradient-primary);
+  color: #fff;
+}
+
+.weilin-comfyui-config-details {
+  font-size: 0.95em;
   color: var(--weilin-prompt-ui-secondary-text);
+  padding-left: 8px;
 }
 
-.config-item {
-  border: 1px solid var(--weilin-prompt-ui-border-color);
-  border-radius: 4px;
-  padding: 10px;
-  margin-bottom: 10px;
-}
-
-.config-form {
+.weilin-comfyui-config-form {
   margin-top: 10px;
   padding: 10px;
-  background-color: var(--weilin-prompt-ui-bg-light);
-  border-radius: 4px;
+  background: var(--weilin-prompt-ui-primary-bg);
+  border-radius: 8px;
 }
 
-.form-group {
+.weilin-comfyui-form-group {
   margin-bottom: 10px;
 }
 
-.form-group label {
+.weilin-comfyui-form-group label {
   display: block;
   margin-bottom: 5px;
+  color: var(--weilin-prompt-ui-label-color);
 }
 
-.form-group input {
+.weilin-comfyui-form-group input {
   width: 100%;
-  padding: 5px;
+  padding: 7px;
+  border-radius: 6px;
+  border: 1px solid var(--weilin-prompt-ui-input-border);
+  background: var(--weilin-prompt-ui-input-bg);
+  color: var(--weilin-prompt-ui-label-color);
 }
 
-.form-actions {
+.weilin-comfyui-form-actions {
   text-align: right;
   margin-top: 10px;
 }
 
-.add-button {
+.weilin-comfyui-add-button {
   margin-top: 20px;
   width: 100%;
-  padding: 8px;
-}
-
-.start-panel-button.loading {
-  position: relative;
-  pointer-events: none;
-  opacity: 0.8;
-}
-
-.start-panel-button.loading::after {
-  content: "";
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  top: 50%;
-  left: 50%;
-  margin: -8px 0 0 -8px;
-  border: 2px solid #fff;
-  border-top-color: transparent;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.setting-select {
-  margin-bottom: 20px;
-}
-
-.setting-select-label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: #333;
-}
-
-.setting-select-input {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-  transition: border-color 0.3s ease;
-}
-
-.setting-select-input:focus {
-  border-color: #409eff;
-  outline: none;
-}
-
-.setting-item {
-  margin-bottom: 16px;
-}
-
-.setting-item-label {
-  display: block;
-  margin-bottom: 8px;
-  color: #666;
-}
-
-.setting-item-select {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-  background-color: #fff;
-  transition: border-color 0.3s ease;
-}
-
-.setting-item-select:focus {
-  border-color: #409eff;
-  outline: none;
-}
-
-.setting-save-btn {
-  margin-top: 20px;
-  padding: 8px 20px;
-  background-color: #409eff;
+  padding: 10px;
+  background: var(--weilin-prompt-ui-btn-gradient);
   color: #fff;
   border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.setting-save-btn:hover {
-  background-color: #66b1ff;
-}
-
-.group-box {
-  padding: 20px;
-  border: 1px solid #eee;
-  border-radius: 6px;
-  margin-bottom: 20px;
-}
-
-.group-title {
-  font-size: 16px;
-  font-weight: 500;
-  margin-bottom: 16px;
-  color: var(--weilin-prompt-ui-primary-text);
-}
-
-.note-top {
-  margin: 10px 0;
-  padding: 8px 12px;
-  background-color: #e8f4ff;
-  border: 1px solid #b3d8ff;
-  border-radius: 4px;
-  font-size: 12px;
-  color: #004085;
-  word-break: break-all;
-}
-
-
-.tranlater-text-box {
-  margin-top: 20px;
-  padding: 16px;
-  background-color: var(--weilin-prompt-ui-secondary-bg);
   border-radius: 8px;
-  border: 1px solid var(--weilin-prompt-ui-border-color);
-}
-
-
-.tranlater-text-box .setting-item {
-  margin-bottom: 12px;
-}
-
-.tranlater-text-box .setting-item label {
-  display: block;
-  margin-bottom: 4px;
-  font-size: 14px;
-  color: var(--weilin-prompt-ui-primary-text);
-}
-
-.tranlater-text-box .setting-item input {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid var(--weilin-prompt-ui-border-color);
-  border-radius: 6px;
-  background-color: var(--weilin-prompt-ui-primary-bg);
-  color: var(--weilin-prompt-ui-primary-text);
-  transition: border-color 0.2s ease;
-}
-
-.tranlater-text-box .setting-item input:focus {
-  outline: none;
-  border-color: var(--weilin-prompt-ui-primary-color);
-}
-
-.tranlater-text-box .install-button {
-  width: 100%;
-  margin-top: 8px;
-  padding: 8px 16px;
-  background-color: var(--weilin-prompt-ui-primary-color);
-  color: white;
-  border: none;
-  border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.tranlater-text-box .install-button:hover {
-  background-color: var(--weilin-prompt-ui-primary-color-hover);
-}
-
-.translater-setting-box {
-  margin-top: 20px;
-  padding: 16px;
-  background-color: var(--weilin-prompt-ui-secondary-bg);
-  border-radius: 8px;
-  border: 1px solid var(--weilin-prompt-ui-border-color);
-}
-
-.translater-setting-box .language-selectors {
-  display: flex;
-  gap: 16px;
-  margin: 12px 0;
-}
-
-.translater-setting-box .language-selectors .setting-item {
-  flex: 1;
-}
-
-.translater-setting-box .setting-item select {
-  width: 100%;
-  padding: 6px 12px;
-  border: 1px solid var(--weilin-prompt-ui-border-color);
-  border-radius: 4px;
-  background-color: var(--weilin-prompt-ui-primary-bg);
-  color: var(--weilin-prompt-ui-primary-text);
-}
-
-.setting-small-titile {
-  font-size: 16px;
   font-weight: 600;
-  color: var(--weilin-prompt-ui-primary-text);
-  margin-bottom: 16px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--weilin-prompt-ui-border-color);
+  font-size: 16px;
+  box-shadow: var(--weilin-prompt-ui-btn-shadow);
+  transition: background 0.2s;
 }
 
-.common-select {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid var(--weilin-prompt-ui-border-color);
-  border-radius: 6px;
-  background-color: var(--weilin-prompt-ui-primary-bg);
-  color: var(--weilin-prompt-ui-primary-text);
-  font-size: 14px;
-  transition: border-color 0.2s ease;
+.weilin-comfyui-add-button:hover {
+  background: var(--weilin-prompt-ui-btn-gradient-hover);
 }
 
-.common-select:focus {
-  outline: none;
-  border-color: var(--weilin-prompt-ui-primary-color);
+.weilin-comfyui-sponsor-me-settings {
+  background: var(--weilin-prompt-ui-card-bg);
+  border-radius: var(--weilin-prompt-ui-border-radius);
+  padding: 18px;
+  box-shadow: var(--weilin-prompt-ui-card-shadow);
+  text-align: center;
 }
 
-.skin-preview{
-  max-width: 200px;
-  max-height: 300px;
+.weilin-comfyui-sponsor-me-button {
+  margin-top: 18px;
+  padding: 12px 32px;
+  background: var(--weilin-prompt-ui-btn-gradient);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 18px;
+  box-shadow: var(--weilin-prompt-ui-btn-shadow);
+  transition: background 0.2s;
 }
 
-.skin-preview img{
-  width: 100%;
-  height: 100%;
+.weilin-comfyui-sponsor-me-button:hover {
+  background: var(--weilin-prompt-ui-btn-gradient-hover);
 }
+
+.weilin-comfyui-start-panel-settings {
+  background: var(--weilin-prompt-ui-card-bg);
+  border-radius: var(--weilin-prompt-ui-border-radius);
+  padding: 18px;
+  box-shadow: var(--weilin-prompt-ui-card-shadow);
+  text-align: center;
+}
+
+.weilin-comfyui-start-panel-button {
+  margin-top: 18px;
+  padding: 12px 32px;
+  background: var(--weilin-prompt-ui-btn-gradient);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 18px;
+  box-shadow: var(--weilin-prompt-ui-btn-shadow);
+  transition: background 0.2s;
+}
+
+.weilin-comfyui-start-panel-button:hover {
+  background: var(--weilin-prompt-ui-btn-gradient-hover);
+}
+
+/* 其他原有样式全部注释或删除，已全部重命名和美化 */
 </style>

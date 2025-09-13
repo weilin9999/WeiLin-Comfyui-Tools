@@ -24,9 +24,25 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 # Version update introduction
 
-> Last updated: 2025-08-06
+> Last updated: 2025-09-13
 
-> 0.0.61 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.62 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+>
+> 1. Fixed a known BUG (Tag sharing issue)
+>
+> 2. Modify some UI Settings (pop-up Windows)
+>
+> 3. Add the sharing function of Tag secondary directories
+>
+> 4. Merge PR [#37](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/37) thank you for your friend's help
+>
+> 5. Fixed the issue of loading nodes that are not in use. If a node is not connected or not in use, please turn off the random prompt word switch on the node!
+>
+
+<details>
+<summary>Click here for more updates from the past</summary>
+
+> 0.0.61 Public Beta Version 2025-08-06
 >
 > 1. Fixed a known BUG (running the process when the node is not loading can also cause the node to load) (random tag loading issue)
 >
@@ -36,9 +52,6 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 >
 > 4. Added the function of no longer prompting update pop-up Windows
 >
-
-<details>
-<summary>Click here for more updates from the past</summary>
 
 > 0.0.60 Public Beta Version  2025-07-11 
 >

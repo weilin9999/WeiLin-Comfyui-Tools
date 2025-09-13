@@ -44,6 +44,28 @@
   --weilin-prompt-ui-header-bg: #f5f5f5;
 
   --weilin-prompt-ui-primary-color-hover: #40a9ff;
+
+  /* 新增渐变色变量，适配日间主题 */
+  --weilin-prompt-ui-gradient-bg: linear-gradient(135deg, #f8fafc 0%, #e3eafc 100%);
+  --weilin-prompt-ui-gradient-primary: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+  --weilin-prompt-ui-gradient-primary-hover: linear-gradient(90deg, #2575fc 0%, #6a11cb 100%);
+  --weilin-prompt-ui-card-bg: #f4f7fd;
+  --weilin-prompt-ui-card-shadow: 0 2px 12px 0 rgba(80, 120, 200, 0.08);
+  --weilin-prompt-ui-box-shadow: 0 6px 32px 0 rgba(80, 120, 200, 0.12);
+  --weilin-prompt-ui-border-radius: 12px;
+  --weilin-prompt-ui-title-color: #2a3a5a;
+  --weilin-prompt-ui-label-color: #2a3a5a;
+  --weilin-prompt-ui-input-bg: #fff;
+  --weilin-prompt-ui-input-border: #b3c2e0;
+  --weilin-prompt-ui-input-focus: #2575fc;
+  --weilin-prompt-ui-btn-bg: #1890ff;              /* 统一蓝色按钮 */
+  --weilin-prompt-ui-btn-bg-hover: #1762b6;        /* hover 深蓝色 */
+  --weilin-prompt-ui-btn-text: #fff;               /* 白色字体 */
+  --weilin-prompt-ui-btn-shadow: 0 2px 8px 0 rgba(24, 144, 255, 0.12);
+  --weilin-prompt-ui-btn-gradient: #1890ff;
+  --weilin-prompt-ui-btn-gradient-hover: #1762b6;
+  --weilin-prompt-ui-btn-gradient-text: #fff;
+
 }
 
 #weilin_comfyui_tools_prompt_ui_div[data-theme="dark"] {
@@ -83,6 +105,27 @@
   --weilin-prompt-ui-header-bg: #2d2d2d;
 
   --weilin-prompt-ui-primary-color-hover: #69b3ff;
+
+  /* 新增渐变色变量，适配夜间主题 */
+  --weilin-prompt-ui-gradient-bg: linear-gradient(135deg, #23243a 0%, #1a1a1a 100%);
+  --weilin-prompt-ui-gradient-primary: linear-gradient(90deg, #2575fc 0%, #6a11cb 100%);
+  --weilin-prompt-ui-gradient-primary-hover: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+  --weilin-prompt-ui-card-bg: #23243a;
+  --weilin-prompt-ui-card-shadow: 0 2px 12px 0 rgba(40, 60, 120, 0.18);
+  --weilin-prompt-ui-box-shadow: 0 6px 32px 0 rgba(40, 60, 120, 0.22);
+  --weilin-prompt-ui-border-radius: 12px;
+  --weilin-prompt-ui-title-color: #e0e0e0;
+  --weilin-prompt-ui-label-color: #e0e0e0;
+  --weilin-prompt-ui-input-bg: #2d2d2d;
+  --weilin-prompt-ui-input-border: #505070;
+  --weilin-prompt-ui-input-focus: #69b3ff;
+  --weilin-prompt-ui-btn-bg: #144077;              /* 夜间深蓝色按钮 */
+  --weilin-prompt-ui-btn-bg-hover: #1762b6;        /* 夜间hover更深蓝色 */
+  --weilin-prompt-ui-btn-text: #fff;               /* 白色字体 */
+  --weilin-prompt-ui-btn-shadow: 0 2px 8px 0 rgba(20, 64, 119, 0.18);
+  --weilin-prompt-ui-btn-gradient: #144077;
+  --weilin-prompt-ui-btn-gradient-hover: #1762b6;
+  --weilin-prompt-ui-btn-gradient-text: #fff;
 }
 
 /* 添加颜色选择器相关的全局样式 */
@@ -208,4 +251,4 @@
 #weilin_comfyui_tools_prompt_ui_div .add-tab .plus-icon {
   font-size: 18px;
   line-height: 1;
-} 
+}
