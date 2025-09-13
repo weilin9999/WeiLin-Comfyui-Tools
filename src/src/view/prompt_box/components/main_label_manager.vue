@@ -249,6 +249,10 @@ defineExpose({ updateSelectedContent })
   padding: 10px 8px;
   border-right: 1px solid var(--weilin-prompt-ui-border-color);
   background: var(--weilin-prompt-ui-primary-bg);
+  /* 独立滚动布局的关键：限制整体高度并让列表内部滚动 */
+  height: 100%;
+  max-height: calc(100vh - var(--weilin-left-panel-offset, 100px)); /* 预留顶部窗口标题/边距，可按需调整 */
+  overflow: hidden; /* 防止随列表增长而拉长整体页面 */
 }
 
 .mlm-header {
@@ -286,7 +290,8 @@ defineExpose({ updateSelectedContent })
 
 .mlm-list {
   margin-top: 8px;
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0; /* 允许在 flex 布局中被压缩，从而触发滚动 */
   overflow-y: auto;
   padding-right: 4px;
 }
