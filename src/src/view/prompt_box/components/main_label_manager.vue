@@ -306,7 +306,7 @@ defineExpose({ updateSelectedContent })
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  padding: 10px 8px;
+  padding: 12px 4px;
   border-right: 1px solid var(--weilin-prompt-ui-border-color);
   background: var(--weilin-prompt-ui-primary-bg);
   height: 100%;
@@ -362,11 +362,12 @@ defineExpose({ updateSelectedContent })
 
 /* ========== 列表项样式 ========== */
 .mlm-item {
+  position: relative; /* 方便子元素绝对定位时参照 */
   display: flex;
   align-items: center;
   justify-content: space-between;
   min-height: 38px;
-  padding: 10px 12px;
+  padding: 10px 10px;
   margin: 6px 0;
   background: var(--weilin-prompt-ui-secondary-bg);
   color: var(--weilin-prompt-ui-primary-text);
@@ -382,9 +383,14 @@ defineExpose({ updateSelectedContent })
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   transform: translateY(-1px);
 }
-.mlm-item.active:not(.drag-over) {
+/* .mlm-item.active:not(.drag-over) {
   outline: none;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--weilin-prompt-ui-primary-color) 35%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, #5cb85c 100%, transparent);
+} */
+ .mlm-item.active:not(.drag-over) {
+  outline: none;
+  border-color: transparent; /* 清除原边框颜色 */
+  box-shadow: inset 0 0 0 2px #22c55e; /* 内描边，不会被裁掉 */
 }
 
 /* 置顶行：浅黄底 + 左侧色条 + 阴影 */
