@@ -290,8 +290,9 @@ defineExpose({ updateSelectedContent })
 
 .mlm-list {
   margin-top: 8px;
-  flex: 1 1 auto;
-  min-height: 0; /* 允许在 flex 布局中被压缩，从而触发滚动 */
+  /* 固定可视高度约 15 行（每行约 48px: 36 高度 + 12 间距）*/
+  max-height: var(--weilin-main-label-list-max-height, 720px); /* 48 * 15 */
+  flex: 0 0 auto; /* 不占满剩余高度，超过时在内部滚动 */
   overflow-y: auto;
   padding-right: 4px;
 }
