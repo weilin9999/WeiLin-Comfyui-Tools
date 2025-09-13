@@ -8,6 +8,16 @@
         placeholder="搜索标签…"
       />
       <button class="mlm-add" @click="createNew">+ 新建标签</button>
+      <div class="mlm-grid">
+        <button class="mlm-sort" @click="toggleTimeSort">
+          按时间 {{ sortTimeDesc ? '后→先' : '先→后' }}
+        </button>
+        <button class="mlm-sort" @click="toggleNameSort">
+          按名称 {{ sortNameAsc ? 'A→Z' : 'Z→A' }}
+        </button>
+        <button class="mlm-edit" :disabled="!current" @click="renameSelected">编辑</button>
+        <button class="mlm-delete" :disabled="!current" @click="deleteSelected">删除</button>
+      </div>
     </div>
 
     <div class="mlm-list">
@@ -22,20 +32,7 @@
       </div>
     </div>
 
-    <div class="mlm-footer">
-      <div class="mlm-sorts">
-        <button class="mlm-sort" @click="toggleTimeSort">
-          按时间 {{ sortTimeDesc ? '后→先' : '先→后' }}
-        </button>
-        <button class="mlm-sort" @click="toggleNameSort">
-          按名称 {{ sortNameAsc ? 'A→Z' : 'Z→A' }}
-        </button>
-      </div>
-      <div class="mlm-actions">
-        <button class="mlm-edit" :disabled="!current" @click="renameSelected">编辑</button>
-        <button class="mlm-delete" :disabled="!current" @click="deleteSelected">删除</button>
-      </div>
-    </div>
+    <!-- 原底部操作区已上移到新建按钮下方 -->
   </div>
   
 </template>
@@ -211,11 +208,12 @@ defineExpose({ updateSelectedContent })
 
 .mlm-header {
   display: flex;
+  flex-direction: column;
   gap: 8px;
 }
 
 .mlm-search {
-  flex: 1;
+  width: 100%;
   height: 32px;
   border-radius: 6px;
   border: 1px solid var(--weilin-prompt-ui-border-color);
@@ -229,8 +227,16 @@ defineExpose({ updateSelectedContent })
   color: #fff;
   border: none;
   border-radius: 6px;
-  padding: 0 10px;
+  height: 32px;
+  width: 100%;
   cursor: pointer;
+}
+
+.mlm-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: 100%;
 }
 
 .mlm-list {
@@ -266,41 +272,26 @@ defineExpose({ updateSelectedContent })
   font-size: 13px;
 }
 
-.mlm-footer {
-  margin-top: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.mlm-sorts {
-  display: flex;
-  gap: 6px;
-}
 .mlm-sort {
-  flex: 1;
-  height: 28px;
+  height: 32px;
   font-size: 12px;
   border: 1px solid var(--weilin-prompt-ui-border-color);
   background: var(--weilin-prompt-ui-button-bg);
   color: var(--weilin-prompt-ui-button-text);
   border-radius: 4px;
-}
-.mlm-actions {
-  display: flex;
-  gap: 6px;
+  width: 100%;
 }
 .mlm-edit,
 .mlm-delete {
-  flex: 1;
-  height: 30px;
+  height: 32px;
   border-radius: 4px;
   border: 1px solid var(--weilin-prompt-ui-border-color);
   background: var(--weilin-prompt-ui-button-bg);
   color: var(--weilin-prompt-ui-button-text);
+  width: 100%;
 }
 .mlm-delete {
   background: #a52a2a20;
   color: #ff6b6b;
 }
 </style>
-
