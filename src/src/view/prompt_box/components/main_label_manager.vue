@@ -16,13 +16,23 @@
       </div>
     </div>
 
-    <div class="mlm-list">
+    <transition-group name="mlm" tag="div" class="mlm-list">
       <div
-        v-for="item in sortedList"
+        v-for="(item, idx) in sortedList"
         :key="item.id"
-        :class="['mlm-item', { active: item.id === internalSelectedId, pinned: !!item.pinned, highlighted: !!item.highlighted }]"
+        :class="[
+          'mlm-item',
+          { active: item.id === internalSelectedId, pinned: !!item.pinned, highlighted: !!item.highlighted },
+          { dragging: draggingId === item.id, 'drag-over': dragOverId === item.id }
+        ]"
         @click="selectItem(item)"
         :title="item.updatedAt ? formatTime(item.updatedAt) : ''"
+        draggable="true"
+        @dragstart="onDragStart(item, idx, $event)"
+        @dragenter.prevent="onDragEnter(item)"
+        @dragover.prevent
+        @drop.prevent="onDrop(item)"
+        @dragend="onDragEnd"
       >
         <div class="mlm-item-main">
           <span v-if="item.pinned" class="pin-badge">置顶</span>
@@ -49,7 +59,7 @@
           </button>
         </div>
       </div>
-    </div>
+    </transition-group>
   </div>
 </template>
 
@@ -62,7 +72,7 @@ const props = defineProps({ selectedId: { type: String, default: null } })
 const emit = defineEmits(['select'])
 
 const search = ref('')
-const items = ref([]) // { id, name, content, createdAt, updatedAt, pinned, highlighted }
+const items = ref([]) // { id, name, content, createdAt, updatedAt, pinned, highlighted, order }
 const internalSelectedId = ref(props.selectedId)
 
 onMounted(() => {
@@ -80,7 +90,11 @@ watch(() => props.selectedId, (v) => { internalSelectedId.value = v })
 
 const sortTimeDesc = ref(true)
 const sortNameAsc = ref(true)
-const sortMode = ref('time') // 'time' | 'name'
+const sortMode = ref('time') // 'time' | 'name' | 'manual'
+
+// drag state
+const draggingId = ref(null)
+const dragOverId = ref(null)
 
 const filtered = computed(() => {
   const q = search.value.trim().toLowerCase()
@@ -90,6 +104,11 @@ const filtered = computed(() => {
 
 const sortedList = computed(() => {
   const arr = [...filtered.value]
+
+  // manual sort: order by `order` when enabled
+  if (sortMode.value === 'manual') {
+    return arr.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+  }
 
   const cmpName = (a, b) => {
     const na = (a.name || '')
@@ -131,7 +150,7 @@ function load() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     const arr = raw ? JSON.parse(raw) : []
-    items.value = arr.map(i => ({
+    items.value = arr.map((i, idx) => ({
       id: i.id ?? genId(),
       name: i.name ?? '未命名',
       content: i.content ?? '',
@@ -139,6 +158,7 @@ function load() {
       updatedAt: i.updatedAt ?? i.createdAt ?? Date.now(),
       pinned: !!i.pinned,
       highlighted: !!i.highlighted,
+      order: typeof i.order === 'number' ? i.order : idx,
     }))
   } catch {
     items.value = []
@@ -213,6 +233,48 @@ function formatTime(ts) {
     const d = new Date(ts)
     return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`
   } catch { return '' }
+}
+
+// ===== Drag-and-drop manual sort =====
+function ensureManualOrderSeed() {
+  const list = sortedList.value
+  list.forEach((it, i) => { it.order = i })
+}
+
+function onDragStart(item, idx, ev) {
+  try { ev.dataTransfer.effectAllowed = 'move' } catch {}
+  draggingId.value = item.id
+  dragOverId.value = null
+  // seed current order first, then switch to manual
+  ensureManualOrderSeed()
+  sortMode.value = 'manual'
+}
+
+function onDragEnter(item) {
+  if (!draggingId.value) return
+  dragOverId.value = item.id
+}
+
+function onDrop(targetItem) {
+  if (!draggingId.value) return
+  const fromId = draggingId.value
+  const toId = targetItem?.id
+  if (!toId || fromId === toId) return onDragEnd()
+
+  const list = [...sortedList.value]
+  const from = list.findIndex(x => x.id === fromId)
+  const to = list.findIndex(x => x.id === toId)
+  if (from < 0 || to < 0) return onDragEnd()
+  const [moved] = list.splice(from, 1)
+  list.splice(to, 0, moved)
+  list.forEach((it, i) => { it.order = i })
+  save()
+  onDragEnd()
+}
+
+function onDragEnd() {
+  draggingId.value = null
+  dragOverId.value = null
 }
 
 defineExpose({ updateSelectedContent })
@@ -294,6 +356,8 @@ defineExpose({ updateSelectedContent })
   border: 1px solid var(--weilin-prompt-ui-border-color);
   transition: background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
 }
+.mlm-item.dragging { opacity: 0.6; }
+.mlm-item.drag-over { outline: 2px dashed var(--weilin-prompt-ui-primary-color); }
 .mlm-item:hover {
   background: color-mix(in srgb, var(--weilin-prompt-ui-secondary-bg) 90%, #fff 10%);
   border-color: color-mix(in srgb, var(--weilin-prompt-ui-border-color) 40%, #fff 20%);
@@ -420,5 +484,19 @@ defineExpose({ updateSelectedContent })
 .mlm-grid button:disabled {
   cursor: not-allowed;
   opacity: 0.7;
+}
+
+/* transition-group move animation */
+.mlm-move {
+  transition: transform 0.18s ease;
+}
+.mlm-enter-active,
+.mlm-leave-active {
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.mlm-enter-from,
+.mlm-leave-to {
+  opacity: 0.01;
+  transform: scale(0.98);
 }
 </style>
