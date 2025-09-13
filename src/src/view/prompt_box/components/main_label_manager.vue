@@ -285,56 +285,74 @@ defineExpose({ updateSelectedContent })
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 36px;
-  padding: 8px 10px;
+  min-height: 38px;
+  padding: 10px 12px;
   margin: 6px 0;
   background: var(--weilin-prompt-ui-secondary-bg);
   color: var(--weilin-prompt-ui-primary-text);
-  border-radius: 8px;
+  border-radius: 10px;
   border: 1px solid var(--weilin-prompt-ui-border-color);
-  transition: background 0.15s ease, box-shadow 0.15s ease;
+  transition: background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
 }
 .mlm-item:hover {
-  background: color-mix(in srgb, var(--weilin-prompt-ui-secondary-bg) 92%, #fff 8%);
+  background: color-mix(in srgb, var(--weilin-prompt-ui-secondary-bg) 90%, #fff 10%);
+  border-color: color-mix(in srgb, var(--weilin-prompt-ui-border-color) 40%, #fff 20%);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transform: translateY(-1px);
 }
 .mlm-item.active {
   outline: none;
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--weilin-prompt-ui-primary-color) 35%, transparent);
 }
 
-/* 高亮行：柔和底色 + 左侧色条 */
-.mlm-item.highlighted {
-  background: color-mix(in srgb, var(--weilin-prompt-ui-secondary-bg) 92%, var(--weilin-prompt-ui-primary-color) 8%);
-  border-left: 4px solid var(--weilin-prompt-ui-primary-color);
+/* 置顶行：浅黄底 + 左侧色条 + 阴影 */
+.mlm-item.pinned {
+  background: color-mix(in srgb, #d89614 12%, var(--weilin-prompt-ui-secondary-bg));
+  border-left: 4px solid #d89614;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+.mlm-item.pinned:hover {
+  box-shadow: 0 3px 8px rgba(0,0,0,0.3);
 }
 
-/* 置顶行：保留色条，底色保持正常 */
-.mlm-item.pinned {
-  background: var(--weilin-prompt-ui-secondary-bg) !important;
-  border-left: 4px solid #d89614;
+/* 高亮行：浅蓝底 + 左侧色条 + 阴影 */
+.mlm-item.highlighted {
+  background: color-mix(in srgb, var(--weilin-prompt-ui-primary-color) 12%, var(--weilin-prompt-ui-secondary-bg));
+  border-left: 4px solid var(--weilin-prompt-ui-primary-color);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.mlm-item.highlighted:hover {
+  box-shadow: 0 3px 8px rgba(0,0,0,0.3);
 }
 
 .mlm-item-main {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   overflow: hidden;
 }
 
 .mlm-name {
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 500;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
 }
 
 .pin-badge {
+  background: color-mix(in srgb, #d89614 25%, transparent);
   color: #d89614;
-  border: 1px solid color-mix(in srgb, #d89614 40%, transparent);
-  border-radius: 6px;
-  padding: 1px 6px;
-  font-size: 12px;
-  background: color-mix(in srgb, #d89614 12%, transparent);
+  border: 1.5px solid #d89614;
+  border-radius: 14px;
+  padding: 2px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .mlm-item-actions {
@@ -349,10 +367,10 @@ defineExpose({ updateSelectedContent })
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #000;        /* 黑色外框 */
-  background: transparent;       /* 默认透明底 */
+  border: 1px solid #000;
+  background: transparent;
   border-radius: 8px;
-  color: #fff;                   /* 默认白色图标 */
+  color: #fff;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
 }
@@ -364,16 +382,16 @@ defineExpose({ updateSelectedContent })
 }
 .mini-btn svg { width: 18px; height: 18px; }
 
-/* 激活态：置顶黄底白图标，高亮蓝底白图标 */
+/* 激活态：置顶=黄底白图标，高亮=蓝底白图标 */
 .mini-btn.pin.active {
   background: #d89614;
   border-color: #d89614;
-  color: #000;
+  color: #fff;
 }
 .mini-btn.highlight.active {
   background: var(--weilin-prompt-ui-primary-color);
   border-color: var(--weilin-prompt-ui-primary-color);
-  color: #000;
+  color: #fff;
 }
 
 /* ========== 排序/编辑/删除按钮 ========== */
