@@ -1,0 +1,386 @@
+<template>
+  <div class="main-label-manager">
+    <div class="mlm-header">
+      <input v-model="search" class="mlm-search" type="text" placeholder="搜索标签�? />
+      <button class="mlm-add" @click="createNew">+ 新建标签</button>
+
+      <div class="mlm-grid">
+        <button class="mlm-sort" @click="toggleTimeSort">
+          按时�?{{ sortTimeDesc ? '后→�? : '先→�? }}
+        </button>
+        <button class="mlm-sort" @click="toggleNameSort">
+          按名�?{{ sortNameAsc ? 'A→Z' : 'Z→A' }}
+        </button>
+        <button class="mlm-edit" :disabled="!current" @click="renameSelected">编辑</button>
+        <button class="mlm-delete" :disabled="!current" @click="deleteSelected">删除</button>
+      </div>
+    </div>
+
+    <div class="mlm-list">
+      <template v-for="(item, index) in sortedList" :key="item.id">
+        <div v-if="placeholderIndex === index" class="drag-placeholder"></div>
+        <div
+          :class="['mlm-item', { active: item.id === internalSelectedId, pinned: !!item.pinned, highlighted: !!item.highlighted, dragging: draggingId === item.id }]"
+          @click="selectItem(item)"
+          :title="item.updatedAt ? formatTime(item.updatedAt) : ''"
+          @dragover.prevent="onDragOver(index, $event)"
+          @dragenter.prevent="onDragOver(index, $event)"
+          @drop.prevent="onDrop"
+        >
+          <div class="drag-handle" draggable="true" @dragstart="onDragStart(item, index, $event)" @dragend="onDragEnd" title="拖动以排�?>
+            <svg class="dots-icon" viewBox="0 0 24 24" width="18" height="18">
+              <circle cx="7" cy="6" r="1.5"/><circle cx="12" cy="6" r="1.5"/><circle cx="17" cy="6" r="1.5"/>
+              <circle cx="7" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="17" cy="12" r="1.5"/>
+            </svg>
+          </div>
+          <div class="mlm-item-main">
+            <span v-if="item.pinned" class="pin-badge">[置顶]</span>
+            <span class="mlm-name">{{ item.name }}</span>
+          </div>
+
+          <div class="mlm-item-actions">
+            <button :class="['mini-btn','pin',{active:item.pinned}]" :title="item.pinned ? '取消置顶' : '置顶'" @click.stop="togglePin(item)">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                <path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.59 5.58L20 12 12 4 4 12z"/>
+              </svg>
+            </button>
+            <button :class="['mini-btn','highlight',{active:item.highlighted}]" :title="item.highlighted ? '取消高亮' : '高亮'" @click.stop="toggleHighlight(item)">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                <path d="M12 17.27L18.18 21 16.54 13.97 22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </template>
+      <div v-if="placeholderIndex === sortedList.length" class="drag-placeholder"></div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, watch, onMounted, defineExpose } from 'vue'
+
+const STORAGE_KEY = 'weilin_prompt_ui_main_labels_v1'
+
+const props = defineProps({ selectedId: { type: String, default: null } })
+const emit = defineEmits(['select'])
+
+const search = ref('')
+const items = ref([]) // { id, name, content, createdAt, updatedAt, pinned, highlighted, order? }
+const internalSelectedId = ref(props.selectedId)
+
+onMounted(() => {
+  load()
+  if (items.value.length === 0) {
+    const id = genId()
+    items.value.push({ id, name: '示例标签', content: '', createdAt: Date.now(), updatedAt: Date.now(), pinned: false, highlighted: false, order: null })
+    save()
+    internalSelectedId.value = id
+    emit('select', getById(id))
+  }
+})
+
+watch(() => props.selectedId, (v) => { internalSelectedId.value = v })
+
+const sortTimeDesc = ref(true)
+const sortNameAsc = ref(true)
+const sortMode = ref('time') // 'time' | 'name'
+
+const filtered = computed(() => {
+  const q = search.value.trim().toLowerCase()
+  if (!q) return items.value
+  return items.value.filter(i => (i.name || '').toLowerCase().includes(q))
+})
+
+const sortedList = computed(() => {
+  const arr = [...filtered.value]
+
+  const cmpName = (a, b) => {
+    const na = (a.name || '')
+    const nb = (b.name || '')
+    let cmp = na.localeCompare(nb, undefined, { numeric: true, sensitivity: 'base' })
+    if (!sortNameAsc.value) cmp = -cmp
+    return cmp
+  }
+
+  const cmpTime = (a, b) => {
+    let cmp = a.createdAt - b.createdAt
+    if (sortTimeDesc.value) cmp = -cmp
+    return cmp
+  }
+
+  const groupWeight = (x) => (x.pinned ? 0 : x.highlighted ? 1 : 2)
+
+  const cmpOrder = (a, b) => {
+    const ao = (typeof a.order === 'number') ? a.order : null
+    const bo = (typeof b.order === 'number') ? b.order : null
+    if (ao !== null && bo !== null) return ao - bo
+    if (ao !== null && bo === null) return -1
+    if (ao === null && bo !== null) return 1
+    return 0
+  }
+
+  arr.sort((a, b) => {
+    const gw = groupWeight(a) - groupWeight(b)
+    if (gw !== 0) return gw
+    const o = cmpOrder(a, b)
+    if (o !== 0) return o
+    if (sortMode.value === 'name') {
+      const n = cmpName(a, b)
+      if (n !== 0) return n
+      return cmpTime(a, b)
+    }
+    const t = cmpTime(a, b)
+    if (t !== 0) return t
+    return cmpName(a, b)
+  })
+
+  return arr
+})
+
+const current = computed(() => getById(internalSelectedId.value))
+
+// 拖拽排序状�?const draggingId = ref(null)
+const draggingGroup = ref(null)
+const placeholderIndex = ref(null)
+
+function genId() { return 'mlm_' + Math.random().toString(36).slice(2) + '_' + Date.now() }
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    const arr = raw ? JSON.parse(raw) : []
+    items.value = arr.map(i => ({
+      id: i.id ?? genId(),
+      name: i.name ?? '未命�?,
+      content: i.content ?? '',
+      createdAt: i.createdAt ?? i.updatedAt ?? Date.now(),
+      updatedAt: i.updatedAt ?? i.createdAt ?? Date.now(),
+      pinned: !!i.pinned,
+      highlighted: !!i.highlighted,
+      order: (typeof i.order === 'number') ? i.order : null,
+    }))
+  } catch {
+    items.value = []
+  }
+}
+
+function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(items.value)) }
+
+function getById(id) { return items.value.find(i => i.id === id) || null }
+
+function selectItem(item) {
+  internalSelectedId.value = item.id
+  emit('select', { ...item })
+}
+
+function createNew() {
+  const name = window.prompt('新建标签名称�?, '')
+  if (!name) return
+  const id = genId()
+  const obj = { id, name: name.trim(), content: '', createdAt: Date.now(), updatedAt: Date.now(), pinned: false, highlighted: false, order: null }
+  items.value.unshift(obj)
+  save()
+  internalSelectedId.value = id
+  emit('select', { ...obj })
+}
+
+function renameSelected() {
+  const node = current.value
+  if (!node) return
+  const name = window.prompt('重命名标签：', node.name || '')
+  if (!name) return
+  node.name = name.trim()
+  node.updatedAt = Date.now()
+  save()
+}
+
+function deleteSelected() {
+  const node = current.value
+  if (!node) return
+  if (!window.confirm(`确定删除标签�?{node.name}”吗？`)) return
+  const idx = items.value.findIndex(i => i.id === node.id)
+  if (idx >= 0) items.value.splice(idx, 1)
+  save()
+  if (items.value.length) {
+    internalSelectedId.value = items.value[0].id
+    emit('select', { ...items.value[0] })
+  } else {
+    internalSelectedId.value = null
+    emit('select', null)
+  }
+}
+
+function toggleTimeSort() { sortMode.value = 'time'; sortTimeDesc.value = !sortTimeDesc.value }
+function toggleNameSort() { sortMode.value = 'name'; sortNameAsc.value = !sortNameAsc.value }
+
+function togglePin(item) { item.pinned = !item.pinned; item.updatedAt = Date.now(); save() }
+function toggleHighlight(item) { item.highlighted = !item.highlighted; item.updatedAt = Date.now(); save() }
+
+// 计算拖拽分组的有效范围（同分组内允许排序�?const getGroupRange = (weight) => {
+  const list = sortedList.value
+  let start = 0, end = 0, found = false
+  for (let i = 0; i < list.length; i++) {
+    const w = (list[i].pinned ? 0 : list[i].highlighted ? 1 : 2)
+    if (w === weight) { start = i; found = true; break }
+  }
+  if (!found) return { start: 0, end: 0 }
+  end = start
+  while (end < list.length) {
+    const w = (list[end].pinned ? 0 : list[end].highlighted ? 1 : 2)
+    if (w !== weight) break
+    end++
+  }
+  return { start, end }
+}
+
+function onDragStart(item, index, e) {
+  draggingId.value = item.id
+  draggingGroup.value = (item.pinned ? 0 : item.highlighted ? 1 : 2)
+  placeholderIndex.value = index
+  if (e?.dataTransfer) {
+    e.dataTransfer.effectAllowed = 'move'
+    try { e.dataTransfer.setData('text/plain', item.id) } catch {}
+  }
+}
+
+function onDragOver(index, e) {
+  if (!draggingId.value) return
+  const rect = e.currentTarget.getBoundingClientRect()
+  const isAfter = e.clientY - rect.top > rect.height / 2
+  let pos = index + (isAfter ? 1 : 0)
+  const range = getGroupRange(draggingGroup.value)
+  pos = Math.max(range.start, Math.min(range.end, pos))
+  if (placeholderIndex.value !== pos) placeholderIndex.value = pos
+}
+
+function onDrop() { commitReorder() }
+
+function onDragEnd() {
+  draggingId.value = null
+  draggingGroup.value = null
+  placeholderIndex.value = null
+}
+
+function commitReorder() {
+  if (!draggingId.value || placeholderIndex.value === null) return
+  const list = sortedList.value
+  const range = getGroupRange(draggingGroup.value)
+  const targetPos = Math.max(range.start, Math.min(range.end, placeholderIndex.value))
+  const groupItems = list.slice(range.start, range.end)
+  const dragged = groupItems.find(i => i.id === draggingId.value)
+  if (!dragged) { onDragEnd(); return }
+
+  const without = groupItems.filter(i => i.id !== dragged.id)
+  const insertIndex = targetPos - range.start
+  without.splice(insertIndex, 0, dragged)
+
+  without.forEach((it, idx) => { it.order = idx })
+  save()
+  onDragEnd()
+}
+
+function updateSelectedContent(newContent) {
+  const n = current.value
+  if (!n) return
+  n.content = newContent ?? ''
+  n.updatedAt = Date.now()
+  clearTimeout(updateTimer)
+  updateTimer = setTimeout(() => save(), 400)
+}
+
+let updateTimer = null
+
+function formatTime(ts) {
+  try {
+    const d = new Date(ts)
+    return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`
+  } catch { return '' }
+}
+
+defineExpose({ updateSelectedContent })
+</script>
+
+<style scoped>
+.main-label-manager {
+  width: 280px;
+  min-width: 280px;
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 10px 8px;
+  border-right: 1px solid var(--weilin-prompt-ui-border-color);
+  background: var(--weilin-prompt-ui-primary-bg);
+  height: 100%;
+  max-height: calc(100vh - var(--weilin-left-panel-offset, 100px));
+  overflow: hidden;
+}
+
+.mlm-header { display: flex; flex-direction: column; gap: 8px; }
+
+.mlm-search {
+  width: 100%; height: 32px; border-radius: 6px;
+  border: 1px solid var(--weilin-prompt-ui-border-color);
+  background: var(--weilin-prompt-ui-input-bg);
+  color: var(--weilin-prompt-ui-primary-text);
+  padding: 0 8px;
+}
+
+.mlm-add {
+  background: #28a745; color: #fff; border: none; border-radius: 6px;
+  height: 32px; width: 100%; cursor: pointer;
+}
+
+.mlm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+
+.mlm-list { margin-top: 8px; max-height: var(--weilin-main-label-list-max-height, 720px); flex: 0 0 auto; overflow-y: auto; padding-right: 4px; }
+.mlm-list::-webkit-scrollbar { width: 6px; }
+.mlm-list::-webkit-scrollbar-thumb { background: var(--weilin-prompt-ui-scrollbar-thumb); border-radius: 3px; }
+
+.mlm-item {
+  display: flex; align-items: center; justify-content: space-between;
+  min-height: 36px; padding: 6px 8px; margin: 6px 0;
+  background: var(--weilin-prompt-ui-secondary-bg);
+  color: var(--weilin-prompt-ui-primary-text);
+  border-radius: 6px; cursor: default;
+  border: 1px solid var(--weilin-prompt-ui-border-color);
+}
+.mlm-item.dragging { opacity: 0.6; box-shadow: 0 6px 14px var(--weilin-prompt-ui-shadow-color); }
+.mlm-item.active { outline: 2px solid var(--weilin-prompt-ui-primary-color); }
+.mlm-item.highlighted { background: var(--weilin-prompt-ui-primary-color-10); border-left: 4px solid var(--weilin-prompt-ui-primary-color); }
+.mlm-item.pinned { background: rgba(216,150,20,0.15) !important; border-left: 4px solid #d89614; }
+
+.drag-handle { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; margin-right: 6px; cursor: grab; border-radius: 6px; color: var(--weilin-prompt-ui-secondary-text); }
+.drag-handle:active { cursor: grabbing; }
+.dots-icon { fill: currentColor; }
+
+.mlm-item-main { flex: 1; display: flex; align-items: center; gap: 6px; overflow: hidden; }
+.mlm-name { font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+.pin-badge { color: #d89614; border: 1px solid #d89614; border-radius: 4px; padding: 0 4px; font-size: 12px; }
+
+.mlm-item-actions { display: flex; gap: 8px; margin-left: 6px; }
+.mini-btn { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--weilin-prompt-ui-border-color); border-radius: 8px; cursor: pointer; background: var(--weilin-prompt-ui-button-bg); color: var(--weilin-prompt-ui-primary-text); transition: all 0.15s ease-in-out; }
+.mini-btn:hover { background: var(--weilin-prompt-ui-hover-bg-color, rgba(255,255,255,0.08)); transform: translateY(-1px); }
+.mini-btn svg { width: 18px; height: 18px; }
+
+/* 彩色按钮：置�?高亮 与标签颜色一�?*/
+.mini-btn.pin { background: rgba(216,150,20,0.15); border-color: #d89614; color: #d89614; }
+.mini-btn.pin.active { background: rgba(216,150,20,0.25); }
+.mini-btn.highlight { background: var(--weilin-prompt-ui-primary-color-10); border-color: var(--weilin-prompt-ui-primary-color); color: var(--weilin-prompt-ui-primary-color); }
+.mini-btn.highlight.active { filter: brightness(1.05); }
+
+/* 拖拽占位�?*/
+.drag-placeholder {
+  min-height: 36px; margin: 6px 0; border-radius: 6px;
+  border: 2px dashed var(--weilin-prompt-ui-primary-color);
+  background: var(--weilin-prompt-ui-primary-color-10, rgba(24,144,255,0.08));
+}
+
+.mlm-sort { height: 32px; font-size: 12px; border: 1px solid var(--weilin-prompt-ui-border-color); background: var(--weilin-prompt-ui-button-bg); color: var(--weilin-prompt-ui-button-text); border-radius: 4px; width: 100%; cursor: pointer; }
+.mlm-edit, .mlm-delete { height: 32px; border-radius: 4px; border: 1px solid var(--weilin-prompt-ui-border-color); background: var(--weilin-prompt-ui-button-bg); color: var(--weilin-prompt-ui-button-text); width: 100%; cursor: pointer; }
+.mlm-delete { background: #a52a2a20; color: #ff6b6b; }
+.mlm-grid button:disabled { cursor: not-allowed; opacity: 0.7; }
+</style>
+
+

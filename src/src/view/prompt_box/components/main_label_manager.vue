@@ -25,7 +25,7 @@
         :title="item.updatedAt ? formatTime(item.updatedAt) : ''"
       >
         <div class="mlm-item-main">
-          <span v-if="item.pinned" class="pin-badge">[置顶]</span>
+          <span v-if="item.pinned" class="pin-badge">置顶</span>
           <span class="mlm-name">{{ item.name }}</span>
         </div>
 
