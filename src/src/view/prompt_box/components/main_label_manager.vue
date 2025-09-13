@@ -22,7 +22,7 @@
 
     <div class="mlm-list">
       <div
-        v-for="item in sortedAndFiltered"
+        v-for="item in sortedList"
         :key="item.id"
         :class="['mlm-item', { active: item.id === internalSelectedId }]"
         @click="selectItem(item)"
@@ -77,6 +77,7 @@ watch(() => props.selectedId, (v) => {
 
 const sortTimeDesc = ref(true)
 const sortNameAsc = ref(true)
+const sortMode = ref('time') // 'time' | 'name'
 
 const filtered = computed(() => {
   const q = search.value.trim().toLowerCase()
@@ -86,15 +87,47 @@ const filtered = computed(() => {
   )
 })
 
+// 新的排序逻辑：根据 sortMode 决定按时间或名称排序
+const sortedList = computed(() => {
+  const arr = [...filtered.value]
+
+  const cmpName = (a, b) => {
+    const na = (a.name || '')
+    const nb = (b.name || '')
+    let cmp = na.localeCompare(nb, undefined, { numeric: true, sensitivity: 'base' })
+    if (!sortNameAsc.value) cmp = -cmp
+    return cmp
+  }
+
+  const cmpTime = (a, b) => {
+    let cmp = a.createdAt - b.createdAt
+    if (sortTimeDesc.value) cmp = -cmp
+    return cmp
+  }
+
+  arr.sort((a, b) => {
+    if (sortMode.value === 'name') {
+      const n = cmpName(a, b)
+      if (n !== 0) return n
+      return cmpTime(a, b)
+    }
+    const t = cmpTime(a, b)
+    if (t !== 0) return t
+    return cmpName(a, b)
+  })
+
+  return arr
+})
+
 const sortedAndFiltered = computed(() => {
   const arr = [...filtered.value]
-  // 优先使用时间排序，再用名称排序作为次序
+  // 使用创建时间进行“按时间”排序，编辑不会改变顺序
   arr.sort((a, b) => {
-    // 时间排序
-    if (a.updatedAt !== b.updatedAt) {
-      return sortTimeDesc.value ? (b.updatedAt - a.updatedAt) : (a.updatedAt - b.updatedAt)
+    // 时间排序（使用 createdAt）
+    if (a.createdAt !== b.createdAt) {
+      return sortTimeDesc.value ? (b.createdAt - a.createdAt) : (a.createdAt - b.createdAt)
     }
-    // 名称排序
+    // 名称排序作为次序
     const na = (a.name || '').toLowerCase()
     const nb = (b.name || '').toLowerCase()
     if (na === nb) return 0
@@ -112,7 +145,13 @@ function genId() {
 function load() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    items.value = raw ? JSON.parse(raw) : []
+    const arr = raw ? JSON.parse(raw) : []
+    // 兼容旧数据，补齐创建/更新时间
+    items.value = arr.map(i => ({
+      ...i,
+      createdAt: i?.createdAt ?? i?.updatedAt ?? Date.now(),
+      updatedAt: i?.updatedAt ?? i?.createdAt ?? Date.now(),
+    }))
   } catch (e) {
     items.value = []
   }
@@ -168,8 +207,14 @@ function deleteSelected() {
   }
 }
 
-function toggleTimeSort() { sortTimeDesc.value = !sortTimeDesc.value }
-function toggleNameSort() { sortNameAsc.value = !sortNameAsc.value }
+function toggleTimeSort() {
+  sortMode.value = 'time'
+  sortTimeDesc.value = !sortTimeDesc.value
+}
+function toggleNameSort() {
+  sortMode.value = 'name'
+  sortNameAsc.value = !sortNameAsc.value
+}
 
 function updateSelectedContent(newContent) {
   const n = current.value
@@ -280,6 +325,7 @@ defineExpose({ updateSelectedContent })
   color: var(--weilin-prompt-ui-button-text);
   border-radius: 4px;
   width: 100%;
+  cursor: pointer;
 }
 .mlm-edit,
 .mlm-delete {
@@ -289,9 +335,15 @@ defineExpose({ updateSelectedContent })
   background: var(--weilin-prompt-ui-button-bg);
   color: var(--weilin-prompt-ui-button-text);
   width: 100%;
+  cursor: pointer;
 }
 .mlm-delete {
   background: #a52a2a20;
   color: #ff6b6b;
+}
+
+.mlm-grid button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 </style>
