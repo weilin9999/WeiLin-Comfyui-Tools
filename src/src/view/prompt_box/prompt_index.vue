@@ -3,8 +3,10 @@
     <!-- Lora栈 -->
     <LoraStack v-if="props.promptManager === 'prompt'" :is-open="loraOpen" :selected-loras="selectedLoras"
       @close="closeLora" />
+    <!-- 主标签管理器（左侧边栏） -->
+    <MainLabelManager ref="mainLabelManagerRef" :selected-id="selectedMainLabelId" @select="onSelectMainLabel" />
     <!-- 主要内容容器 -->
-    <div :class="`${prefix}main-content`" :style="{ width: loraOpen ? 'calc(100% - 300px)' : '100%' }">
+    <div :class="`${prefix}main-content`" :style="{ width: mainContentWidth }">
       <!-- 操作栏 -->
       <div class="center-container">
         <div class="action-item">
@@ -465,6 +467,7 @@ import SettingDialog from './components/setting_dialog.vue'
 import ThemeSwitch from '@/components/ThemeSwitch.vue'
 import TagManager from '@/view/tag_manager/tag_index.vue'  // 导入 TagManager 组件
 import LoraStack from './components/lora_stack.vue'
+import MainLabelManager from './components/main_label_manager.vue'
 import translate from 'i18n-jsautotranslate'
 import { translatorApi } from '@/api/translator'
 import { historyApi } from '@/api/history'
@@ -559,6 +562,44 @@ const toggleLora = () => {
 const closeLora = () => {
   loraOpen.value = false
 }
+
+// 左侧主标签管理器交互与主内容宽度计算
+const mainLabelManagerRef = ref(null)
+const selectedMainLabelId = ref(null)
+const mainContentWidth = computed(() => {
+  const left = (loraOpen.value ? 300 : 0) + 280 // Lora(可变) + 主标签管理器(固定)
+  return `calc(100% - ${left}px)`
+})
+
+const onSelectMainLabel = (item) => {
+  if (!item) {
+    selectedMainLabelId.value = null
+    inputText.value = ''
+    nextTick(() => {
+      if (inputAreaRef.value) {
+        inputAreaRef.value.value = ''
+        handleInput({ target: inputAreaRef.value })
+      }
+    })
+    return
+  }
+  selectedMainLabelId.value = item.id
+  inputText.value = item.content || ''
+  nextTick(() => {
+    if (inputAreaRef.value) {
+      inputAreaRef.value.value = inputText.value
+      // 模拟输入事件，触发 tokens 解析与渲染
+      handleInput({ target: inputAreaRef.value })
+    }
+  })
+}
+
+// 将输入框的变更回写到选中的主标签
+watch(inputText, (v) => {
+  if (selectedMainLabelId.value && mainLabelManagerRef.value?.updateSelectedContent) {
+    mainLabelManagerRef.value.updateSelectedContent(v)
+  }
+})
 
 const openSettings = () => {
   settingDialog.value.open()
