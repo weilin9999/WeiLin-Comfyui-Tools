@@ -566,6 +566,9 @@ const closeLora = () => {
 // 左侧主标签管理器交互与主内容宽度计算
 const mainLabelManagerRef = ref(null)
 const selectedMainLabelId = ref(null)
+// 记录/恢复最后选中的主标签
+const LAST_LABEL_KEY = `weilin_prompt_ui_last_main_label_id_${props.promptManager || 'default'}`
+const MAIN_LABELS_STORAGE_KEY = 'weilin_prompt_ui_main_labels_v1'
 const mainContentWidth = computed(() => {
   const left = (loraOpen.value ? 300 : 0) + 280 // Lora(可变) + 主标签管理器(固定)
   return `calc(100% - ${left}px)`
@@ -599,6 +602,40 @@ watch(inputText, (v) => {
   if (selectedMainLabelId.value && mainLabelManagerRef.value?.updateSelectedContent) {
     mainLabelManagerRef.value.updateSelectedContent(v)
   }
+})
+
+// 监听并持久化最后选中的主标签 ID
+watch(selectedMainLabelId, (id) => {
+  try { localStorage.setItem(LAST_LABEL_KEY, id || '') } catch {}
+})
+
+// 恢复最后一次选中的主标签
+function restoreLastSelectedMainLabel() {
+  try {
+    const lastId = localStorage.getItem(LAST_LABEL_KEY)
+    if (!lastId) return
+    const raw = localStorage.getItem(MAIN_LABELS_STORAGE_KEY)
+    const arr = raw ? JSON.parse(raw) : []
+    const node = Array.isArray(arr) ? arr.find(x => x && x.id === lastId) : null
+    if (!node) return
+    selectedMainLabelId.value = lastId
+    inputText.value = node.content || ''
+    nextTick(() => {
+      if (inputAreaRef.value) {
+        inputAreaRef.value.value = inputText.value
+        handleInput({ target: inputAreaRef.value })
+      }
+    })
+  } catch {}
+}
+
+onMounted(() => {
+  // 页面加载时尝试恢复上次的主标签选择
+  restoreLastSelectedMainLabel()
+  // 关闭页面前保存选中状态（兜底一次）
+  const saveLast = () => { try { localStorage.setItem(LAST_LABEL_KEY, selectedMainLabelId.value || '') } catch {} }
+  window.addEventListener('beforeunload', saveLast)
+  onBeforeUnmount(() => window.removeEventListener('beforeunload', saveLast))
 })
 
 const openSettings = () => {
