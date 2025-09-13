@@ -105,9 +105,19 @@ const filtered = computed(() => {
 const sortedList = computed(() => {
   const arr = [...filtered.value]
 
-  // manual sort: order by `order` when enabled
+  // manual sort: keep groups (pinned > highlighted > normal),
+  // but order within the same group by `order` value
   if (sortMode.value === 'manual') {
-    return arr.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    const groupWeight = (x) => (x.pinned ? 0 : x.highlighted ? 1 : 2)
+    return arr.sort((a, b) => {
+      const gw = groupWeight(a) - groupWeight(b)
+      if (gw !== 0) return gw
+      const ao = a.order ?? 0
+      const bo = b.order ?? 0
+      if (ao !== bo) return ao - bo
+      // fallback by created time to keep stable
+      return (a.createdAt ?? 0) - (b.createdAt ?? 0)
+    })
   }
 
   const cmpName = (a, b) => {
@@ -178,8 +188,16 @@ function createNew() {
   const name = window.prompt('新建标签名称：', '')
   if (!name) return
   const id = genId()
-  const obj = { id, name: name.trim(), content: '', createdAt: Date.now(), updatedAt: Date.now(), pinned: false, highlighted: false }
-  items.value.unshift(obj)
+  const now = Date.now()
+  const obj = { id, name: name.trim(), content: '', createdAt: now, updatedAt: now, pinned: false, highlighted: false }
+  if (sortMode.value === 'manual') {
+    const normals = items.value.filter(x => !x.pinned && !x.highlighted)
+    const maxOrder = normals.reduce((m, x) => {
+      return Math.max(m, typeof x.order === 'number' ? x.order : m)
+    }, -1)
+    obj.order = maxOrder + 1
+  }
+  items.value.push(obj)
   save()
   internalSelectedId.value = id
   emit('select', { ...obj })
