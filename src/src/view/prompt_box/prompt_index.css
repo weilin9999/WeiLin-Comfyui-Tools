@@ -47,6 +47,49 @@
     font-size: 14px;
 }
 
+/* 更新标签工具条 */
+.update-label-bar {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.update-label-bar .token-counter {
+    position: static;
+    background: transparent;
+    padding: 0;
+    color: var(--weilin-prompt-ui-secondary-text);
+}
+.update-label-btn {
+    height: 32px;
+    padding: 0 14px;
+    min-width: 110px;
+    border-radius: 6px;
+    border: 1px solid var(--weilin-prompt-ui-primary-color);
+    background: var(--weilin-prompt-ui-primary-color);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter 0.15s ease, transform 0.05s ease, background 0.15s ease;
+}
+.update-label-btn:hover:enabled {
+    filter: brightness(1.08);
+}
+.update-label-btn.is-dirty {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--weilin-prompt-ui-primary-color) 35%, transparent),
+                0 0 10px color-mix(in srgb, var(--weilin-prompt-ui-primary-color) 40%, transparent);
+}
+.update-label-btn:active:enabled {
+    transform: translateY(1px);
+}
+.update-label-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    filter: grayscale(0.2);
+}
+
 .tokens-container {
     display: flex;
     flex-flow: wrap;

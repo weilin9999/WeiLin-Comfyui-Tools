@@ -175,8 +175,11 @@
           @resize="saveTextareaHeight"></textarea>
 
         <!-- 添加token计数器 -->
-        <div class="token-counter">
-          {{ tokenCount }} tokens
+        <div class="update-label-bar">
+          <div class="token-counter">{{ tokenCount }} tokens</div>
+          <button :class="['update-label-btn', { 'is-dirty': unsavedChanges }]" :disabled="!selectedMainLabelId || !unsavedChanges" @click="updateSelectedLabel">
+            更新标签
+          </button>
         </div>
 
         <!-- 自动补全窗口 -->
@@ -566,6 +569,7 @@ const closeLora = () => {
 // 左侧主标签管理器交互与主内容宽度计算
 const mainLabelManagerRef = ref(null)
 const selectedMainLabelId = ref(null)
+const unsavedChanges = ref(false)
 // 记录/恢复最后选中的主标签
 const LAST_LABEL_KEY = `weilin_prompt_ui_last_main_label_id_${props.promptManager || 'default'}`
 const MAIN_LABELS_STORAGE_KEY = 'weilin_prompt_ui_main_labels_v1'
@@ -574,6 +578,7 @@ const mainContentWidth = computed(() => {
   return `calc(100% - ${left}px)`
 })
 
+let suppressUnsavedOnce = false
 const onSelectMainLabel = (item) => {
   if (!item) {
     selectedMainLabelId.value = null
@@ -584,9 +589,11 @@ const onSelectMainLabel = (item) => {
         handleInput({ target: inputAreaRef.value })
       }
     })
+    unsavedChanges.value = false
     return
   }
   selectedMainLabelId.value = item.id
+  suppressUnsavedOnce = true
   inputText.value = item.content || ''
   nextTick(() => {
     if (inputAreaRef.value) {
@@ -595,13 +602,14 @@ const onSelectMainLabel = (item) => {
       handleInput({ target: inputAreaRef.value })
     }
   })
+  unsavedChanges.value = false
 }
 
 // 将输入框的变更回写到选中的主标签
+// 仅做“有未保存变更”的标记，不再自动写回标签
 watch(inputText, (v) => {
-  if (selectedMainLabelId.value && mainLabelManagerRef.value?.updateSelectedContent) {
-    mainLabelManagerRef.value.updateSelectedContent(v)
-  }
+  if (suppressUnsavedOnce) { suppressUnsavedOnce = false; return }
+  unsavedChanges.value = true
 })
 
 // 监听并持久化最后选中的主标签 ID
@@ -619,6 +627,7 @@ function restoreLastSelectedMainLabel() {
     const node = Array.isArray(arr) ? arr.find(x => x && x.id === lastId) : null
     if (!node) return
     selectedMainLabelId.value = lastId
+    suppressUnsavedOnce = true
     inputText.value = node.content || ''
     nextTick(() => {
       if (inputAreaRef.value) {
@@ -626,6 +635,7 @@ function restoreLastSelectedMainLabel() {
         handleInput({ target: inputAreaRef.value })
       }
     })
+    unsavedChanges.value = false
   } catch {}
 }
 
@@ -637,6 +647,14 @@ onMounted(() => {
   window.addEventListener('beforeunload', saveLast)
   onBeforeUnmount(() => window.removeEventListener('beforeunload', saveLast))
 })
+
+// 点击“更新标签”时才把文本写回当前标签
+function updateSelectedLabel() {
+  if (!selectedMainLabelId.value) return
+  if (!mainLabelManagerRef.value?.updateSelectedContent) return
+  mainLabelManagerRef.value.updateSelectedContent(inputText.value)
+  unsavedChanges.value = false
+}
 
 const openSettings = () => {
   settingDialog.value.open()
