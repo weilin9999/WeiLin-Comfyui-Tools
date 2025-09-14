@@ -26,7 +26,7 @@
             :title="isLabelManagerVisible ? '收起标签栏' : '展开标签栏'">
             
             <svg 
-              class="sidebar-toggle-icon" 
+              class="weilin-comfyui-sidebar-toggle-icon" 
               :class="{ 'is-closed': !isLabelManagerVisible }" 
               xmlns="http://www.w3.org/2000/svg" 
               viewBox="0 0 24 24" 
