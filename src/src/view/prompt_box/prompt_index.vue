@@ -195,6 +195,18 @@
 
         <SettingDialog ref="settingDialog" />
 
+        <!-- 把“更新标签”按钮放在操作栏最右侧 -->
+        <div class="action-item weilin-comfyui-toolbar-right">
+          <button
+            class="update-label-btn"
+            :class="{ 'is-dirty': unsavedChanges }"
+            :disabled="!selectedMainLabelId || !unsavedChanges"
+            @click="updateSelectedLabel"
+          >
+            更新标签
+          </button>
+        </div>
+
       </div>
 
       <div style="position: relative;" ref="parentCneterBox">
@@ -205,12 +217,23 @@
           @resize="saveTextareaHeight"></textarea>
 
         <!-- 添加token计数器 -->
-        <div class="update-label-bar">
-          <div class="token-counter">{{ tokenCount }} tokens</div>
-          <button :class="['update-label-btn', { 'is-dirty': unsavedChanges }]" :disabled="!selectedMainLabelId || !unsavedChanges" @click="updateSelectedLabel">
-            更新标签
-          </button>
+        <div class="token-counter">
+          {{ tokenCount }} tokens
         </div>
+
+        <style>
+        .token-counter {
+          position: absolute;
+          bottom: 5px;
+          left: 5px;
+          z-index: 10;
+          color: #aaa;
+          background-color: #f0f0f0; /* 灰色背景，可调整深浅 */
+          padding: 2px 6px; /* 给文字一点内边距，看起来更清晰 */
+          border-radius: 4px; /* 圆角，可选 */
+          user-select: none; /* 禁止文字被选中 */
+        }
+        </style>
 
         <!-- 自动补全窗口 -->
         <div class="autocomplete-container" ref="autocompleteContainerRef" :style="{

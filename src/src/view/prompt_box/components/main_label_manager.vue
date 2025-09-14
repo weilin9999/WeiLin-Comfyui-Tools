@@ -75,19 +75,6 @@ const search = ref('')
 const items = ref([]) // { id, name, content, createdAt, updatedAt, pinned, highlighted, order }
 const internalSelectedId = ref(props.selectedId)
 
-onMounted(() => {
-  load()
-  if (items.value.length === 0) {
-    const id = genId()
-    items.value.push({ id, name: '示例标签', content: '', createdAt: Date.now(), updatedAt: Date.now(), pinned: false, highlighted: false })
-    save()
-    internalSelectedId.value = id
-    emit('select', getById(id))
-  }
-})
-
-watch(() => props.selectedId, (v) => { internalSelectedId.value = v })
-
 const sortTimeDesc = ref(true)
 const sortNameAsc = ref(true)
 const sortMode = ref('time') // 'time' | 'name' | 'manual'
@@ -96,6 +83,77 @@ const sortMode = ref('time') // 'time' | 'name' | 'manual'
 const draggingId = ref(null)
 const dragOverId = ref(null)
 
+/** ---------------- 持久化 ---------------- **/
+function save() {
+  const payload = {
+    items: items.value,
+    settings: {
+      sortMode: sortMode.value,
+      sortTimeDesc: sortTimeDesc.value,
+      sortNameAsc: sortNameAsc.value,
+      selectedId: internalSelectedId.value
+    }
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) throw new Error('no data')
+    const parsed = JSON.parse(raw)
+
+    // 兼容旧数据（纯数组）与新数据（带 settings）
+    const loadedItems = Array.isArray(parsed) ? parsed : (parsed?.items ?? [])
+    const settings = Array.isArray(parsed) ? {} : (parsed?.settings ?? {})
+
+    items.value = loadedItems.map((i, idx) => ({
+      id: i.id ?? genId(),
+      name: i.name ?? '未命名',
+      content: i.content ?? '',
+      createdAt: i.createdAt ?? i.updatedAt ?? Date.now(),
+      updatedAt: i.updatedAt ?? i.createdAt ?? Date.now(),
+      pinned: !!i.pinned,
+      highlighted: !!i.highlighted,
+      order: typeof i.order === 'number' ? i.order : idx
+    }))
+
+    if (settings.sortMode) sortMode.value = settings.sortMode
+    if (typeof settings.sortTimeDesc === 'boolean') sortTimeDesc.value = settings.sortTimeDesc
+    if (typeof settings.sortNameAsc === 'boolean') sortNameAsc.value = settings.sortNameAsc
+    if (typeof settings.selectedId === 'string' || settings.selectedId === null) {
+      internalSelectedId.value = settings.selectedId
+    }
+  } catch {
+    items.value = []
+  }
+}
+
+/** ---------------- 生命周期 ---------------- **/
+onMounted(() => {
+  load()
+  if (items.value.length === 0) {
+    const id = genId()
+    items.value.push({ id, name: '示例标签', content: '', createdAt: Date.now(), updatedAt: Date.now(), pinned: false, highlighted: false, order: 0 })
+    save()
+    internalSelectedId.value = id
+    emit('select', getById(id))
+  }
+})
+
+// 外部 selectedId 改变时同步内部
+watch(() => props.selectedId, (v) => { internalSelectedId.value = v })
+
+// 排序设置变化时立即保存
+watch([sortMode, sortTimeDesc, sortNameAsc], () => { save() })
+
+// items 的任何变化（包含 order、pin、highlight、name、content）都持久化
+watch(items, () => { save() }, { deep: true })
+
+// 选中项变化也一并保存，保证恢复到上次选中
+watch(internalSelectedId, () => { save() })
+
+/** ---------------- 计算属性 ---------------- **/
 const filtered = computed(() => {
   const q = search.value.trim().toLowerCase()
   if (!q) return items.value
@@ -105,21 +163,18 @@ const filtered = computed(() => {
 const sortedList = computed(() => {
   const arr = [...filtered.value]
 
-  // manual sort: keep groups (pinned > highlighted > normal),
-  // but order within the same group by `order` value
+  // ✅ 手动排序：仅按 order（完全无视置顶/高亮优先级）
   if (sortMode.value === 'manual') {
-    const groupWeight = (x) => (x.pinned ? 0 : x.highlighted ? 1 : 2)
     return arr.sort((a, b) => {
-      const gw = groupWeight(a) - groupWeight(b)
-      if (gw !== 0) return gw
       const ao = a.order ?? 0
       const bo = b.order ?? 0
       if (ao !== bo) return ao - bo
-      // fallback by created time to keep stable
+      // fallback by created time 保持稳定
       return (a.createdAt ?? 0) - (b.createdAt ?? 0)
     })
   }
 
+  // 🔘 按名称/时间排序：仍然分组（置顶 > 高亮 > 普通），组内再按所选规则
   const cmpName = (a, b) => {
     const na = (a.name || '')
     const nb = (b.name || '')
@@ -154,28 +209,8 @@ const sortedList = computed(() => {
 
 const current = computed(() => getById(internalSelectedId.value))
 
+/** ---------------- 工具函数 ---------------- **/
 function genId() { return 'mlm_' + Math.random().toString(36).slice(2) + '_' + Date.now() }
-
-function load() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    const arr = raw ? JSON.parse(raw) : []
-    items.value = arr.map((i, idx) => ({
-      id: i.id ?? genId(),
-      name: i.name ?? '未命名',
-      content: i.content ?? '',
-      createdAt: i.createdAt ?? i.updatedAt ?? Date.now(),
-      updatedAt: i.updatedAt ?? i.createdAt ?? Date.now(),
-      pinned: !!i.pinned,
-      highlighted: !!i.highlighted,
-      order: typeof i.order === 'number' ? i.order : idx,
-    }))
-  } catch {
-    items.value = []
-  }
-}
-
-function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(items.value)) }
 
 function getById(id) { return items.value.find(i => i.id === id) || null }
 
@@ -190,13 +225,14 @@ function createNew() {
   const id = genId()
   const now = Date.now()
   const obj = { id, name: name.trim(), content: '', createdAt: now, updatedAt: now, pinned: false, highlighted: false }
+
+  // ✅ 在“手动模式”下，新建标签的 order 基于“所有项”的最大 order（不区分分组）
   if (sortMode.value === 'manual') {
-    const normals = items.value.filter(x => !x.pinned && !x.highlighted)
-    const maxOrder = normals.reduce((m, x) => {
-      return Math.max(m, typeof x.order === 'number' ? x.order : m)
-    }, -1)
+    const maxOrder = items.value.reduce((m, x) =>
+      Math.max(m, typeof x.order === 'number' ? x.order : m), -1)
     obj.order = maxOrder + 1
   }
+
   items.value.push(obj)
   save()
   internalSelectedId.value = id
@@ -255,6 +291,7 @@ function formatTime(ts) {
 
 // ===== Drag-and-drop manual sort =====
 function ensureManualOrderSeed() {
+  // 将“当前视觉顺序”写入 order；之后 manual 模式只看 order，不再受分组影响
   const list = sortedList.value
   list.forEach((it, i) => { it.order = i })
 }
@@ -263,7 +300,7 @@ function onDragStart(item, idx, ev) {
   try { ev.dataTransfer.effectAllowed = 'move' } catch {}
   draggingId.value = item.id
   dragOverId.value = null
-  // seed current order first, then switch to manual
+  // 先根据当前视觉顺序播种 order，再切换到手动模式
   ensureManualOrderSeed()
   sortMode.value = 'manual'
 }
@@ -279,7 +316,7 @@ function onDrop(targetItem) {
   const toId = targetItem?.id
   if (!toId || fromId === toId) return onDragEnd()
 
-  const list = [...sortedList.value]
+  const list = [...sortedList.value] // manual 下这里已经是按 order 排的
   const from = list.findIndex(x => x.id === fromId)
   const to = list.findIndex(x => x.id === toId)
   if (from < 0 || to < 0) return onDragEnd()
