@@ -966,3 +966,14 @@
     font-size: 12px;
     color: var(--weilin-prompt-ui-secondary-text);
 }
+
+.weilin-comfyui-sidebar-toggle-icon {
+  fill: var(--weilin-prompt-ui-icon-color);
+  transition: transform 0.3s ease;
+  transform: rotate(180deg); /* 默认展开时向右 */
+}
+
+.weilin-comfyui-sidebar-toggle-icon.is-closed {
+  transform: rotate(0deg); /* 收起时回到向左 */
+}
+

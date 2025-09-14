@@ -4,11 +4,41 @@
     <LoraStack v-if="props.promptManager === 'prompt'" :is-open="loraOpen" :selected-loras="selectedLoras"
       @close="closeLora" />
     <!-- 主标签管理器（左侧边栏） -->
-    <MainLabelManager ref="mainLabelManagerRef" :selected-id="selectedMainLabelId" @select="onSelectMainLabel" />
+    <!-- <MainLabelManager ref="mainLabelManagerRef" :selected-id="selectedMainLabelId" @select="onSelectMainLabel" /> -->
+    <MainLabelManager v-if="isLabelManagerVisible" ref="mainLabelManagerRef" :selected-id="selectedMainLabelId" @select="onSelectMainLabel" />
     <!-- 主要内容容器 -->
     <div :class="`${prefix}main-content`" :style="{ width: mainContentWidth }">
       <!-- 操作栏 -->
       <div class="center-container">
+
+        <!-- <div class="action-item">
+          <button class="tag-manager-btn" @click="toggleLabelManager" :title="t(isLabelManagerVisible ? 'controls.hideSidebar' : 'controls.showSidebar')">
+            <svg class="sidebar-toggle-icon" :class="{ 'is-closed': !isLabelManagerVisible }" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+              <path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+            </svg>
+            <span class="action-text">{{ t('controls.sidebar') }}</span>
+          </button>
+        </div> -->
+        <div class="action-item">
+          <button 
+            class="tag-manager-btn" 
+            @click="toggleLabelManager" 
+            :title="isLabelManagerVisible ? '收起标签栏' : '展开标签栏'">
+            
+            <svg 
+              class="sidebar-toggle-icon" 
+              :class="{ 'is-closed': !isLabelManagerVisible }" 
+              xmlns="http://www.w3.org/2000/svg" 
+              viewBox="0 0 24 24" 
+              width="24" height="24">
+              <path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+            </svg>
+            
+            <span class="action-text">
+              {{ isLabelManagerVisible ? '收起标签栏' : '展开标签栏' }}
+            </span>
+          </button>
+        </div>
         <div class="action-item">
           <button class="language-switch-btn" @click.stop="toggleLanguageSelector" ref="langBtnRef"
             :title="t('controls.language')">
@@ -552,6 +582,30 @@ const lastInputValue = ref(''); // 用于存储上一次的输入内容
 // 在data或ref部分添加一个计数器用于生成唯一ID
 const tokenIdCounter = ref(0);
 
+// 控制左侧标签管理器是否可见的状态
+const isLabelManagerVisible = ref(true);
+
+// 用于本地存储的键名
+const STORAGE_KEY_SIDEBAR_VISIBLE = 'weilin_prompt_ui_sidebar_visible';
+
+// 切换标签管理器的显示状态
+const toggleLabelManager = () => {
+  isLabelManagerVisible.value = !isLabelManagerVisible.value;
+};
+
+// 监听状态变化并保存到 localStorage
+watch(isLabelManagerVisible, (newValue) => {
+  localStorage.setItem(STORAGE_KEY_SIDEBAR_VISIBLE, String(newValue));
+});
+
+// 组件挂载时，从 localStorage 读取并恢复状态
+onMounted(() => {
+  const savedState = localStorage.getItem(STORAGE_KEY_SIDEBAR_VISIBLE);
+  // 默认值为 true (显示)，如果存储了 'false' 则为 false
+  isLabelManagerVisible.value = savedState !== 'false';
+  // ... 其他 onMounted 逻辑
+});
+
 // 生成唯一ID的函数
 const generateUniqueId = () => {
   tokenIdCounter.value++;
@@ -573,10 +627,17 @@ const unsavedChanges = ref(false)
 // 记录/恢复最后选中的主标签
 const LAST_LABEL_KEY = `weilin_prompt_ui_last_main_label_id_${props.promptManager || 'default'}`
 const MAIN_LABELS_STORAGE_KEY = 'weilin_prompt_ui_main_labels_v1'
+// --- 修改 mainContentWidth 计算属性 ---
 const mainContentWidth = computed(() => {
-  const left = (loraOpen.value ? 300 : 0) + 280 // Lora(可变) + 主标签管理器(固定)
-  return `calc(100% - ${left}px)`
-})
+  // 根据 isLabelManagerVisible 决定左侧标签管理器的宽度
+  const labelManagerWidth = isLabelManagerVisible.value ? 280 : 0; 
+  const left = (loraOpen.value ? 300 : 0) + labelManagerWidth; // Lora(可变) + 主标签管理器(可变)
+  return `calc(100% - ${left}px)`;
+});
+// const mainContentWidth = computed(() => {
+//   const left = (loraOpen.value ? 300 : 0) + 280 // Lora(可变) + 主标签管理器(固定)
+//   return `calc(100% - ${left}px)`
+// })
 
 let suppressUnsavedOnce = false
 const onSelectMainLabel = (item) => {
