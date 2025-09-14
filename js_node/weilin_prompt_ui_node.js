@@ -497,29 +497,29 @@ function createLoraStackWidget(node, seed, ptEl) {
 
   previewWidget.value = { hidden: false, paused: false, params: {} }
   previewWidget.parentEl = document.createElement("div");
-  previewWidget.parentEl.className = "lora-stack";
+  previewWidget.parentEl.className = "weilin-comfyui-lora-stack";
   element.appendChild(previewWidget.parentEl);
 
   const lang = navigator.language || navigator.userLanguage;
   const localLang = lang.startsWith('zh') ? 'zh' : 'en';
   previewWidget.contentEl = document.createElement("div");
   previewWidget.contentEl.innerHTML = `
-    <div class="lora-header">
-        <div class="header-actions">
-            <button class="add-btn" onclick="openLoraManager(this)" id="addLoraBtn" data-seed="`+prSeed+`" title="${localLang === 'zh' ? '添加Lora' : 'Add Lora' }">
+    <div class="weilin-comfyui-lora-header">
+        <div class="weilin-comfyui-header-actions">
+            <button class="weilin-comfyui-add-btn" onclick="openLoraManager(this)" id="addLoraBtn" data-seed="`+prSeed+`" title="${localLang === 'zh' ? '添加Lora' : 'Add Lora' }">
                 <svg viewBox="0 0 24 24" width="16" height="16">
                     <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
                 </svg>
             </button>
         </div>
     </div>
-    <div class="lora-body">
-        <div class="lora-list" id="loraListContainer_`+prSeed+`">
+    <div class="weilin-comfyui-lora-body">
+        <div class="weilin-comfyui-lora-list" id="loraListContainer_`+prSeed+`">
             <!-- Lora items will be added here dynamically -->
         </div>
     </div>
   `
-  previewWidget.contentEl.className = "lora-content"
+  previewWidget.contentEl.className = "weilin-comfyui-lora-content"
   previewWidget.parentEl.appendChild(previewWidget.contentEl)
 
   setTimeout(() => {

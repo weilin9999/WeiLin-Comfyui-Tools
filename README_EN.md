@@ -24,9 +24,21 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 # Version update introduction
 
-> Last updated: 2025-09-13
+> Last updated: 2025-09-14
 
-> 0.0.62 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.63 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+>
+> 1. Fixed a known BUG (the issue of misaligned drag ICONS in the execution bar in Comfyui)
+>
+> 2. Fix some UI issues
+>
+> 3. Merge PR [#38](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/38) thank you for your friend's help
+>
+
+<details>
+<summary>Click here for more updates from the past</summary>
+
+> 0.0.62 Public Beta Version 2025-09-13
 >
 > 1. Fixed a known BUG (Tag sharing issue)
 >
@@ -38,9 +50,6 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 >
 > 5. Fixed the issue of loading nodes that are not in use. If a node is not connected or not in use, please turn off the random prompt word switch on the node!
 >
-
-<details>
-<summary>Click here for more updates from the past</summary>
 
 > 0.0.61 Public Beta Version 2025-08-06
 >

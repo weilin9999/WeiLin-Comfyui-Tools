@@ -312,6 +312,7 @@ defineExpose({ updateSelectedContent })
   height: 100%;
   max-height: calc(100vh - var(--weilin-left-panel-offset, 100px));
   overflow: hidden;
+  margin-right: 3px;
 }
 
 .mlm-header {

@@ -1,4 +1,4 @@
-﻿.lora-stack {
+﻿.weilin-comfyui-lora-stack {
     height: 100%;
     width: 100%;
     background: var(--p-dialog-background);
@@ -9,7 +9,7 @@
     border: 1px solid var(--p-dialog-border-color);
 }
 
-.lora-content {
+.weilin-comfyui-lora-content {
     width: 100%;
     height: 100%;
     display: flex;
@@ -17,7 +17,7 @@
     margin-left: 0;
 }
 
-.lora-header {
+.weilin-comfyui-lora-header {
     padding: 8px 16px;
     border-bottom: 1px solid var(--p-dialog-border-color);
     display: flex;
@@ -27,13 +27,13 @@
     border-top-left-radius: 8px;
 }
 
-.header-actions {
+.weilin-comfyui-header-actions {
     display: flex;
     gap: 8px;
     align-items: center;
 }
 
-.add-btn {
+.weilin-comfyui-add-btn {
     border: none;
     background: none;
     cursor: pointer;
@@ -44,27 +44,27 @@
     justify-content: center;
 }
 
-.add-btn:hover {
+.weilin-comfyui-add-btn:hover {
     background-color: var(--weilin-prompt-ui-hover-bg-color);
 }
 
-.add-btn svg {
+.weilin-comfyui-add-btn svg {
     fill: var(--fg-color);
 }
 
-.lora-body {
+.weilin-comfyui-lora-body {
     flex: 1;
     overflow-y: auto;
     padding: 16px;
 }
 
-.lora-list {
+.weilin-comfyui-lora-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.lora-item {
+.weilin-comfyui-lora-item {
     background: var(--comfy-menu-secondary-bg);
     border: 1px solid var(--p-dialog-border-color);
     border-radius: 6px;
@@ -73,32 +73,33 @@
     transition: all 0.3s ease;
 }
 
-.lora-item:hover {
+.weilin-comfyui-lora-item:hover {
     border-color: var(--p-dialog-border-color);
     box-shadow: 0 2px 8px var(--bar-shadow);
 }
 
-.lora-info {
+.weilin-comfyui-lora-info {
     display: flex;
     flex-direction: column;
     width: 100%;
 }
 
-.hidden-lora {
+.weilin-comfyui-hidden-lora {
     background: rgba(255, 200, 200, 0.2) !important;
     border-color: rgba(255, 150, 150, 0.5) !important;
 }
 
-.lora-header-item {
+.weilin-comfyui-lora-header-item {
+    position: relative;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 6px 10px 6px 20px;
+    padding: 6px 10px 6px 30px; /* 增加左边距为拖拽把手留空间 */
     background: var(--p-dialog-background);
     border-bottom: 1px solid var(--p-dialog-border-color);
 }
 
-.lora-name {
+.weilin-comfyui-lora-name {
     font-size: 14px;
     font-weight: 500;
     color: var(--fg-color);
@@ -108,13 +109,13 @@
     max-width: 200px;
 }
 
-.lora-actions {
+.weilin-comfyui-lora-actions {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.lora-weights {
+.weilin-comfyui-lora-weights {
     padding: 12px;
     background: var(--comfy-menu-secondary-bg);
     display: flex;
@@ -123,32 +124,32 @@
 }
 
 /* Compact horizontal layout for weights */
-.lora-weights.compact {
+.weilin-comfyui-lora-weights.weilin-comfyui-compact {
     padding: 8px 12px;
     flex-direction: row;
     align-items: center;
     gap: 12px;
 }
 
-.toggle-item {
+.weilin-comfyui-toggle-item {
     margin-left: auto;
 }
 
 /* Toggle switch */
-.switch {
+.weilin-comfyui-switch {
     position: relative;
     display: inline-block;
     width: 28px;  /* 更短 */
     height: 20px; /* 略高 */
 }
 
-.switch input { 
+.weilin-comfyui-switch input { 
     opacity: 0;
     width: 0;
     height: 0;
 }
 
-.slider {
+.weilin-comfyui-slider {
     position: absolute;
     cursor: pointer;
     top: 0; left: 0;  bottom: 0; width: 45px;
@@ -159,7 +160,7 @@
     border-radius: 9999px;
 }
 
-.slider:before {
+.weilin-comfyui-slider:before {
     position: absolute;
     content: "";
     height: 16px; width: 16px; /* 与高度匹配的滑块 */
@@ -170,38 +171,38 @@
     border-radius: 50%;
 }
 
-.switch input:checked + .slider {
+.weilin-comfyui-switch input:checked + .weilin-comfyui-slider {
     background-color: var(--weilin-prompt-ui-primary-color, #22c55e);
     border-color: rgba(0,0,0,0.2);
     box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12);
 }
 
-.switch input:checked + .slider:before {
+.weilin-comfyui-switch input:checked + .weilin-comfyui-slider:before {
     left: calc(100% - 18px); /* 100% - knob(16) - margin(2) */
     box-shadow: 0 1px 2px rgba(0,0,0,0.25);
 }
 
 /* Hover and focus states */
-.toggle-item:hover .slider {
+.weilin-comfyui-toggle-item:hover .weilin-comfyui-slider {
     background-color: rgba(255,255,255,0.16);
 }
-.toggle-item:focus-within .slider {
+.weilin-comfyui-toggle-item:focus-within .weilin-comfyui-slider {
     box-shadow: 0 0 0 2px rgba(16,185,129,0.35);
 }
 
-.weight-item {
+.weilin-comfyui-weight-item {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.weight-item label {
+.weilin-comfyui-weight-item label {
     font-size: 12px;
     color: var(--fg-color);
     min-width: 60px;
 }
 
-.lora-weight {
+.weilin-comfyui-lora-weight {
     flex: 0 0 80px;
     width: 80px;
     padding: 4px 6px;
@@ -213,19 +214,19 @@
     transition: all 0.3s ease;
 }
 
-.lora-weight:hover {
+.weilin-comfyui-lora-weight:hover {
     border-color: var(--p-dialog-border-color);
 }
 
-.lora-weight:focus {
+.weilin-comfyui-lora-weight:focus {
     border-color: var(--p-dialog-border-color);
     outline: none;
     box-shadow: 0 0 0 2px var(--p-dialog-border-color-fade);
 }
 
-.remove-btn,
-.look-on-btn,
-.toggle-hide-btn {
+.weilin-comfyui-remove-btn,
+.weilin-comfyui-look-on-btn,
+.weilin-comfyui-toggle-hide-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -237,34 +238,34 @@
     transition: all 0.3s ease;
 }
 
-.remove-btn:hover,
-.look-on-btn:hover,
-.toggle-hide-btn:hover {
+.weilin-comfyui-remove-btn:hover,
+.weilin-comfyui-look-on-btn:hover,
+.weilin-comfyui-toggle-hide-btn:hover {
     background-color: var(--weilin-prompt-ui-hover-bg-color);
 }
 
-.remove-btn svg,
-.look-on-btn svg,
-.toggle-hide-btn svg {
+.weilin-comfyui-remove-btn svg,
+.weilin-comfyui-look-on-btn svg,
+.weilin-comfyui-toggle-hide-btn svg {
     fill: var(--fg-color);
 }
 
-.remove-btn:hover svg {
+.weilin-comfyui-remove-btn:hover svg {
     fill: var(--weilin-prompt-ui-danger-color);
 }
 
-.look-on-btn:hover svg {
+.weilin-comfyui-look-on-btn:hover svg {
     fill: var(--p-dialog-border-color);
 }
 
-.lora-footer {
+.weilin-comfyui-lora-footer {
     padding: 8px 12px;
     border-top: 1px solid var(--p-dialog-border-color);
     display: flex;
     justify-content: flex-end;
 }
 
-.hide-btn {
+.weilin-comfyui-hide-btn {
     display: flex;
     align-items: center;
     gap: 4px;
@@ -278,35 +279,35 @@
     transition: all 0.3s ease;
 }
 
-.hide-btn:hover {
+.weilin-comfyui-hide-btn:hover {
     background-color: var(--weilin-prompt-ui-hover-bg-color);
     color: var(--fg-color);
 }
 
-.hide-btn svg {
+.weilin-comfyui-hide-btn svg {
     fill: var(--fg-color);
 }
 
-.hide-btn:hover svg {
+.weilin-comfyui-hide-btn:hover svg {
     fill: var(--p-dialog-border-color);
 }
 
-.lora-item {
+.weilin-comfyui-lora-item {
     /* 现有样式 */
     transition: transform 0.2s ease, margin 0.2s ease;
 }
 
-.lora-item.dragging {
+.weilin-comfyui-lora-item.weilin-comfyui-dragging {
     opacity: 0.5;
     transform: rotate(2deg);
     z-index: 1000;
 }
 
-.lora-item.shift-down {
+.weilin-comfyui-lora-item.weilin-comfyui-shift-down {
     transform: translateY(100%);
 }
 
-.lora-placeholder {
+.weilin-comfyui-lora-placeholder {
     height: 100px; /* 调整为实际lora-item高度 */
     border: 2px dashed var(--weilin-prompt-ui-primary-color, #22c55e);
     border-radius: 6px;
@@ -320,14 +321,14 @@
 }
 
 /* 移除之前的drag-over样式 */
-.lora-item.drag-over-top,
-.lora-item.drag-over-bottom {
+.weilin-comfyui-lora-item.weilin-comfyui-drag-over-top,
+.weilin-comfyui-lora-item.weilin-comfyui-drag-over-bottom {
     border: none;
 }
 
 /* 在现有CSS基础上添加以下样式 */
 
-.lora-header-item {
+.weilin-comfyui-lora-header-item {
     position: relative;
     display: flex;
     justify-content: space-between;
@@ -337,7 +338,7 @@
     border-bottom: 1px solid var(--p-dialog-border-color);
 }
 
-.drag-handle {
+.weilin-comfyui-drag-handle {
     position: absolute;
     top: 50%;
     left: 6px;
@@ -354,20 +355,20 @@
     opacity: 0.6;
 }
 
-.drag-handle:hover {
+.weilin-comfyui-drag-handle:hover {
     background-color: var(--weilin-prompt-ui-hover-bg-color, rgba(0, 0, 0, 0.1));
     color: var(--fg-color);
     opacity: 1;
 }
 
-.drag-handle:active {
+.weilin-comfyui-drag-handle:active {
     cursor: grabbing;
     background-color: var(--weilin-prompt-ui-primary-color, #22c55e);
     color: white;
     opacity: 1;
 }
 
-.lora-item.dragging .drag-handle {
+.weilin-comfyui-lora-item.weilin-comfyui-dragging .weilin-comfyui-drag-handle {
     cursor: grabbing;
     background-color: var(--weilin-prompt-ui-primary-color, #16a34a);
     border-color: var(--weilin-prompt-ui-primary-color, #16a34a);
@@ -377,7 +378,7 @@
 }
 
 /* 确保拖拽时的视觉效果 */
-.lora-item.dragging {
+.weilin-comfyui-lora-item.weilin-comfyui-dragging {
     opacity: 0.7;
     transform: rotate(2deg) scale(1.02);
     z-index: 1000;
@@ -385,7 +386,7 @@
 }
 
 /* 拖拽占位符样式优化 */
-.lora-placeholder {
+.weilin-comfyui-lora-placeholder {
     height: 100px;
     border: 2px dashed var(--weilin-prompt-ui-primary-color, #22c55e);
     border-radius: 6px;
@@ -396,10 +397,10 @@
     justify-content: center;
     color: var(--weilin-prompt-ui-primary-color, #22c55e);
     font-size: 12px;
-    animation: placeholderPulse 1.5s ease-in-out infinite;
+    animation: weilin-comfyui-placeholderPulse 1.5s ease-in-out infinite;
 }
 
-@keyframes placeholderPulse {
+@keyframes weilin-comfyui-placeholderPulse {
     0%, 100% { opacity: 0.6; }
     50% { opacity: 1; }
 }

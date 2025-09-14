@@ -72,18 +72,17 @@ function renderLoraItem(seed, index, lora) {
    const loraListContainer = document.getElementById('loraListContainer_' + seed);
 
    const loraItem = document.createElement('div');
-   loraItem.className = `lora-item ${lora.hidden ? 'hidden-lora' : ''}`;
-   loraItem.id = `lora-item-${seed}-${index}`;
+   loraItem.className = `weilin-comfyui-lora-item ${lora.hidden ? 'weilin-comfyui-hidden-lora' : ''}`;
+   loraItem.id = `weilin-comfyui-lora-item-${seed}-${index}`;
    
-   // 移除整体拖拽属性
    loraItem.setAttribute('data-index', index.toString());
 
    const displayName = lora.display_name || lora.name || lora.lora;
 
    loraItem.innerHTML = `
-   <div class="lora-info">
-       <div class="lora-header-item">
-           <div class="drag-handle" draggable="true" title="${getSystemLanguage() === 'zh' ? '拖拽排序' : 'Drag to reorder'}">
+   <div class="weilin-comfyui-lora-info">
+       <div class="weilin-comfyui-lora-header-item">
+           <div class="weilin-comfyui-drag-handle" draggable="true" title="${getSystemLanguage() === 'zh' ? '拖拽排序' : 'Drag to reorder'}">
                <svg viewBox="0 0 24 24" width="14" height="14">
                    <circle cx="7" cy="7" r="1.5" fill="currentColor"/>
                    <circle cx="12" cy="7" r="1.5" fill="currentColor"/>
@@ -96,9 +95,9 @@ function renderLoraItem(seed, index, lora) {
                    <circle cx="17" cy="17" r="1.5" fill="currentColor"/>
                </svg>
            </div>
-           <span class="lora-name" title="${displayName}">${displayName}</span>
-           <div class="lora-actions">
-               <button class="look-on-btn" title="${getSystemLanguage() === 'zh' ? '查看Lora' : 'Look on Lora'}">
+           <span class="weilin-comfyui-lora-name" title="${displayName}">${displayName}</span>
+           <div class="weilin-comfyui-lora-actions">
+               <button class="weilin-comfyui-look-on-btn" title="${getSystemLanguage() === 'zh' ? '查看Lora' : 'Look on Lora'}">
                    <svg viewBox="0 0 1024 1024" width="14" height="14">
                        <path d="M576.5 930.2H163.1c-52.9 0-96-43.1-96-96v-672c0-52.9 43.1-96 96-96h672c52.9 0 96 43.1 96 96V577c0 17.7-14.3 32-32 32s-32-14.3-32-32V162.2c0-17.6-14.4-32-32-32h-672c-17.6 0-32 14.4-32 32v672c0 17.6 14.4 32 32 32h413.4c17.7 0 32 14.3 32 32s-14.3 32-32 32z" p-id="3466"></path>
                        <path d="M692.4 322.3H245.7c-17.7 0-32-14.3-32-32s14.3-32 32-32h446.7c17.7 0 32 14.3 32 32s-14.3 32-32 32zM388.5 530.2H245.7c-17.7 0-32-14.3-32-32s14.3-32 32-32h142.7c17.7 0 32 14.3 32 32 0.1 17.6-14.3 32-31.9 32zM388.5 738H245.7c-17.7 0-32-14.3-32-32s14.3-32 32-32h142.7c17.7 0 32 14.3 32 32 0.1 17.7-14.3 32-31.9 32z" p-id="3467"></path>
@@ -106,26 +105,26 @@ function renderLoraItem(seed, index, lora) {
                        <path d="M820.8 864.2L710.5 753.9c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L866 818.9c12.5 12.5 12.5 32.8 0 45.3s-32.7 12.5-45.2 0z" p-id="3469"></path>
                    </svg>
                </button>
-               <button class="remove-btn" title="${getSystemLanguage() === 'zh' ? '移除Lora' : 'Remove Lora'}">
+               <button class="weilin-comfyui-remove-btn" title="${getSystemLanguage() === 'zh' ? '移除Lora' : 'Remove Lora'}">
                    <svg viewBox="0 0 24 24" width="14" height="14">
                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
                    </svg>
                </button>
            </div>
        </div>
-       <div class="lora-weights compact">
-           <div class="weight-item">
+       <div class="weilin-comfyui-lora-weights weilin-comfyui-compact">
+           <div class="weilin-comfyui-weight-item">
                <label>${getSystemLanguage() === 'zh' ? '模型权重' : 'Model Weight'}</label>
-               <input id="model-weight-${seed}-${index}" type="number" class="lora-weight" step="0.1" value="${lora.weight}">
+               <input id="model-weight-${seed}-${index}" type="number" class="weilin-comfyui-lora-weight" step="0.1" value="${lora.weight}">
            </div>
-           <div class="weight-item">
+           <div class="weilin-comfyui-weight-item">
                <label>${getSystemLanguage() === 'zh' ? '文本编码器权重' : 'Text Encoder Weight'}</label>
-               <input id="text-encoder-weight-${seed}-${index}" type="number" class="lora-weight" step="0.1" value="${lora.text_encoder_weight}">
+               <input id="text-encoder-weight-${seed}-${index}" type="number" class="weilin-comfyui-lora-weight" step="0.1" value="${lora.text_encoder_weight}">
            </div>
-           <div class="weight-item toggle-item" title="${getSystemLanguage() === 'zh' ? '启用/禁用 Lora' : 'Enable/Disable Lora'}">
-               <label class="switch">
+           <div class="weilin-comfyui-weight-item weilin-comfyui-toggle-item" title="${getSystemLanguage() === 'zh' ? '启用/禁用 Lora' : 'Enable/Disable Lora'}">
+               <label class="weilin-comfyui-switch">
                    <input type="checkbox" id="visible-toggle-${seed}-${index}" ${lora.hidden ? '' : 'checked'}>
-                   <span class="slider round"></span>
+                   <span class="weilin-comfyui-slider weilin-comfyui-round"></span>
                </label>
            </div>
        </div>
@@ -133,20 +132,18 @@ function renderLoraItem(seed, index, lora) {
    `;
 
    // 只在拖拽把手上添加拖拽事件
-   const dragHandle = loraItem.querySelector('.drag-handle');
+   const dragHandle = loraItem.querySelector('.weilin-comfyui-drag-handle');
    dragHandle.addEventListener('dragstart', (e) => handleDragStart(e, seed, index));
    dragHandle.addEventListener('dragend', handleDragEnd);
    
-   // 防止把手事件冒泡
    dragHandle.addEventListener('mousedown', (e) => {
        e.stopPropagation();
    });
 
-   // 其余事件监听器保持不变
-   loraItem.querySelector('.look-on-btn').addEventListener('click', () => lookOnLora(lora.lora));
-   loraItem.querySelector('.remove-btn').addEventListener('click', () => removeLora(seed, index));
+   loraItem.querySelector('.weilin-comfyui-look-on-btn').addEventListener('click', () => lookOnLora(lora.lora));
+   loraItem.querySelector('.weilin-comfyui-remove-btn').addEventListener('click', () => removeLora(seed, index));
 
-   const weightInputs = loraItem.querySelectorAll('.lora-weight');
+   const weightInputs = loraItem.querySelectorAll('.weilin-comfyui-lora-weight');
    weightInputs.forEach(input => {
         input.addEventListener('mousedown', (e) => {
             e.stopPropagation();
@@ -181,7 +178,7 @@ function renderLoraItem(seed, index, lora) {
                    const info = data && (data.data || data);
                    if (info && info.name) {
                        lora.display_name = info.name;
-                       const nameEl = loraItem.querySelector('.lora-name');
+                       const nameEl = loraItem.querySelector('.weilin-comfyui-lora-name');
                        if (nameEl) {
                            nameEl.textContent = info.name;
                            nameEl.setAttribute('title', info.name);
@@ -205,11 +202,11 @@ function renderLoraItem(seed, index, lora) {
        });
    }
    
-   loraItem.querySelector('.look-on-btn').addEventListener('mousedown', (e) => {
+   loraItem.querySelector('.weilin-comfyui-look-on-btn').addEventListener('mousedown', (e) => {
         e.stopPropagation();
    });
 
-   loraItem.querySelector('.remove-btn').addEventListener('mousedown', (e) => {
+   loraItem.querySelector('.weilin-comfyui-remove-btn').addEventListener('mousedown', (e) => {
         e.stopPropagation();
    });
 }
@@ -217,8 +214,8 @@ function renderLoraItem(seed, index, lora) {
 // 修改handleDragStart函数，从把手获取父元素信息
 function handleDragStart(e, seed, index) {
     draggedIndex = index;
-    const loraItem = e.target.closest('.lora-item');
-    loraItem.classList.add('dragging');
+    const loraItem = e.target.closest('.weilin-comfyui-lora-item');
+    loraItem.classList.add('weilin-comfyui-dragging');
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/html', loraItem.outerHTML);
 }
@@ -226,10 +223,10 @@ function handleDragStart(e, seed, index) {
 // Get hide button content
 function getHideButtonContent(hidden) {
    return hidden ?
-       `<svg viewBox="0 0 24 24" width="14" height="14">
+       `<svg viewBox="0 0 24 24" width="14" height="14" class="weilin-comfyui-hide-svg">
                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
            </svg>` :
-       `<svg viewBox="0 0 24 24" width="14" height="14">
+       `<svg viewBox="0 0 24 24" width="14" height="14" class="weilin-comfyui-hide-svg">
                <path  d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z" />
        </svg>`;
 }
@@ -308,7 +305,7 @@ function handleDragOver(e) {
     e.dataTransfer.dropEffect = 'move';
     
     let target = e.target;
-    while (target && !target.classList.contains('lora-item')) {
+    while (target && !target.classList.contains('weilin-comfyui-lora-item')) {
         target = target.parentElement;
     }
     
@@ -320,7 +317,7 @@ function handleDragOver(e) {
     const elementMiddle = rect.top + rect.height / 2;
     
     // 简化索引计算：直接基于DOM顺序
-    const allItems = Array.from(container.querySelectorAll('.lora-item:not(.dragging)'));
+    const allItems = Array.from(container.querySelectorAll('.weilin-comfyui-lora-item:not(.weilin-comfyui-dragging)'));
     const targetIndex = allItems.indexOf(target);
     
     let newInsertIndex;
@@ -347,19 +344,16 @@ function handleDragOver(e) {
 
 function createPlaceholder() {
     placeholder = document.createElement('div');
-    placeholder.className = 'lora-placeholder';
+    placeholder.className = 'weilin-comfyui-lora-placeholder';
     placeholder.innerHTML = '放置位置';
 }
 
 function removePlaceholderAndShifts() {
-    // 移除占位框
     if (placeholder && placeholder.parentElement) {
         placeholder.parentElement.removeChild(placeholder);
     }
-    
-    // 移除所有位移效果
-    document.querySelectorAll('.lora-item').forEach(item => {
-        item.classList.remove('shift-down');
+    document.querySelectorAll('.weilin-comfyui-lora-item').forEach(item => {
+        item.classList.remove('weilin-comfyui-shift-down');
     });
 }
 
@@ -415,7 +409,7 @@ function handleContainerDragOver(e, seed) {
     const mouseY = e.clientY;
     
     // 找到最近的 lora-item
-    const allItems = Array.from(container.querySelectorAll('.lora-item:not(.dragging)'));
+    const allItems = Array.from(container.querySelectorAll('.weilin-comfyui-lora-item:not(.weilin-comfyui-dragging)'));
     let targetItem = null;
     let insertPosition = allItems.length; // 默认插入到最后
     
@@ -457,7 +451,7 @@ function handleContainerDrop(e, seed) {
         let currentNode = placeholder.previousElementSibling;
         
         while (currentNode) {
-            if (currentNode.classList.contains('lora-item') && !currentNode.classList.contains('dragging')) {
+            if (currentNode.classList.contains('weilin-comfyui-lora-item') && !currentNode.classList.contains('weilin-comfyui-dragging')) {
                 actualInsertIndex++;
             }
             currentNode = currentNode.previousElementSibling;
