@@ -132,14 +132,35 @@ function load() {
 /** ---------------- 生命周期 ---------------- **/
 onMounted(() => {
   load()
+
+  // 1) 首次无数据：初始化示例并选中 + 通知父组件
   if (items.value.length === 0) {
     const id = genId()
-    items.value.push({ id, name: '示例标签', content: '', createdAt: Date.now(), updatedAt: Date.now(), pinned: false, highlighted: false, order: 0 })
+    items.value.push({
+      id,
+      name: '示例标签',
+      content: '',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      pinned: false,
+      highlighted: false,
+      order: 0
+    })
     save()
-    internalSelectedId.value = id
-    emit('select', getById(id))
+    internalSelectedId.value = id         // 触发上面的 watcher -> 会 emit('select', {...})
+    return
+  }
+
+  // 2) 有数据：校验 selectedId 是否仍然存在
+  if (!getById(internalSelectedId.value)) {
+    internalSelectedId.value = items.value[0]?.id ?? null  // 触发 watcher -> emit
+  } else {
+    // 存在：手动补发一次（以防 selectedId 未变化而 watcher不触发）
+    const node = getById(internalSelectedId.value)
+    emit('select', node ? { ...node } : null)
   }
 })
+
 
 // 外部 selectedId 改变时同步内部
 watch(() => props.selectedId, (v) => { internalSelectedId.value = v })
@@ -151,7 +172,13 @@ watch([sortMode, sortTimeDesc, sortNameAsc], () => { save() })
 watch(items, () => { save() }, { deep: true })
 
 // 选中项变化也一并保存，保证恢复到上次选中
-watch(internalSelectedId, () => { save() })
+watch(internalSelectedId, (v) => {
+  save()
+  const node = v ? getById(v) : null
+  // 向父组件同步“真正的选中项”（修复：刷新后父组件不知情）
+  emit('select', node ? { ...node } : null)
+})
+
 
 /** ---------------- 计算属性 ---------------- **/
 const filtered = computed(() => {
