@@ -1,7 +1,7 @@
 [project]
 name = "weilin-comfyui-tools"
 description = "让你在 ComfyUI 中快捷的使用提示词工具 Quickly use the prompt word tool in ComfyUI"
-version = "0.0.63"
+version = "0.0.64"
 license = {file = "LICENSE"}
 dependencies = []
 
