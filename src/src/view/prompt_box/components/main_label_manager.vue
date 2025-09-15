@@ -175,7 +175,7 @@ watch(items, () => { save() }, { deep: true })
 watch(internalSelectedId, (v) => {
   save()
   const node = v ? getById(v) : null
-  // 向父组件同步“真正的选中项”（修复：刷新后父组件不知情）
+  // 向父组件同步"真正的选中项"（修复：刷新后父组件不知情）
   emit('select', node ? { ...node } : null)
 })
 
@@ -201,7 +201,7 @@ const sortedList = computed(() => {
     })
   }
 
-  // 🔘 按名称/时间排序：仍然分组（置顶 > 高亮 > 普通），组内再按所选规则
+  // 🔘 按名称/时间排序：置顶标签优先，高亮标签和普通标签同等优先级
   const cmpName = (a, b) => {
     const na = (a.name || '')
     const nb = (b.name || '')
@@ -216,7 +216,8 @@ const sortedList = computed(() => {
     return cmp
   }
 
-  const groupWeight = (x) => (x.pinned ? 0 : x.highlighted ? 1 : 2)
+  // 修改分组权重：置顶=0，高亮和普通都是1（同等优先级）
+  const groupWeight = (x) => (x.pinned ? 0 : 1)
 
   arr.sort((a, b) => {
     const gw = groupWeight(a) - groupWeight(b)
@@ -253,7 +254,7 @@ function createNew() {
   const now = Date.now()
   const obj = { id, name: name.trim(), content: '', createdAt: now, updatedAt: now, pinned: false, highlighted: false }
 
-  // ✅ 在“手动模式”下，新建标签的 order 基于“所有项”的最大 order（不区分分组）
+  // ✅ 在"手动模式"下，新建标签的 order 基于"所有项"的最大 order（不区分分组）
   if (sortMode.value === 'manual') {
     const maxOrder = items.value.reduce((m, x) =>
       Math.max(m, typeof x.order === 'number' ? x.order : m), -1)
@@ -279,7 +280,7 @@ function renameSelected() {
 function deleteSelected() {
   const node = current.value
   if (!node) return
-  if (!window.confirm(`确定删除标签“${node.name}”吗？`)) return
+  if (!window.confirm(`确定删除标签"${node.name}"吗？`)) return
   const idx = items.value.findIndex(i => i.id === node.id)
   if (idx >= 0) items.value.splice(idx, 1)
   save()
@@ -318,7 +319,7 @@ function formatTime(ts) {
 
 // ===== Drag-and-drop manual sort =====
 function ensureManualOrderSeed() {
-  // 将“当前视觉顺序”写入 order；之后 manual 模式只看 order，不再受分组影响
+  // 将"当前视觉顺序"写入 order；之后 manual 模式只看 order，不再受分组影响
   const list = sortedList.value
   list.forEach((it, i) => { it.order = i })
 }
