@@ -977,3 +977,7 @@
   transform: rotate(0deg); /* 收起时回到向左 */
 }
 
+
+.weilin-comfyui-toolbar-right {
+  margin-left: auto; 
+}
