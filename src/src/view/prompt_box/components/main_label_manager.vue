@@ -247,18 +247,50 @@ function selectItem(item) {
   emit('select', { ...item })
 }
 
+// function createNew() {
+//   const name = window.prompt('新建标签名称：', '')
+//   if (!name) return
+//   const id = genId()
+//   const now = Date.now()
+//   const obj = { id, name: name.trim(), content: '', createdAt: now, updatedAt: now, pinned: false, highlighted: false }
+
+//   // // ✅ 在"手动模式"下，新建标签的 order 基于"所有项"的最大 order（不区分分组）
+//   // if (sortMode.value === 'manual') {
+//   //   const maxOrder = items.value.reduce((m, x) =>
+//   //     Math.max(m, typeof x.order === 'number' ? x.order : m), -1)
+//   //   obj.order = maxOrder + 1
+//   // }
+
+//   items.value.push(obj)
+//   save()
+//   internalSelectedId.value = id
+//   emit('select', { ...obj })
+// }
+
 function createNew() {
   const name = window.prompt('新建标签名称：', '')
   if (!name) return
+
+  // ① 先把“当前视觉顺序”播种到 order；再切到手动模式
+  ensureManualOrderSeed()
+  sortMode.value = 'manual'
+
   const id = genId()
   const now = Date.now()
-  const obj = { id, name: name.trim(), content: '', createdAt: now, updatedAt: now, pinned: false, highlighted: false }
 
-  // ✅ 在"手动模式"下，新建标签的 order 基于"所有项"的最大 order（不区分分组）
-  if (sortMode.value === 'manual') {
-    const maxOrder = items.value.reduce((m, x) =>
-      Math.max(m, typeof x.order === 'number' ? x.order : m), -1)
-    obj.order = maxOrder + 1
+  // ② 找到当前最小的 order，新项取 minOrder - 1，确保排在最上方
+  const minOrder = items.value.reduce((m, x) =>
+    (typeof x.order === 'number' ? Math.min(m, x.order) : m), 0)
+
+  const obj = {
+    id,
+    name: name.trim(),
+    content: '',
+    createdAt: now,
+    updatedAt: now,
+    pinned: false,
+    highlighted: false,
+    order: minOrder - 1
   }
 
   items.value.push(obj)
@@ -266,6 +298,7 @@ function createNew() {
   internalSelectedId.value = id
   emit('select', { ...obj })
 }
+
 
 function renameSelected() {
   const node = current.value
