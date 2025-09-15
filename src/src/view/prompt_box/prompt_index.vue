@@ -1,5 +1,10 @@
 <template>
   <div class="weilin_prompt_ui_prompt-box">
+  <!-- 内部小提示框：更新标签 -->
+  <transition name="weilin-fade">
+    <div v-if="toastVisible" class="weilin-toast" role="status" aria-live="polite">已更新标签</div>
+  </transition>
+
     <!-- Lora栈 -->
     <LoraStack v-if="props.promptManager === 'prompt'" :is-open="loraOpen" :selected-loras="selectedLoras"
       @close="closeLora" />
@@ -746,7 +751,23 @@ function updateSelectedLabel() {
   if (!mainLabelManagerRef.value?.updateSelectedContent) return
   mainLabelManagerRef.value.updateSelectedContent(inputText.value)
   unsavedChanges.value = false
+  showUpdatedToast()
 }
+
+// 轻量提示框（toast）
+const toastVisible = ref(false)
+let toastTimer = null
+function showUpdatedToast() {
+  toastVisible.value = true
+  if (toastTimer) clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => {
+    toastVisible.value = false
+  }, 1600)
+}
+onBeforeUnmount(() => {
+  if (toastTimer) clearTimeout(toastTimer)
+})
+
 
 const openSettings = () => {
   settingDialog.value.open()
@@ -2837,4 +2858,37 @@ defineExpose({
 
 <style scoped>
 @import "./prompt_index.css";
+
+/* 内部小提示框样式（优化版） */
+.weilin-toast {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  padding: 12px 20px; /* 增加内边距让提示更突出 */
+  border-radius: 12px;
+  font-size: 16px; /* 字体更大 */
+  font-weight: 500; /* 略加粗 */
+  line-height: 1.4;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  z-index: 9999;
+
+  /* 增加轻微模糊背景，让提示更有层次感 */
+  backdrop-filter: blur(6px);
+}
+
+/* 淡入淡出 + 缩放动画 */
+.weilin-fade-enter-active, .weilin-fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.weilin-fade-enter-from, .weilin-fade-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.9);
+}
+
+
 </style>
