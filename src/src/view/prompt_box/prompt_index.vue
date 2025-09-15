@@ -695,6 +695,11 @@ watch(inputText, (v) => {
   if (suppressUnsavedOnce) { suppressUnsavedOnce = false; return }
   unsavedChanges.value = true
 })
+// 在标签 tokens 序列变更时标记为有未保存变更（初始化期间除外）
+watch(tokens, () => {
+  if (!suppressUnsavedOnce) unsavedChanges.value = true
+}, { deep: true })
+
 
 // 监听并持久化最后选中的主标签 ID
 watch(selectedMainLabelId, (id) => {
@@ -718,7 +723,10 @@ function restoreLastSelectedMainLabel() {
         inputAreaRef.value.value = inputText.value
         handleInput({ target: inputAreaRef.value })
       }
-    })
+    
+      // 初始化渲染完毕，解除一次性抑制
+      suppressUnsavedOnce = false
+})
     unsavedChanges.value = false
   } catch {}
 }
@@ -1668,6 +1676,7 @@ const finishPromptPutItHistory = () => {
     }
   }
   postMessageToWindowsPrompt()
+  if (!suppressUnsavedOnce) unsavedChanges.value = true
 }
 
 const postMessageToWindowsPrompt = () => {
@@ -1895,6 +1904,7 @@ const deleteToken = (index) => {
     }, '') : '';
 
   finishPromptPutItHistory()
+  unsavedChanges.value = true
 }
 
 // 处理词组编辑
@@ -1946,6 +1956,7 @@ const startEditing = (index) => {
       adjustInputWidth(input);
       input.addEventListener('input', () => adjustInputWidth(input));
       finishPromptPutItHistory()
+    unsavedChanges.value = true
     }
   });
 }
@@ -1989,6 +2000,7 @@ watch(selectedLoras, (newLoras) => {
   // console.log(newLoras)
   // finishPromptPutItHistory()
   finishPromptPutItHistory()
+  unsavedChanges.value = true
 }, { deep: true })
 
 // 切换语言选择器
@@ -2658,6 +2670,7 @@ const updateInputText = () => {
     }, '') : '';
 
   postMessageToWindowsPrompt()
+  if (!suppressUnsavedOnce) unsavedChanges.value = true
 };
 
 // AI对话
