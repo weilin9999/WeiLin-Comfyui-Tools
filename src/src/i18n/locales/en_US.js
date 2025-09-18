@@ -13,7 +13,7 @@ export default {
         weightPlaceholder: 'Please enter the weight',
         addBracket: 'Add Bracket',
         removeLayer: 'Remove Bracket',
-        oneClickTranslate: 'One Click Translate Untranslated Phrases',
+
         hiddenHint: "Double-click to show",
         tagTips: "Double-click the left mouse button to mask the Tag<br>click the Tag to edit<br>and drag the Tag to drag",
         oneClickRandomTag: 'one Click Random Tag',
@@ -660,4 +660,4 @@ export default {
         add: "Add Danbooru Tag",
         edit: "Edit Danbooru Tag",
     }
-} 
+}

@@ -442,6 +442,36 @@
 
       <!-- Lora管理器容器 -->
       <div class="tag-manager-section">
+
+      <!-- 框选操作菜单 -->
+      <div v-show="showSelectionActions" class="token-controls" :style="selectionActionsPosition" @mouseenter="isOverControls = true" @mouseleave="handleControlsLeave">
+        <div class="selection-actions-content">
+          <div class="selection-actions-count">选中 {{ selectedTokens.length }} 个标签</div>
+          <div class="selection-actions-buttons">
+            <button class="delete-btn copy-btn" @click="copySelectedTokens" title="复制">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+              </svg>
+            </button>
+            <button class="delete-btn" @click="disableSelectedTokens" title="禁用">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                <path d="M8.5 8.5l7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <button class="delete-btn enable-btn" @click="enableSelectedTokens" title="启用">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+              </svg>
+            </button>
+            <button class="delete-btn" @click="deleteSelectedTokens" title="删除">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
         <div class="tag-manager-header" @click="toggleLoraManager">
           <div class="header-left">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" class="tag-icon" width="24" height="24">
@@ -566,7 +596,24 @@ const saveAutoCompleteHeight = ref(localStorage.getItem('weilin_prompt_ui_auto_b
 
 const translateText = ref('')
 
-// 在现有的ref声明部分添加
+// 框选功能相关变量
+const isSelecting = ref(false)
+const selectionStart = ref({ x: 0, y: 0 })
+const selectionEnd = ref({ x: 0, y: 0 })
+const selectedTokens = ref([])
+const selectionBoxId = 'weilin-selection-box'
+const tokensContainerRef = ref(null)
+const isBoxSelectMode = ref(false) // 标记当前是否在框选模式
+const isPotentialBoxSelection = ref(false) // 标记潜在的框选操作，用于区分点击和拖动
+const showSelectionActions = ref(false)
+const selectionActionsPosition = ref({ top: '0px', left: '0px' })
+// 用于防止更新操作频繁触发的标志
+const isUpdatingSelectionBox = ref(false) // 控制选择框更新
+const isUpdatingSelectedTokens = ref(false) // 控制标签选中状态更新
+// 用于节流的时间戳
+const lastUpdateTime = ref(0)
+const throttleInterval = 16 // 约60fps
+
 const showTagTipsBox = ref(false);
 const tagTipsPosition = ref({
   top: '0px',
@@ -1130,6 +1177,45 @@ const handleInput = (event) => {
   // 4. 精确获取当前输入内容用于补全
   const textBeforeCursor = processedValue.substring(0, newCursorPosition);
 
+  // 检查是否启用了逗号关闭补全窗口功能
+  const isCommaCloseAutocompleteEnabled = localStorage.getItem('weilin_prompt_ui_comma_close_autocomplete') === 'true';
+  
+  // 检查是否刚刚输入了逗号或空格
+  const lastChar = newCursorPosition > 0 ? textBeforeCursor[newCursorPosition - 1] : '';
+  const justTypedDelimiter = lastChar === ',' || lastChar === ' ';
+  
+  // 如果输入了逗号或空格，并且启用了该功能，立即关闭补全列表
+  if (justTypedDelimiter && isCommaCloseAutocompleteEnabled) {
+    showAutocomplete.value = false;
+    // 防抖处理 - 用于在逗号或空格后开始输入新内容时触发补全
+    if (debounceTimeout.value) {
+      clearTimeout(debounceTimeout.value);
+    }
+    debounceTimeout.value = setTimeout(() => {
+      // 获取当前光标位置
+      const currentCursorPos = inputAreaRef.value?.selectionStart || 0;
+      const currentText = inputText.value || '';
+      const textBeforeCursor = currentText.substring(0, currentCursorPos);
+      
+      // 查找当前单词起始位置
+      let wordStart = currentCursorPos;
+      while (wordStart > 0 && !/[,\s]/.test(textBeforeCursor[wordStart - 1])) {
+        wordStart--;
+      }
+      
+      const currentWord = textBeforeCursor.substring(wordStart, currentCursorPos).trim();
+      
+      // 触发自动补全
+      if (currentWord) {
+        triggerAutocomplete(currentWord);
+      }
+      postMessageToWindowsPrompt();
+    }, 300);
+    // 计算token数量
+    tokenCount.value = calculateTokens(inputText.value);
+    return;
+  }
+
   // 查找当前输入的单词起始位置
   let wordStart = newCursorPosition;
   while (wordStart > 0 && !/[,\s]/.test(textBeforeCursor[wordStart - 1])) {
@@ -1684,6 +1770,11 @@ const postMessageToWindowsPrompt = () => {
 
 // 显示控制栏
 const showControls = (index, event) => {
+  // 框选模式下不显示控制菜单
+  if (isBoxSelectMode.value) {
+    return;
+  }
+  
   // 清除任何现有的定时器
   if (hideTimeout.value) {
     clearTimeout(hideTimeout.value)
@@ -1758,6 +1849,12 @@ const handleMouseLeave = (index) => {
 const handleControlsLeave = () => {
   isOverControls.value = false
   handleMouseLeave(activeControls.value)
+  // 确保框选模式在离开控制栏后重置
+  setTimeout(() => {
+    if (!isOverControls.value) {
+      isBoxSelectMode.value = false
+    }
+  }, 100)
 }
 
 // 隐藏控制栏
@@ -2086,12 +2183,455 @@ onMounted(() => {
   nextTick(() => {
     restoreTextareaHeight();
   });
+  
+  // 添加框选功能的事件监听 - 修复嵌套nextTick问题
+  // 直接在主nextTick后绑定事件，不再使用嵌套的nextTick
+  setTimeout(() => {
+    // 优先通过ref获取元素
+    if (!tokensContainerRef.value) {
+      tokensContainerRef.value = document.querySelector('.tokens-container')
+    }
+    
+    if (tokensContainerRef.value) {
+      // 移除可能存在的旧监听器，避免重复绑定
+      tokensContainerRef.value.removeEventListener('mousedown', handleMouseDown)
+      tokensContainerRef.value.removeEventListener('mousemove', handleMouseMove)
+      tokensContainerRef.value.removeEventListener('mouseup', handleMouseUp)
+      tokensContainerRef.value.removeEventListener('mouseleave', handleMouseUp)
+      
+      // 重新绑定监听器
+      tokensContainerRef.value.addEventListener('mousedown', handleMouseDown)
+      tokensContainerRef.value.addEventListener('mousemove', handleMouseMove)
+      tokensContainerRef.value.addEventListener('mouseup', handleMouseUp)
+      tokensContainerRef.value.addEventListener('mouseleave', handleMouseUp)
+      
+      // 确保容器有合适的样式允许框选
+      tokensContainerRef.value.style.userSelect = 'none';
+      tokensContainerRef.value.style.cursor = 'default';
+      
+      console.log('框选功能事件监听器绑定成功')
+    } else {
+      console.warn('未能找到tokens-container元素，框选功能可能无法正常工作')
+    }
+  }, 100); // 短暂延迟确保DOM完全渲染
 })
 
 onBeforeUnmount(() => {
-
+  // 清理框选功能的事件监听器
+  if (tokensContainerRef.value) {
+    tokensContainerRef.value.removeEventListener('mousedown', handleMouseDown)
+    tokensContainerRef.value.removeEventListener('mousemove', handleMouseMove)
+    tokensContainerRef.value.removeEventListener('mouseup', handleMouseUp)
+    tokensContainerRef.value.removeEventListener('mouseleave', handleMouseUp)
+  }
+  // 移除选择框
+  removeSelectionBox()
 })
 
+
+// 处理鼠标按下事件，开始框选 - 增强稳定版
+const handleMouseDown = (event) => {
+  // 只有在按下左键且没有Ctrl/Cmd键时才开始框选
+  if (event.button === 0 && !event.ctrlKey && !event.metaKey) {
+    // 检查点击目标是否在标签容器内且不是标签本身或控制元素
+    const tokenItem = event.target.closest('.token-item-box, .token-item, .lora-tag-icon, .newline-token, .tab-token, .delete-btn, .weight-control, .bracket-btn, .translate-button, .tag-tips-box, .token-controls')
+    const tokensContainer = tokensContainerRef.value
+    
+    // 如果点击的是空白区域，记录起始位置但不立即创建选择框
+    if (tokensContainer && !tokenItem) {
+      // 在开始新的框选前，先关闭任何已存在的操作菜单
+      closeSelectionActions()
+      
+      // 获取容器的位置，将选择框限制在容器内
+      const containerRect = tokensContainer.getBoundingClientRect()
+      selectionStart.value = {
+        x: Math.max(event.clientX, containerRect.left),
+        y: Math.max(event.clientY, containerRect.top)
+      }
+      selectionEnd.value = {
+        x: Math.max(event.clientX, containerRect.left),
+        y: Math.max(event.clientY, containerRect.top)
+      }
+      
+      // 标记为潜在的框选操作，但不立即开始框选
+      isPotentialBoxSelection.value = true
+      
+      // 记录日志以便调试
+      console.log('记录框选起始位置')
+      
+      // 正常的左键点击应该允许默认行为，比如让文本框失焦
+      // 不再阻止默认行为和冒泡，以保留正常的左键功能
+    }
+  }
+}
+
+// 处理鼠标移动事件，更新框选区域 - 流畅版
+const handleMouseMove = (event) => {
+  // 如果是潜在的框选操作（已按下鼠标但尚未开始框选）
+  if (isPotentialBoxSelection.value && tokensContainerRef.value && !isSelecting.value) {
+    // 计算鼠标移动的距离
+    const moveDistance = Math.sqrt(
+      Math.pow(event.clientX - selectionStart.value.x, 2) +
+      Math.pow(event.clientY - selectionStart.value.y, 2)
+    )
+    
+    // 如果移动距离超过阈值（例如3像素），才真正开始框选
+    if (moveDistance > 3) {
+      // 强制阻止默认行为和冒泡，防止浏览器默认的文本选择
+      event.preventDefault()
+      event.stopPropagation()
+      
+      // 进入框选模式
+      isSelecting.value = true
+      isBoxSelectMode.value = true
+      
+      // 清空选中的标签
+      selectedTokens.value = []
+      
+      // 创建选择框元素
+      createSelectionBox()
+      
+      console.log('开始实际框选')
+    }
+  }
+  
+  // 已经处于框选模式，更新选择框
+  if (isSelecting.value && tokensContainerRef.value) {
+    // 强制阻止默认行为和冒泡，防止浏览器默认的文本选择
+    event.preventDefault()
+    event.stopPropagation()
+    
+    // 获取容器的位置，将选择框限制在容器内
+    const containerRect = tokensContainerRef.value.getBoundingClientRect()
+    selectionEnd.value = {
+      x: Math.min(Math.max(event.clientX, containerRect.left), containerRect.right),
+      y: Math.min(Math.max(event.clientY, containerRect.top), containerRect.bottom)
+    }
+    
+    // 确保选择框至少有最小尺寸可见
+    const minSize = 5
+    if (Math.abs(selectionEnd.value.x - selectionStart.value.x) < minSize) {
+      selectionEnd.value.x = selectionStart.value.x + minSize;
+    }
+    if (Math.abs(selectionEnd.value.y - selectionStart.value.y) < minSize) {
+      selectionEnd.value.y = selectionStart.value.y + minSize;
+    }
+    
+    // 分离选择框更新和标签选中状态更新
+    // 1. 选择框更新：使用requestAnimationFrame保持流畅动画，不使用节流
+    if (!isUpdatingSelectionBox.value) {
+      isUpdatingSelectionBox.value = true
+      requestAnimationFrame(() => {
+        updateSelectionBox()
+        isUpdatingSelectionBox.value = false
+      })
+    }
+    
+    // 2. 标签选中状态更新：使用节流控制，减少性能消耗
+    const currentTime = Date.now()
+    if (!isUpdatingSelectedTokens.value && (currentTime - lastUpdateTime.value > throttleInterval)) {
+      lastUpdateTime.value = currentTime
+      isUpdatingSelectedTokens.value = true
+      requestAnimationFrame(() => {
+        updateSelectedTokens()
+        isUpdatingSelectedTokens.value = false
+      })
+    }
+  }
+}
+
+// 处理鼠标释放事件，结束框选 - 稳定版
+const handleMouseUp = () => {
+  // 清理潜在的框选状态
+  isPotentialBoxSelection.value = false
+  
+  if (isSelecting.value) {
+    // 先保存选中的标签数量，然后才结束框选模式
+    const selectedCount = selectedTokens.value.length
+    
+    isSelecting.value = false
+    isBoxSelectMode.value = false // 退出框选模式
+    
+    // 移除选择框
+    removeSelectionBox()
+    
+    // 如果有选中的标签，显示操作菜单
+    if (selectedCount > 0) {
+      showSelectionActionsMenu()
+    }
+  }
+}
+
+// 创建选择框元素 - 持久稳定版
+const createSelectionBox = () => {
+  // 先检查是否已经有选择框存在
+  let selectionBox = document.getElementById(selectionBoxId)
+  if (selectionBox) {
+    // 如果存在，先移除它
+    document.body.removeChild(selectionBox)
+  }
+  
+  // 创建新的选择框
+  selectionBox = document.createElement('div')
+  selectionBox.id = selectionBoxId
+  
+  // 增强选择框的可见性，使用更醒目的样式
+  selectionBox.style.cssText = `
+    position: fixed;
+    background-color: rgba(66, 133, 244, 0.4);
+    border: 2px dashed #4285f4;
+    box-shadow: 0 0 12px rgba(66, 133, 244, 0.6);
+    pointer-events: none;
+    z-index: 99999;
+    transition: none;
+    opacity: 1;
+    display: block;
+  `
+  
+  document.body.appendChild(selectionBox)
+  console.log('选择框已创建')
+  updateSelectionBox()
+}
+
+// 更新选择框位置和大小 - 增强版
+const updateSelectionBox = () => {
+  let selectionBox = document.getElementById(selectionBoxId)
+  // 如果选择框不存在，重新创建它
+  if (!selectionBox && isSelecting.value) {
+    createSelectionBox()
+    selectionBox = document.getElementById(selectionBoxId)
+    if (!selectionBox) return
+  }
+  
+  const left = Math.min(selectionStart.value.x, selectionEnd.value.x)
+  const top = Math.min(selectionStart.value.y, selectionEnd.value.y)
+  const width = Math.abs(selectionEnd.value.x - selectionStart.value.x)
+  const height = Math.abs(selectionEnd.value.y - selectionStart.value.y)
+  
+  // 确保选择框有足够的大小可见
+  const minSize = 5
+  const effectiveWidth = Math.max(width, minSize)
+  const effectiveHeight = Math.max(height, minSize)
+  
+  selectionBox.style.left = `${left}px`
+  selectionBox.style.top = `${top}px`
+  selectionBox.style.width = `${effectiveWidth}px`
+  selectionBox.style.height = `${effectiveHeight}px`
+}
+
+// 移除选择框元素
+const removeSelectionBox = () => {
+  const selectionBox = document.getElementById(selectionBoxId)
+  if (selectionBox) {
+    document.body.removeChild(selectionBox)
+  }
+}
+
+// 更新选中的标签
+const updateSelectedTokens = () => {
+  selectedTokens.value = []
+  
+  const left = Math.min(selectionStart.value.x, selectionEnd.value.x)
+  const top = Math.min(selectionStart.value.y, selectionEnd.value.y)
+  const right = Math.max(selectionStart.value.x, selectionEnd.value.x)
+  const bottom = Math.max(selectionStart.value.y, selectionEnd.value.y)
+  
+  // 获取所有类型的标签容器元素
+  const tokenBoxes = document.querySelectorAll('.token-item-box')
+  
+  // 避免重复操作DOM，先记录需要更新的元素
+  const toSelect = []
+  const toDeselect = []
+  
+  tokenBoxes.forEach((box, index) => {
+    // 获取标签内部的实际显示元素
+    const tokenElement = box.querySelector('.token-item, .lora-tag-icon, .newline-token, .tab-token')
+    if (!tokenElement) return
+    
+    const rect = box.getBoundingClientRect()
+    
+    // 检查标签是否与选择框有交集
+    const isInSelection = rect.right >= left && rect.left <= right && rect.bottom >= top && rect.top <= bottom
+    
+    if (isInSelection) {
+      selectedTokens.value.push(index)
+      toSelect.push(box)
+    } else {
+      toDeselect.push(box)
+    }
+  })
+  
+  // 批量更新DOM，减少重排重绘
+  toSelect.forEach(box => {
+    // 为整个标签容器添加视觉反馈
+    box.style.border = '2px solid #4285f4'
+    box.style.boxShadow = '0 0 5px rgba(66, 133, 244, 0.5)'
+    box.style.backgroundColor = 'rgba(66, 133, 244, 0.1)'
+  })
+  
+  toDeselect.forEach(box => {
+    // 移除视觉反馈
+    box.style.border = ''
+    box.style.boxShadow = ''
+    box.style.backgroundColor = box.dataset.originalBgColor || ''
+  })
+}
+
+// 显示框选操作菜单
+const showSelectionActionsMenu = () => {
+  if (selectedTokens.value.length > 0) {
+    // 计算选择区域的中心位置作为菜单显示位置
+    const left = Math.min(selectionStart.value.x, selectionEnd.value.x)
+    const top = Math.min(selectionStart.value.y, selectionEnd.value.y)
+    const right = Math.max(selectionStart.value.x, selectionEnd.value.x)
+    const bottom = Math.max(selectionStart.value.y, selectionEnd.value.y)
+    
+    // 设置菜单位置在选择区域中央
+    selectionActionsPosition.value = {
+      top: `${top - 50}px`,
+      left: `${(left + right) / 2}px`
+    }
+    
+    showSelectionActions.value = true
+    
+    // 添加点击外部关闭菜单的事件监听
+    setTimeout(() => {
+      document.addEventListener('click', closeSelectionActionsOnClickOutside)
+    }, 0)
+  }
+}
+
+// 复制选中的标签文本
+const copySelectedTokens = () => {
+  if (selectedTokens.value.length === 0) return
+  
+  // 按顺序获取选中标签的文本
+  const sortedIndices = [...selectedTokens.value].sort((a, b) => a - b)
+  const texts = sortedIndices.map(index => tokens.value[index].text)
+  const combinedText = texts.join(', ')
+  
+  // 复制到剪贴板
+  navigator.clipboard.writeText(combinedText).then(() => {
+    // 可以添加一个简单的提示
+    const tempMessage = document.createElement('div')
+    tempMessage.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #4caf50;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 4px;
+      z-index: 999999;
+    `
+    tempMessage.textContent = '已复制到剪贴板'
+    document.body.appendChild(tempMessage)
+    
+    setTimeout(() => {
+      document.body.removeChild(tempMessage)
+    }, 2000)
+  })
+  
+  // 关闭菜单并清除选中状态
+  closeSelectionActions()
+}
+
+// 禁用选中的标签
+const disableSelectedTokens = () => {
+  if (selectedTokens.value.length === 0) return
+  
+  selectedTokens.value.forEach(index => {
+    if (tokens.value[index] && !tokens.value[index].isHidden) {
+      // 不修改标签文本，只设置隐藏状态（与双击禁用行为一致）
+      tokens.value[index].isHidden = true
+      tokens.value[index].hiddenHint = t('promptBox.hiddenHint') // 使用国际化提示
+    }
+  })
+  
+  updateInputText()
+  finishPromptPutItHistory()
+  
+  // 关闭菜单并清除选中状态
+  closeSelectionActions()
+}
+
+// 启用选中的标签
+const enableSelectedTokens = () => {
+  if (selectedTokens.value.length === 0) return
+  
+  selectedTokens.value.forEach(index => {
+    if (tokens.value[index] && tokens.value[index].isHidden) {
+      // 只需要清除隐藏状态，不需要恢复原始文本（与双击禁用行为一致）
+      tokens.value[index].isHidden = false
+      tokens.value[index].hiddenHint = ''
+    }
+  })
+  
+  updateInputText()
+  finishPromptPutItHistory()
+  
+  // 关闭菜单并清除选中状态
+  closeSelectionActions()
+}
+
+// 删除选中的标签（替代原来的showBulkDeleteConfirmation）
+const deleteSelectedTokens = () => {
+  if (selectedTokens.value.length > 0) {
+    if (confirm(`确定要删除选中的 ${selectedTokens.value.length} 个标签吗？`)) {
+      bulkDeleteSelectedTokens()
+    } else {
+      // 如果取消删除，清除选中状态
+      clearSelectedTokens()
+    }
+  }
+}
+
+// 关闭选择操作菜单
+const closeSelectionActions = () => {
+  showSelectionActions.value = false
+  document.removeEventListener('click', closeSelectionActionsOnClickOutside)
+  clearSelectedTokens()
+}
+
+// 点击外部关闭选择操作菜单
+const closeSelectionActionsOnClickOutside = (event) => {
+  const actionsMenu = document.querySelector('.token-controls')
+  if (actionsMenu && !actionsMenu.contains(event.target)) {
+    closeSelectionActions()
+  }
+}
+
+// 批量删除选中的标签
+const bulkDeleteSelectedTokens = () => {
+  if (selectedTokens.value.length === 0) return
+  
+  // 确保按照从后往前的顺序删除，避免索引偏移
+  const sortedIndices = [...selectedTokens.value].sort((a, b) => b - a)
+  
+  // 先删除tokens数组中的元素
+  sortedIndices.forEach(index => {
+    tokens.value.splice(index, 1)
+  })
+  
+  // 然后更新输入文本
+  updateInputText()
+  finishPromptPutItHistory()
+  
+  // 清除选中状态
+  clearSelectedTokens()
+}
+
+// 清除选中的标签
+const clearSelectedTokens = () => {
+  // 只处理有选中样式的标签，减少DOM操作量
+  const styledBoxes = document.querySelectorAll('.token-item-box[style*="border: 2px solid"]')
+  styledBoxes.forEach(box => {
+    box.style.border = ''
+    box.style.boxShadow = ''
+    box.style.backgroundColor = box.dataset.originalBgColor || ''
+  })
+  selectedTokens.value = []
+}
 
 // 组件卸载时清理事件监听
 onUnmounted(() => {
@@ -2106,6 +2646,15 @@ onUnmounted(() => {
     textarea.removeEventListener('click', updateAutocompletePosition);
     textarea.removeEventListener('input', updateAutocompletePosition);
   }
+  // 移除框选功能的事件监听
+  if (tokensContainerRef.value) {
+    tokensContainerRef.value.removeEventListener('mousedown', handleMouseDown)
+    tokensContainerRef.value.removeEventListener('mousemove', handleMouseMove)
+    tokensContainerRef.value.removeEventListener('mouseup', handleMouseUp)
+    tokensContainerRef.value.removeEventListener('mouseleave', handleMouseUp)
+  }
+  // 清理选择框
+  removeSelectionBox()
 })
 
 // 处理消息
@@ -2210,7 +2759,9 @@ const initTranslate = async () => {
     translate.language.setLocal(savedSourceLanguage);
   }
   translate.language.setDefaultTo(savedTargetLanguage);
-  // console.log(res)
+  
+  // 解决common命名空间翻译未生效问题：强制触发Vue I18n更新
+  await nextTick();
 }
 
 const translateFunction = (texts, token) => {
@@ -2552,11 +3103,21 @@ const setPromptText = (text) => {
 const dragStartIndex = ref(null);
 
 const handleDragStart = (index, event) => {
+  // 如果当前在框选模式中，不触发拖拽
+  if (isBoxSelectMode.value) {
+    event.preventDefault();
+    return;
+  }
   dragStartIndex.value = index;
   event.dataTransfer.effectAllowed = 'move';
 };
 
 const handleDragOver = (index, event) => {
+  // 如果当前在框选模式中，不处理拖拽
+  if (isBoxSelectMode.value) {
+    event.preventDefault();
+    return;
+  }
   event.preventDefault();
   if (dragStartIndex.value !== null && dragStartIndex.value !== index) {
     const draggedItem = tokens.value[dragStartIndex.value];

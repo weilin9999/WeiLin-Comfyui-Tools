@@ -13,7 +13,7 @@ export default {
         weightPlaceholder: '请输入权重',
         addBracket: '添加括号',
         removeLayer: '减去括号',
-        oneClickTranslate: '一键翻译未翻译的词组',
+
         hiddenHint: "双击显示提示词",
         tagTips: "鼠标左键双击屏蔽Tag<br>鼠标左键单击Tag可以编辑<br>鼠标左键拖动可以拖动Tag",
         oneClickRandomTag: '一键随机Tag',
@@ -47,6 +47,7 @@ export default {
             enableBracketConversion: '启用括号转换，全角括号转为半角括号',
             enableAngleBracketConversion: '启用尖括号转换，全角尖括号转为半角尖括号',
             enableUnderscoreToBracket: '启用下划线转换，下划线转换为空格',
+            enableCommaCloseAutocomplete: '启用逗号关闭补全窗口',
             setting_openai_box: 'OpenAI设置',
             openai_api_key: 'API Key',
             openai_api_key_placeholder: '请输入API Key',
@@ -664,4 +665,4 @@ export default {
         add: "添加Danbooru标签",
         edit: "编辑Danbooru标签",
     }
-} 
+}

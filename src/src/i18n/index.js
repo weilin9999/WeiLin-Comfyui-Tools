@@ -42,4 +42,4 @@ export const initI18n = () => {
   initLocale()
 }
 
-export default i18n 
+export default i18n
