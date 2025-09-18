@@ -259,6 +259,12 @@
                 {{ t('promptBox.settings.enableUnderscoreToBracket') }}
               </label>
             </div>
+            <div class="weilin-comfyui-setting-item">
+              <label>
+                <input type="checkbox" v-model="isCommaCloseAutocompleteEnabled" />
+                {{ t('promptBox.settings.enableCommaCloseAutocomplete') }}
+              </label>
+            </div>
             <button class="weilin-comfyui-save-button" @click="savePromptBoxSettings">
               {{ t('promptBox.settings.save') }}
             </button>
@@ -405,6 +411,7 @@ const isPeriodConversionEnabled = ref(localStorage.getItem('weilin_prompt_ui_per
 const isBracketConversionEnabled = ref(localStorage.getItem('weilin_prompt_ui_bracket_conversion') === 'true');
 const isAngleBracketConversionEnabled = ref(localStorage.getItem('weilin_prompt_ui_angle_bracket_conversion') === 'true');
 const isUnderscoreToBracketEnabled = ref(localStorage.getItem('weilin_prompt_ui_underscore_to_bracket') === 'true');
+const isCommaCloseAutocompleteEnabled = ref(localStorage.getItem('weilin_prompt_ui_comma_close_autocomplete') === 'true');
 
 // 翻译库设置
 const selectedTranslatorService = ref('');
@@ -533,6 +540,7 @@ const savePromptBoxSettings = () => {
   localStorage.setItem('weilin_prompt_ui_bracket_conversion', isBracketConversionEnabled.value);
   localStorage.setItem('weilin_prompt_ui_angle_bracket_conversion', isAngleBracketConversionEnabled.value);
   localStorage.setItem('weilin_prompt_ui_underscore_to_bracket', isUnderscoreToBracketEnabled.value);
+  localStorage.setItem('weilin_prompt_ui_comma_close_autocomplete', isCommaCloseAutocompleteEnabled.value);
   message({ type: "success", str: 'message.saveSuccess' });
 };
 
@@ -821,6 +829,7 @@ defineExpose({
     isBracketConversionEnabled.value = localStorage.getItem('weilin_prompt_ui_bracket_conversion') === 'true';
     isAngleBracketConversionEnabled.value = localStorage.getItem('weilin_prompt_ui_angle_bracket_conversion') === 'true';
     isUnderscoreToBracketEnabled.value = localStorage.getItem('weilin_prompt_ui_underscore_to_bracket') === 'true';
+    isCommaCloseAutocompleteEnabled.value = localStorage.getItem('weilin_prompt_ui_comma_close_autocomplete') === 'true';
 
     dialogVisible.value = true
   }

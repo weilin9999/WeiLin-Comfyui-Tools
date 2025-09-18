@@ -330,6 +330,21 @@
     transition: transform 0.2s ease;
 }
 
+/* 禁用按钮特殊样式 */
+.disable-btn svg {
+    fill: #1890ff;
+}
+
+/* 启用按钮特殊样式 */
+.enable-btn svg path {
+    fill: green;
+}
+
+/* 复制按钮特殊样式 */
+.copy-btn svg {
+    fill: #722ed1;
+}
+
 .delete-btn:hover svg {
     transform: scale(1.1);
 }
@@ -975,5 +990,52 @@
 
 .weilin-comfyui-sidebar-toggle-icon.is-closed {
   transform: rotate(0deg); /* 收起时回到向左 */
+}
+
+
+
+/* 框选操作菜单额外样式 */
+.selection-actions-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.selection-actions-count {
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--weilin-prompt-ui-secondary-text);
+  text-align: center;
+}
+
+.selection-actions-buttons {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+}
+
+/* 隐藏提示的样式增强 */
+.hidden-hint {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 4px;
+  margin-left: 4px;
+  background-color: rgba(250, 173, 20, 0.1);
+  border: 1px solid rgba(250, 173, 20, 0.3);
+  border-radius: 3px;
+  font-size: 11px;
+  color: var(--weilin-prompt-ui-secondary-text);
+  transition: all 0.2s ease;
+}
+
+.hidden-hint:hover {
+  background-color: rgba(250, 173, 20, 0.2);
+  border-color: rgba(250, 173, 20, 0.5);
+}
+
+.hidden-hint svg {
+  margin-right: 2px;
+  fill: currentColor;
 }
 
