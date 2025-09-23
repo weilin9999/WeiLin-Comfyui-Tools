@@ -1039,3 +1039,6 @@
   fill: currentColor;
 }
 
+.weilin-comfyui-toolbar-right {
+  margin-left: auto; 
+}

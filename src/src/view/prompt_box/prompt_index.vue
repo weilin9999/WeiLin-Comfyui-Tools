@@ -1,5 +1,10 @@
 <template>
   <div class="weilin_prompt_ui_prompt-box">
+  <!-- 内部小提示框：更新标签 -->
+  <transition name="weilin-fade">
+    <div v-if="toastVisible" class="weilin-toast" role="status" aria-live="polite">已更新标签</div>
+  </transition>
+
     <!-- Lora栈 -->
     <LoraStack v-if="props.promptManager === 'prompt'" :is-open="loraOpen" :selected-loras="selectedLoras"
       @close="closeLora" />
@@ -26,7 +31,7 @@
             :title="isLabelManagerVisible ? '收起标签栏' : '展开标签栏'">
             
             <svg 
-              class="sidebar-toggle-icon" 
+              class="weilin-comfyui-sidebar-toggle-icon" 
               :class="{ 'is-closed': !isLabelManagerVisible }" 
               xmlns="http://www.w3.org/2000/svg" 
               viewBox="0 0 24 24" 
@@ -195,6 +200,18 @@
 
         <SettingDialog ref="settingDialog" />
 
+        <!-- 把“更新标签”按钮放在操作栏最右侧 -->
+        <div class="action-item weilin-comfyui-toolbar-right">
+          <button
+            class="update-label-btn"
+            :class="{ 'is-dirty': unsavedChanges }"
+            :disabled="!selectedMainLabelId || !unsavedChanges"
+            @click="updateSelectedLabel"
+          >
+            更新标签
+          </button>
+        </div>
+
       </div>
 
       <div style="position: relative;" ref="parentCneterBox">
@@ -205,12 +222,23 @@
           @resize="saveTextareaHeight"></textarea>
 
         <!-- 添加token计数器 -->
-        <div class="update-label-bar">
-          <div class="token-counter">{{ tokenCount }} tokens</div>
-          <button :class="['update-label-btn', { 'is-dirty': unsavedChanges }]" :disabled="!selectedMainLabelId || !unsavedChanges" @click="updateSelectedLabel">
-            更新标签
-          </button>
+        <div class="token-counter">
+          {{ tokenCount }} tokens
         </div>
+
+        <style>
+        .token-counter {
+          position: absolute;
+          bottom: 5px;
+          left: 5px;
+          z-index: 10;
+          color: #aaa;
+          background-color: #f0f0f0; /* 灰色背景，可调整深浅 */
+          padding: 2px 6px; /* 给文字一点内边距，看起来更清晰 */
+          border-radius: 4px; /* 圆角，可选 */
+          user-select: none; /* 禁止文字被选中 */
+        }
+        </style>
 
         <!-- 自动补全窗口 -->
         <div class="autocomplete-container" ref="autocompleteContainerRef" :style="{
@@ -719,6 +747,11 @@ watch(inputText, (v) => {
   if (suppressUnsavedOnce) { suppressUnsavedOnce = false; return }
   unsavedChanges.value = true
 })
+// 在标签 tokens 序列变更时标记为有未保存变更（初始化期间除外）
+watch(tokens, () => {
+  if (!suppressUnsavedOnce) unsavedChanges.value = true
+}, { deep: true })
+
 
 // 监听并持久化最后选中的主标签 ID
 watch(selectedMainLabelId, (id) => {
@@ -742,7 +775,10 @@ function restoreLastSelectedMainLabel() {
         inputAreaRef.value.value = inputText.value
         handleInput({ target: inputAreaRef.value })
       }
-    })
+    
+      // 初始化渲染完毕，解除一次性抑制
+      suppressUnsavedOnce = false
+})
     unsavedChanges.value = false
   } catch {}
 }
@@ -762,7 +798,23 @@ function updateSelectedLabel() {
   if (!mainLabelManagerRef.value?.updateSelectedContent) return
   mainLabelManagerRef.value.updateSelectedContent(inputText.value)
   unsavedChanges.value = false
+  showUpdatedToast()
 }
+
+// 轻量提示框（toast）
+const toastVisible = ref(false)
+let toastTimer = null
+function showUpdatedToast() {
+  toastVisible.value = true
+  if (toastTimer) clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => {
+    toastVisible.value = false
+  }, 1600)
+}
+onBeforeUnmount(() => {
+  if (toastTimer) clearTimeout(toastTimer)
+})
+
 
 const openSettings = () => {
   settingDialog.value.open()
@@ -1731,6 +1783,7 @@ const finishPromptPutItHistory = () => {
     }
   }
   postMessageToWindowsPrompt()
+  if (!suppressUnsavedOnce) unsavedChanges.value = true
 }
 
 const postMessageToWindowsPrompt = () => {
@@ -1969,6 +2022,7 @@ const deleteToken = (index) => {
     }, '') : '';
 
   finishPromptPutItHistory()
+  unsavedChanges.value = true
 }
 
 // 处理词组编辑
@@ -2020,6 +2074,7 @@ const startEditing = (index) => {
       adjustInputWidth(input);
       input.addEventListener('input', () => adjustInputWidth(input));
       finishPromptPutItHistory()
+    unsavedChanges.value = true
     }
   });
 }
@@ -2063,6 +2118,7 @@ watch(selectedLoras, (newLoras) => {
   // console.log(newLoras)
   // finishPromptPutItHistory()
   finishPromptPutItHistory()
+  unsavedChanges.value = true
 }, { deep: true })
 
 // 切换语言选择器
@@ -3196,6 +3252,7 @@ const updateInputText = () => {
     }, '') : '';
 
   postMessageToWindowsPrompt()
+  if (!suppressUnsavedOnce) unsavedChanges.value = true
 };
 
 // AI对话
@@ -3362,4 +3419,37 @@ defineExpose({
 
 <style scoped>
 @import "./prompt_index.css";
+
+/* 内部小提示框样式（优化版） */
+.weilin-toast {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  padding: 12px 20px; /* 增加内边距让提示更突出 */
+  border-radius: 12px;
+  font-size: 16px; /* 字体更大 */
+  font-weight: 500; /* 略加粗 */
+  line-height: 1.4;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  z-index: 9999;
+
+  /* 增加轻微模糊背景，让提示更有层次感 */
+  backdrop-filter: blur(6px);
+}
+
+/* 淡入淡出 + 缩放动画 */
+.weilin-fade-enter-active, .weilin-fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.weilin-fade-enter-from, .weilin-fade-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.9);
+}
+
+
 </style>
