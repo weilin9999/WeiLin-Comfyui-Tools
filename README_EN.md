@@ -24,9 +24,21 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 # Version update introduction
 
-> Last updated: 2025-09-14
+> Last updated: 2025-09-23
 
-> 0.0.64 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.65 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+>
+> 1. Fixed a known BUG 
+>
+> 2. Merge PR [#40](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/40) thank you for your friend's help
+>
+> 3. Merge PR [#43](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/43) thank you for your friend's help
+>
+
+<details>
+<summary>Click here for more updates from the past</summary>
+
+> 0.0.64 Public Beta Version 2025-09-14
 >
 > 1. Fixed a known BUG (the issue of misaligned drag ICONS in the execution bar in Comfyui)
 >
@@ -35,9 +47,6 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 > 3. Merge PR [#38](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/38) thank you for your friend's help
 >
 > 4. 5:30 p.m. : The side label adds storage function
-
-<details>
-<summary>Click here for more updates from the past</summary>
 
 > 0.0.62 Public Beta Version 2025-09-13
 >

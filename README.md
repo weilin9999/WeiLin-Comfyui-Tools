@@ -28,9 +28,21 @@
 
 # 版本更新介绍
 
-> 最新更新：2025-09-14
+> 最新更新：2025-09-23
 
-> 0.0.64 公测版本介绍 如果你要使用本插件请务必进我们的官方 QQ 群（1018231382）！
+> 0.0.65 公测版本介绍 如果你要使用本插件请务必进我们的官方 QQ 群（1018231382）！
+>
+> 1. 修复了一些已知的BUG
+>
+> 2. 合并PR [#40](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/40) 感谢各位小伙伴的帮助
+>
+> 3. 合并PR [#43](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/43) 感谢各位小伙伴的帮助
+> 
+
+<details>
+<summary>点击查看往期更多更新内容</summary>
+
+> 0.0.64 公测版本介绍 2025-09-14
 >
 > 1. 修复了已知BUG（Comfyui中执行栏拖拽图标错位问题）
 >
@@ -39,9 +51,6 @@
 > 3. 合并PR [#38](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/38) 感谢各位小伙伴的帮助
 > 
 > 4. 下午5点30分：侧边标签增加收纳功能
-
-<details>
-<summary>点击查看往期更多更新内容</summary>
 
 > 0.0.62 公测版本介绍 2025-09-13
 >

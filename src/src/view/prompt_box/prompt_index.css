@@ -861,19 +861,7 @@
     background-color: var(--weilin-prompt-ui-primary-color);
 }
 
-/* 添加隐藏token的样式 */
-.hidden-hint {
-    display: inline-flex;
-    align-items: center;
-    margin-right: 4px;
-    color: #999;
-    cursor: help;
-}
 
-.hidden-hint svg {
-    width: 1em;
-    height: 1em;
-}
 
 .tag-tips-box {
     position: fixed;
@@ -995,28 +983,28 @@
 
 
 /* 框选操作菜单额外样式 */
-.selection-actions-content {
+.weilin-comfyui-selection-actions-content {
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
 }
 
-.selection-actions-count {
+.weilin-comfyui-selection-actions-count {
   margin-bottom: 8px;
   font-size: 12px;
   color: var(--weilin-prompt-ui-secondary-text);
   text-align: center;
 }
 
-.selection-actions-buttons {
+.weilin-comfyui-selection-actions-buttons {
   display: flex;
   gap: 4px;
   padding: 4px;
 }
 
 /* 隐藏提示的样式增强 */
-.hidden-hint {
+.weilin-comfyui-hidden-hint {
   display: inline-flex;
   align-items: center;
   padding: 2px 4px;
@@ -1027,14 +1015,15 @@
   font-size: 11px;
   color: var(--weilin-prompt-ui-secondary-text);
   transition: all 0.2s ease;
+  cursor: help;
 }
 
-.hidden-hint:hover {
+.weilin-comfyui-hidden-hint:hover {
   background-color: rgba(250, 173, 20, 0.2);
   border-color: rgba(250, 173, 20, 0.5);
 }
 
-.hidden-hint svg {
+.weilin-comfyui-hidden-hint svg {
   margin-right: 2px;
   fill: currentColor;
 }

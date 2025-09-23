@@ -508,6 +508,10 @@ defineExpose({
   height: 0;
 }
 
+.switch input:checked + .slider:before {
+  transform: translateX(16px);
+}
+
 .slider {
   position: absolute;
   cursor: pointer;

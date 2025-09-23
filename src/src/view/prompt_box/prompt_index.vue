@@ -371,7 +371,7 @@
           </div>
 
           <!-- 在显示token的地方添加 -->
-          <span v-if="token.isHidden" class="hidden-hint" :title="token.hiddenHint">
+          <span v-if="token.isHidden" class="weilin-comfyui-hidden-hint" :title="token.hiddenHint">
             <!-- 这里可以添加一个视觉提示图标 -->
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -473,9 +473,9 @@
 
       <!-- 框选操作菜单 -->
       <div v-show="showSelectionActions" class="token-controls" :style="selectionActionsPosition" @mouseenter="isOverControls = true" @mouseleave="handleControlsLeave">
-        <div class="selection-actions-content">
-          <div class="selection-actions-count">选中 {{ selectedTokens.length }} 个标签</div>
-          <div class="selection-actions-buttons">
+        <div class="weilin-comfyui-selection-actions-content">
+          <div class="weilin-comfyui-selection-actions-count">选中 {{ selectedTokens.length }} 个标签</div>
+          <div class="weilin-comfyui-selection-actions-buttons">
             <button class="delete-btn copy-btn" @click="copySelectedTokens" title="复制">
               <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
