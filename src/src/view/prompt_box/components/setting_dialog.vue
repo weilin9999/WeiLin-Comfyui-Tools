@@ -265,6 +265,12 @@
                 {{ t('promptBox.settings.enableCommaCloseAutocomplete') }}
               </label>
             </div>
+            <div class="weilin-comfyui-setting-item">
+              <label>
+                <input type="checkbox" v-model="isBracketEscapeEnabled" />
+                {{ t('promptBox.settings.enableBracketEscape') }}
+              </label>
+            </div>
             <button class="weilin-comfyui-save-button" @click="savePromptBoxSettings">
               {{ t('promptBox.settings.save') }}
             </button>
@@ -411,7 +417,8 @@ const isPeriodConversionEnabled = ref(localStorage.getItem('weilin_prompt_ui_per
 const isBracketConversionEnabled = ref(localStorage.getItem('weilin_prompt_ui_bracket_conversion') === 'true');
 const isAngleBracketConversionEnabled = ref(localStorage.getItem('weilin_prompt_ui_angle_bracket_conversion') === 'true');
 const isUnderscoreToBracketEnabled = ref(localStorage.getItem('weilin_prompt_ui_underscore_to_bracket') === 'true');
-const isCommaCloseAutocompleteEnabled = ref(localStorage.getItem('weilin_prompt_ui_comma_close_autocomplete') === 'true');
+  const isCommaCloseAutocompleteEnabled = ref(localStorage.getItem('weilin_prompt_ui_comma_close_autocomplete') === 'true');
+  const isBracketEscapeEnabled = ref(localStorage.getItem('weilin_prompt_ui_bracket_escape') === 'true');
 
 // 翻译库设置
 const selectedTranslatorService = ref('');
@@ -535,12 +542,13 @@ const saveFloatingBallSettings = () => {
 
 // 保存提示词设置
 const savePromptBoxSettings = () => {
-  localStorage.setItem('weilin_prompt_ui_comma_conversion', isCommaConversionEnabled.value);
-  localStorage.setItem('weilin_prompt_ui_period_conversion', isPeriodConversionEnabled.value);
-  localStorage.setItem('weilin_prompt_ui_bracket_conversion', isBracketConversionEnabled.value);
-  localStorage.setItem('weilin_prompt_ui_angle_bracket_conversion', isAngleBracketConversionEnabled.value);
-  localStorage.setItem('weilin_prompt_ui_underscore_to_bracket', isUnderscoreToBracketEnabled.value);
-  localStorage.setItem('weilin_prompt_ui_comma_close_autocomplete', isCommaCloseAutocompleteEnabled.value);
+    localStorage.setItem('weilin_prompt_ui_comma_conversion', isCommaConversionEnabled.value);
+    localStorage.setItem('weilin_prompt_ui_period_conversion', isPeriodConversionEnabled.value);
+    localStorage.setItem('weilin_prompt_ui_bracket_conversion', isBracketConversionEnabled.value);
+    localStorage.setItem('weilin_prompt_ui_angle_bracket_conversion', isAngleBracketConversionEnabled.value);
+    localStorage.setItem('weilin_prompt_ui_underscore_to_bracket', isUnderscoreToBracketEnabled.value);
+    localStorage.setItem('weilin_prompt_ui_comma_close_autocomplete', isCommaCloseAutocompleteEnabled.value);
+    localStorage.setItem('weilin_prompt_ui_bracket_escape', isBracketEscapeEnabled.value);
   message({ type: "success", str: 'message.saveSuccess' });
 };
 

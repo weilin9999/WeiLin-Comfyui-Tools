@@ -314,7 +314,7 @@
         <template v-for="(token, index) in tokens" :key="'tag-item-'+index">
           <div class="token-item-box" :draggable="!token.isEditing" @dragstart="handleDragStart(index, $event)"
             @dragover.prevent="handleDragOver(index, $event)" @drop="handleDrop(index, $event)"
-            @dblclick="toggleHidden(index)" :style="{ backgroundColor: token.color }">
+            @dblclick="toggleHidden(index)" :style="{ backgroundColor: token.color }" :class="{ 'token-item-box-disabled': token.isHidden }">
 
             <!-- 换行标记 -->
             <div v-if="token.text === '\n'" class="newline-token">
@@ -370,14 +370,7 @@
             </div>
           </div>
 
-          <!-- 在显示token的地方添加 -->
-          <span v-if="token.isHidden" class="weilin-comfyui-hidden-hint" :title="token.hiddenHint">
-            <!-- 这里可以添加一个视觉提示图标 -->
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-              <circle cx="12" cy="12" r="3"></circle>
-            </svg>
-          </span>
+
 
           <!-- 如果是 换行，插入换行占位元素 -->
           <div v-if="token.text === '\n'" class="line-break"></div>
@@ -483,8 +476,8 @@
             </button>
             <button class="delete-btn" @click="disableSelectedTokens" title="禁用">
               <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
-                <path d="M8.5 8.5l7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="12" cy="12" r="10" fill="none" stroke="#ff4d4f" stroke-width="2"/>
+                <path d="M8.5 8.5l7 7" stroke="#ff4d4f" stroke-width="2" stroke-linecap="round"/>
               </svg>
             </button>
             <button class="delete-btn enable-btn" @click="enableSelectedTokens" title="启用">
@@ -848,55 +841,115 @@ const applyWeight = () => {
       !text.slice(1, -1).includes('>');
   };
 
-  // 辅助函数：查找最内层内容并更新权重
-  const updateInnerContent = (text) => {
-    // 匹配括号和权重的正则表达式
-    const bracketRegex = /^([\(\[\{\<]*)(.*?)([\)\]\}\>]*)$/;
-    const weightRegex = /(.*?)(?::[\d.]+)?$/;
+  // 辅助函数：查找文本中的现有权重值
+  const getExistingWeight = (text) => {
+    const weightMatch = text.match(/:(\d+(\.\d+)?)$/);
+    return weightMatch ? parseFloat(weightMatch[1]) : null;
+  };
 
-    const match = text.match(bracketRegex);
-    if (!match) return text;
-
-    const [, openBrackets, content, closeBrackets] = match;
-
+  // 辅助函数：从嵌套括号中提取最内层内容
+  const extractInnerContent = (text) => {
+    // 查找最内层的内容，不包括权重
+    const innerMatch = text.match(/^([\(\[\{\<]*)(.*?)(?::[\d.]+)?([\)\]\}\>]*)$/);
+    if (!innerMatch) return text;
+    
+    let [, outerBrackets, content, outerCloseBrackets] = innerMatch;
+    
     // 如果内容中还有括号，递归处理
-    if (/[\(\[\{\<].*[\)\]\}\>]/.test(content)) {
-      return openBrackets + updateInnerContent(content) + closeBrackets;
+    if (/[\(\[\{\<].*[\)\]\}\>]/.test(content) && !content.includes('\\(') && !content.includes('\\)')) {
+      const innerContent = extractInnerContent(content);
+      return outerBrackets + innerContent + outerCloseBrackets;
     }
-
-    // 处理最内层内容，移除现有权重
-    const baseContent = content.replace(/:\d+(\.\d+)?$/, '');
-
-    // 构建新内容
-    if (weightValue.value === 1) {
-      return openBrackets + baseContent + closeBrackets;
-    } else {
-      return openBrackets + baseContent + ':' + weightValue.value + closeBrackets;
-    }
+    
+    return content;
   };
 
   // 主要处理逻辑
   let newText = text;
-
-  // 处理没有任何括号的情况
-  if (!/[\(\[\{\<\)\]\}\>]/.test(text)) {
-    // 移除现有权重
-    const baseText = text.replace(/:\d+(\.\d+)?$/, '');
+  
+  // 检查是否整个文本已经有权重值（在末尾）
+  const hasTrailingWeight = /:\d+(\.\d+)?$/.test(text);
+  
+  // 检查是否已经是带权重的格式：(内容:权重)
+  const weightedFormatMatch = text.match(/^\((.*?):(\d+(\.\d+)?)\)$/);
+  
+  if (hasTrailingWeight || weightedFormatMatch) {
+    // 已经有权重的情况
     if (weightValue.value === 1) {
-      newText = baseText;
+      // 权重为1时，移除权重标记和外层括号（如果有）
+      if (text.startsWith('(') && text.endsWith(')')) {
+        // 移除外层括号和权重
+        newText = text.slice(1, -1).replace(/:(\d+(\.\d+)?)$/, '');
+      } else {
+        // 只有权重，没有外层括号，仅移除权重
+        newText = text.replace(/:(\d+(\.\d+)?)$/, '');
+      }
     } else {
-      newText = `(${baseText}:${weightValue.value})`;
+      // 权重不为1，替换权重值
+      // 确保只替换最外层的权重，不影响内部括号中的权重
+      if (weightedFormatMatch) {
+        // 完整的(内容:权重)格式
+        newText = `(${weightedFormatMatch[1]}:${weightValue.value})`;
+      } else {
+        // 只有末尾有权重
+        newText = text.replace(/:(\d+(\.\d+)?)$/, `:${weightValue.value}`);
+      }
     }
-  }
-  // 处理只有一层圆括号的情况
-  else if (weightValue.value === 1 && hasOnlySingleParentheses(text)) {
-    // 移除括号和权重
-    newText = text.slice(1, -1).replace(/:\d+(\.\d+)?$/, '');
-  }
-  // 处理其他情况（包括嵌套括号）
-  else {
-    newText = updateInnerContent(text);
-  }
+  } else {
+    // 处理没有权重的情况
+    
+    // 处理ask_(askzy)格式 -> (ask (askzy):1.1)
+    const underscoreBracketMatch = text.match(/^([^_]+)_(\([^)]+\))$/);
+    if (underscoreBracketMatch && !text.includes('\\(') && !text.includes('\\)')) {
+      const [, prefix, bracketContent] = underscoreBracketMatch;
+      if (weightValue.value === 1) {
+        newText = text; // 权重为1时保持原样
+      } else {
+        newText = `(${prefix} ${bracketContent}:${weightValue.value})`;
+      }
+    }
+      // 处理ask_\(askzy\)格式 -> (ask_\(askzy\):1.1)
+      else if (text.includes('\\(') && text.includes('\\)') && !/[\(\)\[\]\{\}<>]/.test(text.replace(/\\[\(\)\[\]\{\}<>]/g, ''))) {
+        if (weightValue.value === 1) {
+          newText = text; // 权重为1时保持原样
+        } else {
+          // 检查是否已经有外层括号
+          if (text.startsWith('(') && text.endsWith(')')) {
+            newText = text.replace(/\)$/, `:${weightValue.value})`);
+          } else {
+            newText = `(${text}:${weightValue.value})`;
+          }
+        }
+      }
+      // 处理没有任何括号的情况
+      else if (!/[\(\[\{\<\)\]\}\>]/.test(text)) {
+        if (weightValue.value === 1) {
+          newText = text; // 权重为1时保持原样
+        } else {
+          newText = `(${text}:${weightValue.value})`;
+        }
+      }
+      // 处理只有一层圆括号的情况，权重为1时移除括号
+      else if (weightValue.value === 1 && hasOnlySingleParentheses(text)) {
+        newText = text.slice(1, -1);
+      }
+      // 处理包含内部括号的情况，确保权重调整应用于整个文本
+      else {
+        if (weightValue.value === 1) {
+          // 权重为1时，保持原样
+          newText = text;
+        } else {
+          // 检查文本是否已经被括号包裹
+          if (text.startsWith('(') && text.endsWith(')')) {
+            // 已经有圆括号包裹，直接在末尾添加权重
+            newText = text.replace(/\)$/, `:${weightValue.value})`);
+          } else {
+            // 添加圆括号并在内部末尾添加权重
+            newText = `(${text}:${weightValue.value})`;
+          }
+        }
+      }
+    }
 
   tokens.value[activeControls.value].text = newText;
   updateInputText();
@@ -1183,8 +1236,8 @@ const handleInput = (event) => {
         { pattern: /《/g, replace: '<' },
         { pattern: /》/g, replace: '>' }
       ]
-    },
-    underscore: { enabled: localStorage.getItem('weilin_prompt_ui_underscore_to_bracket') === 'true', pattern: /_/g, replace: ' ' }
+    }
+    // 下划线转换已移至补全确认时执行
   };
 
   // 记录每个替换操作前光标位置的字符
@@ -1354,10 +1407,7 @@ const processInput = async () => {
       .replace(/》/g, '>'); // 中文右书名号
   }
 
-  if (isUnderscoreToBracketEnabled) {
-    // 替换下划线为空格
-    inputText.value = inputText.value.replace(/_/g, ' ');
-  }
+  // 下划线转空格的逻辑已移至补全确认时执行
 
   // 处理文本分割
   const text = inputText.value;
@@ -2483,7 +2533,7 @@ const removeSelectionBox = () => {
   }
 }
 
-// 更新选中的标签
+// 更新选中的标签索引（框选时使用）
 const updateSelectedTokens = () => {
   selectedTokens.value = []
   
@@ -2494,10 +2544,6 @@ const updateSelectedTokens = () => {
   
   // 获取所有类型的标签容器元素
   const tokenBoxes = document.querySelectorAll('.token-item-box')
-  
-  // 避免重复操作DOM，先记录需要更新的元素
-  const toSelect = []
-  const toDeselect = []
   
   tokenBoxes.forEach((box, index) => {
     // 获取标签内部的实际显示元素
@@ -2511,6 +2557,24 @@ const updateSelectedTokens = () => {
     
     if (isInSelection) {
       selectedTokens.value.push(index)
+    }
+  })
+  
+  // 应用选中样式
+  applySelectedStyle()
+}
+
+// 应用选中标签的视觉效果
+const applySelectedStyle = () => {
+  // 获取所有类型的标签容器元素
+  const tokenBoxes = document.querySelectorAll('.token-item-box')
+  
+  // 避免重复操作DOM，先记录需要更新的元素
+  const toSelect = []
+  const toDeselect = []
+  
+  tokenBoxes.forEach((box, index) => {
+    if (selectedTokens.value.includes(index)) {
       toSelect.push(box)
     } else {
       toDeselect.push(box)
@@ -2902,8 +2966,8 @@ const onBlur = () => {
 
 // 提取补全逻辑到单独的函数
 const triggerAutocomplete = (inputValue) => {
-  // 处理特殊格式
-  let cleanedTrSegment = inputValue.replace(/[\[\](){}]/g, '').trim();
+  // 处理特殊格式 - 移除了圆括号
+  let cleanedTrSegment = inputValue.replace(/[\[\]{}]/g, '').trim();
   const text = extractText(cleanedTrSegment)
 
   // 清除输入值的前后空格
@@ -3058,6 +3122,11 @@ const selectAutocomplete = (index, event) => {
     tagText = tagText.replace(/_/g, ' ');
   }
 
+  // 自动转义标签中的括号
+  if (localStorage.getItem('weilin_prompt_ui_bracket_escape') === 'true') {
+    tagText = tagText.replace(/\(([^)]+)\)/g, '\\($1\\)');
+  }
+
   // 确定要替换的范围
   let replaceStart = cursorPosition;
   let replaceEnd = cursorEnd;
@@ -3156,7 +3225,42 @@ const setPromptText = (text) => {
   }
 }
 
+// 拖拽状态管理
+const isDragging = ref(false);
 const dragStartIndex = ref(null);
+const draggedTokens = ref([]); // 存储被批量拖动的标签索引
+
+// 防抖控制
+let dragUpdateTimer = null;
+const dragUpdateDelay = 50; // 拖拽更新延迟，单位毫秒
+
+// 存储当前拖拽操作的临时状态
+let dragTempState = null;
+
+// 初始化拖拽状态
+const initializeDragState = (index, useMultipleSelection = false) => {
+  // 重置所有拖拽相关状态
+  isDragging.value = true;
+  dragStartIndex.value = null;
+  draggedTokens.value = [];
+  
+  if (useMultipleSelection && selectedTokens.value.length > 1 && selectedTokens.value.includes(index)) {
+    // 批量拖拽模式
+    draggedTokens.value = [...selectedTokens.value].sort((a, b) => a - b);
+  } else {
+    // 单个拖拽模式
+    selectedTokens.value = [];
+    dragStartIndex.value = index;
+  }
+  
+  // 初始化临时状态，用于在拖拽过程中进行计算
+  dragTempState = {
+    originalTokens: [...tokens.value],
+    draggedItems: draggedTokens.value.length > 0 
+      ? draggedTokens.value.map(i => tokens.value[i]) 
+      : [tokens.value[index]]
+  };
+};
 
 const handleDragStart = (index, event) => {
   // 如果当前在框选模式中，不触发拖拽
@@ -3164,8 +3268,84 @@ const handleDragStart = (index, event) => {
     event.preventDefault();
     return;
   }
-  dragStartIndex.value = index;
+  
+  // 初始化拖拽状态
+  initializeDragState(index, true);
+  
   event.dataTransfer.effectAllowed = 'move';
+};
+
+// 计算插入位置的辅助函数
+const calculateInsertPosition = (originalTokens, draggedIndexes, targetIndex) => {
+  // 计算在原始数组中，有多少被拖动的元素位于目标索引之前
+  const elementsBeforeIndex = draggedIndexes.filter(i => i < targetIndex).length;
+  
+  // 调整插入位置，考虑被删除的元素
+  let insertIndex = Math.max(0, targetIndex - elementsBeforeIndex);
+  
+  // 确保插入位置在有效范围内
+  const validRange = originalTokens.length - draggedIndexes.length;
+  insertIndex = Math.min(insertIndex, validRange);
+  
+  return insertIndex;
+};
+
+// 执行拖拽更新的函数
+const performDragUpdate = (targetIndex) => {
+  if (!dragTempState) return;
+  
+  const newTokens = [...dragTempState.originalTokens];
+  const draggedIndexes = draggedTokens.value.length > 0 ? draggedTokens.value : [dragStartIndex.value];
+  
+  // 保存要拖动的元素内容，用于后续重新映射选中状态
+  const draggedElements = draggedIndexes.map(idx => dragTempState.originalTokens[idx]);
+  
+  // 从后往前删除，避免索引错误
+  for (let i = draggedIndexes.length - 1; i >= 0; i--) {
+    const idx = draggedIndexes[i];
+    if (idx < newTokens.length) {
+      newTokens.splice(idx, 1);
+    }
+  }
+  
+  // 计算插入位置
+  const insertIndex = calculateInsertPosition(
+    dragTempState.originalTokens, 
+    draggedIndexes, 
+    targetIndex
+  );
+  
+  // 插入被拖动的元素
+  dragTempState.draggedItems.forEach((item, i) => {
+    newTokens.splice(insertIndex + i, 0, item);
+  });
+  
+  // 更新tokens数组和输入文本
+  tokens.value = newTokens;
+  updateInputText();
+  
+  // 如果是批量拖拽且有选中的标签，更新选中状态
+  if (draggedTokens.value.length > 0 && selectedTokens.value.length > 0) {
+    // 创建新的选中索引数组，确保它只包含当前可见且有效的标签索引
+    const newSelectedTokens = [];
+    
+    // 查找新位置的拖动元素索引
+    for (let i = 0; i < newTokens.length; i++) {
+      // 通过内容匹配确定元素位置（对于复杂对象，可能需要使用唯一标识符）
+      const token = newTokens[i];
+      if (draggedElements.some(dragged => dragged.text === token.text)) {
+        newSelectedTokens.push(i);
+      }
+    }
+    
+    // 更新选中状态
+    selectedTokens.value = newSelectedTokens;
+    
+    // 在下一个DOM更新周期应用选中样式，确保DOM已更新
+    setTimeout(() => {
+      applySelectedStyle();
+    }, 0);
+  }
 };
 
 const handleDragOver = (index, event) => {
@@ -3175,22 +3355,56 @@ const handleDragOver = (index, event) => {
     return;
   }
   event.preventDefault();
-  if (dragStartIndex.value !== null && dragStartIndex.value !== index) {
-    const draggedItem = tokens.value[dragStartIndex.value];
-    const newTokens = [...tokens.value];
-    newTokens.splice(dragStartIndex.value, 1);
-    newTokens.splice(index, 0, draggedItem);
-    tokens.value = newTokens;
-    dragStartIndex.value = index;
-    updateInputText();
+  
+  // 检查是否在拖拽状态
+  if (!isDragging.value) return;
+  
+  // 检查目标索引是否有效
+  if (index < 0 || index >= tokens.value.length) return;
+  
+  // 检查目标索引是否在被拖动的元素中
+  if (draggedTokens.value.length > 0 && draggedTokens.value.includes(index)) {
+    return;
   }
+  
+  // 如果是单个拖拽，检查是否拖到了自己上面
+  if (draggedTokens.value.length === 0 && dragStartIndex.value === index) {
+    return;
+  }
+  
+  // 清除之前的定时器
+  if (dragUpdateTimer) {
+    clearTimeout(dragUpdateTimer);
+  }
+  
+  // 设置新的定时器，延迟更新以减少闪烁
+  dragUpdateTimer = setTimeout(() => {
+    performDragUpdate(index);
+  }, dragUpdateDelay);
 };
 
 const handleDrop = (index, event) => {
   event.preventDefault();
+  
+  // 清除定时器和重置拖拽状态
+  if (dragUpdateTimer) {
+    clearTimeout(dragUpdateTimer);
+    dragUpdateTimer = null;
+  }
+  
+  // 执行最终的拖拽更新
+  if (isDragging.value && dragTempState) {
+    performDragUpdate(index);
+  }
+  
+  // 重置拖拽相关状态，但保留选中状态(selectedTokens)
+  isDragging.value = false;
   dragStartIndex.value = null;
-  updateInputText();
+  draggedTokens.value = [];
+  dragTempState = null;
 };
+
+
 
 const updateInputText = () => {
   // 更新输入文本，保持原有格式，但排除隐藏的tokens

@@ -1004,28 +1004,29 @@
 }
 
 /* 隐藏提示的样式增强 */
-.weilin-comfyui-hidden-hint {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 4px;
-  margin-left: 4px;
-  background-color: rgba(250, 173, 20, 0.1);
-  border: 1px solid rgba(250, 173, 20, 0.3);
-  border-radius: 3px;
-  font-size: 11px;
-  color: var(--weilin-prompt-ui-secondary-text);
-  transition: all 0.2s ease;
-  cursor: help;
+/* 禁用token的样式 - 斜杠覆盖、半透明和红色边框 */
+.token-item-box-disabled {
+  opacity: 0.5 !important;
+  position: relative;
+  border: 1px solid #ff4d4f !important;
 }
 
-.weilin-comfyui-hidden-hint:hover {
-  background-color: rgba(250, 173, 20, 0.2);
-  border-color: rgba(250, 173, 20, 0.5);
+.token-item-box-disabled::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent calc(50% - 1px), #ff4d4f calc(50% - 1px), #ff4d4f calc(50% + 1px), transparent calc(50% + 1px));
+  pointer-events: none;
+  z-index: 1;
 }
 
-.weilin-comfyui-hidden-hint svg {
-  margin-right: 2px;
-  fill: currentColor;
+/* 确保禁用状态下的token内容在斜杠下方 */
+.token-item-box-disabled > * {
+  position: relative;
+  z-index: 2;
 }
 
 .weilin-comfyui-toolbar-right {
