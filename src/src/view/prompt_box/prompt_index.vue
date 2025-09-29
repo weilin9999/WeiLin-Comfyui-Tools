@@ -2345,8 +2345,17 @@ const handleMouseDown = (event) => {
     
     // 如果点击的是空白区域，记录起始位置但不立即创建选择框
     if (tokensContainer && !tokenItem) {
+      // 重置所有相关状态变量，确保开始新的框选操作前状态是干净的
+      isPotentialBoxSelection.value = false
+      isSelecting.value = false
+      isUpdatingSelectionBox.value = false
+      isUpdatingSelectedTokens.value = false
+      
       // 在开始新的框选前，先关闭任何已存在的操作菜单
       closeSelectionActions()
+      
+      // 移除任何可能残留的选择框
+      removeSelectionBox()
       
       // 获取容器的位置，将选择框限制在容器内
       const containerRect = tokensContainer.getBoundingClientRect()
@@ -2425,7 +2434,8 @@ const handleMouseMove = (event) => {
     
     // 分离选择框更新和标签选中状态更新
     // 1. 选择框更新：使用requestAnimationFrame保持流畅动画，不使用节流
-    if (!isUpdatingSelectionBox.value) {
+    // 添加防御性检查，确保即使isUpdatingSelectionBox被卡住也能继续更新
+    if (!isUpdatingSelectionBox.value || (Date.now() - lastUpdateTime.value > 100)) {
       isUpdatingSelectionBox.value = true
       requestAnimationFrame(() => {
         updateSelectionBox()
@@ -2455,8 +2465,11 @@ const handleMouseUp = () => {
     // 先保存选中的标签数量，然后才结束框选模式
     const selectedCount = selectedTokens.value.length
     
+    // 确保所有状态变量都被正确重置
     isSelecting.value = false
     isBoxSelectMode.value = false // 退出框选模式
+    isUpdatingSelectionBox.value = false
+    isUpdatingSelectedTokens.value = false
     
     // 移除选择框
     removeSelectionBox()
@@ -2470,66 +2483,84 @@ const handleMouseUp = () => {
 
 // 创建选择框元素 - 持久稳定版
 const createSelectionBox = () => {
-  // 先检查是否已经有选择框存在
-  let selectionBox = document.getElementById(selectionBoxId)
-  if (selectionBox) {
-    // 如果存在，先移除它
-    document.body.removeChild(selectionBox)
+  try {
+    // 先检查是否已经有选择框存在
+    let selectionBox = document.getElementById(selectionBoxId)
+    if (selectionBox) {
+      // 如果存在，先移除它
+      document.body.removeChild(selectionBox)
+    }
+    
+    // 创建新的选择框
+    selectionBox = document.createElement('div')
+    selectionBox.id = selectionBoxId
+    
+    // 增强选择框的可见性，使用更醒目的样式
+    selectionBox.style.cssText = `
+      position: fixed;
+      background-color: rgba(66, 133, 244, 0.4);
+      border: 2px dashed #4285f4;
+      box-shadow: 0 0 12px rgba(66, 133, 244, 0.6);
+      pointer-events: none;
+      z-index: 99999;
+      transition: none;
+      opacity: 1;
+      display: block;
+    `
+    
+    document.body.appendChild(selectionBox)
+    console.log('选择框已创建')
+    updateSelectionBox()
+  } catch (error) {
+    console.error('创建选择框失败:', error)
+    // 重置状态，确保后续操作不受影响
+    isUpdatingSelectionBox.value = false
   }
-  
-  // 创建新的选择框
-  selectionBox = document.createElement('div')
-  selectionBox.id = selectionBoxId
-  
-  // 增强选择框的可见性，使用更醒目的样式
-  selectionBox.style.cssText = `
-    position: fixed;
-    background-color: rgba(66, 133, 244, 0.4);
-    border: 2px dashed #4285f4;
-    box-shadow: 0 0 12px rgba(66, 133, 244, 0.6);
-    pointer-events: none;
-    z-index: 99999;
-    transition: none;
-    opacity: 1;
-    display: block;
-  `
-  
-  document.body.appendChild(selectionBox)
-  console.log('选择框已创建')
-  updateSelectionBox()
 }
 
 // 更新选择框位置和大小 - 增强版
 const updateSelectionBox = () => {
-  let selectionBox = document.getElementById(selectionBoxId)
-  // 如果选择框不存在，重新创建它
-  if (!selectionBox && isSelecting.value) {
-    createSelectionBox()
-    selectionBox = document.getElementById(selectionBoxId)
-    if (!selectionBox) return
+  try {
+    let selectionBox = document.getElementById(selectionBoxId)
+    // 如果选择框不存在，重新创建它
+    if (!selectionBox && isSelecting.value) {
+      createSelectionBox()
+      selectionBox = document.getElementById(selectionBoxId)
+      if (!selectionBox) return
+    }
+    
+    const left = Math.min(selectionStart.value.x, selectionEnd.value.x)
+    const top = Math.min(selectionStart.value.y, selectionEnd.value.y)
+    const width = Math.abs(selectionEnd.value.x - selectionStart.value.x)
+    const height = Math.abs(selectionEnd.value.y - selectionStart.value.y)
+    
+    // 确保选择框有足够的大小可见
+    const minSize = 5
+    const effectiveWidth = Math.max(width, minSize)
+    const effectiveHeight = Math.max(height, minSize)
+    
+    if (selectionBox) {
+      selectionBox.style.left = `${left}px`
+      selectionBox.style.top = `${top}px`
+      selectionBox.style.width = `${effectiveWidth}px`
+      selectionBox.style.height = `${effectiveHeight}px`
+    }
+  } catch (error) {
+    console.error('更新选择框失败:', error)
+    // 重置状态，确保后续操作不受影响
+    isUpdatingSelectionBox.value = false
   }
-  
-  const left = Math.min(selectionStart.value.x, selectionEnd.value.x)
-  const top = Math.min(selectionStart.value.y, selectionEnd.value.y)
-  const width = Math.abs(selectionEnd.value.x - selectionStart.value.x)
-  const height = Math.abs(selectionEnd.value.y - selectionStart.value.y)
-  
-  // 确保选择框有足够的大小可见
-  const minSize = 5
-  const effectiveWidth = Math.max(width, minSize)
-  const effectiveHeight = Math.max(height, minSize)
-  
-  selectionBox.style.left = `${left}px`
-  selectionBox.style.top = `${top}px`
-  selectionBox.style.width = `${effectiveWidth}px`
-  selectionBox.style.height = `${effectiveHeight}px`
 }
 
 // 移除选择框元素
 const removeSelectionBox = () => {
-  const selectionBox = document.getElementById(selectionBoxId)
-  if (selectionBox) {
-    document.body.removeChild(selectionBox)
+  try {
+    const selectionBox = document.getElementById(selectionBoxId)
+    if (selectionBox) {
+      document.body.removeChild(selectionBox)
+    }
+  } catch (error) {
+    console.error('移除选择框失败:', error)
   }
 }
 
@@ -2583,14 +2614,14 @@ const applySelectedStyle = () => {
   
   // 批量更新DOM，减少重排重绘
   toSelect.forEach(box => {
-    // 为整个标签容器添加视觉反馈
-    box.style.border = '2px solid #4285f4'
-    box.style.boxShadow = '0 0 5px rgba(66, 133, 244, 0.5)'
-    box.style.backgroundColor = 'rgba(66, 133, 244, 0.1)'
+    // 为整个标签容器添加选中类，通过CSS优先级确保显示在禁用样式之上
+    box.classList.add('token-item-box-selected')
   })
   
   toDeselect.forEach(box => {
     // 移除视觉反馈
+    box.classList.remove('token-item-box-selected')
+    // 清除之前可能设置的内联样式
     box.style.border = ''
     box.style.boxShadow = ''
     box.style.backgroundColor = box.dataset.originalBgColor || ''
@@ -2743,19 +2774,54 @@ const bulkDeleteSelectedTokens = () => {
 
 // 清除选中的标签
 const clearSelectedTokens = () => {
-  // 只处理有选中样式的标签，减少DOM操作量
-  const styledBoxes = document.querySelectorAll('.token-item-box[style*="border: 2px solid"]')
-  styledBoxes.forEach(box => {
+  // 处理所有带有选中类的标签，确保移除所有选中样式
+  const selectedBoxes = document.querySelectorAll('.token-item-box-selected')
+  selectedBoxes.forEach(box => {
+    // 移除选中类
+    box.classList.remove('token-item-box-selected')
+    // 清除可能的内联样式
     box.style.border = ''
     box.style.boxShadow = ''
     box.style.backgroundColor = box.dataset.originalBgColor || ''
   })
+  
+  // 清空选中状态数组
   selectedTokens.value = []
+  
+  // 如果操作菜单可见，也关闭它
+  if (showSelectionActions.value) {
+    showSelectionActions.value = false
+    document.removeEventListener('click', closeSelectionActionsOnClickOutside)
+  }
 }
+
+// 处理点击空白区域取消框选状态
+const handleClickToClearSelection = (event) => {
+  // 只有当有选中项时才需要处理
+  if (selectedTokens.value.length === 0) return;
+  
+  // 检查点击目标是否在标签容器内且不是标签本身、控制元素或操作菜单
+  const tokenItem = event.target.closest('.token-item-box, .token-item, .token-controls, .delete-btn, .weight-control, .bracket-btn, .translate-button, .tag-tips-box');
+  const tokensContainer = tokensContainerRef.value;
+  
+  // 如果点击的是文本框或完全在标签容器外部的空白区域，则清除选中状态
+  if (event.target === inputAreaRef.value || 
+      (!tokenItem && (!tokensContainer || !tokensContainer.contains(event.target)))) {
+    clearSelectedTokens();
+  }
+}
+
+// 组件挂载时添加事件监听
+onMounted(() => {
+  // 添加点击事件监听，点击空白处或文本框时清除框选状态
+  document.addEventListener('click', handleClickToClearSelection);
+})
 
 // 组件卸载时清理事件监听
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
+  // 移除点击清除框选的事件监听
+  document.removeEventListener('click', handleClickToClearSelection)
   if (historyTimer.value) {
     clearTimeout(historyTimer.value);
   }
