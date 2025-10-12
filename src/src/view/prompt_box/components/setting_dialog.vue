@@ -32,8 +32,9 @@
           <div class="weilin-comfyui-setting-select">
             <label> {{ t('promptBox.settings.selectTranslater') }}</label>
             <select style="margin-left: 10px;" v-model="settingTranslater" class="weilin-comfyui-common-select">
-              <option value="network"> {{ t('promptBox.settings.selectOptionNetworkTranslater') }}</option>
-              <option value="translater">{{ t('promptBox.settings.selectOptionPythonTranslater') }}</option>
+              <!-- <option value="network"> {{ t('promptBox.settings.selectOptionNetworkTranslator') }}</option>
+              <option value="translater">{{ t('promptBox.settings.selectOptionPythonTranslater') }}</option> -->
+              <option value="other_ai_plate">使用三方AI平台翻译</option>
               <option value="openai">OpenAI API 翻译</option>
             </select>
             <button class="weilin-comfyui-install-button" @click="applyTranslaterSetting">
@@ -41,6 +42,11 @@
             </button>
           </div>
           <div class="weilin-comfyui-translator-settings">
+
+            <div class="weilin-comfyui-group-box" v-if="settingTranslater == 'other_ai_plate'">
+              <aiServerSetting />
+            </div>
+
             <div class="weilin-comfyui-group-box" v-if="settingTranslater == 'network'">
               <div class="weilin-comfyui-group-title">{{ t('promptBox.settings.selectOptionNetworkTranslaterTitle') }}
               </div>
@@ -388,6 +394,7 @@ import message from '@/utils/message'
 import { languageApi } from '@/api/language'
 import { openaiApi } from '@/api/openai'
 import { translaterSerives, language } from "./translater"
+import aiServerSetting from "./setting_dilaog_components/ai_server_setting.vue"
 
 const { t } = useI18n()
 
@@ -417,8 +424,8 @@ const isPeriodConversionEnabled = ref(localStorage.getItem('weilin_prompt_ui_per
 const isBracketConversionEnabled = ref(localStorage.getItem('weilin_prompt_ui_bracket_conversion') === 'true');
 const isAngleBracketConversionEnabled = ref(localStorage.getItem('weilin_prompt_ui_angle_bracket_conversion') === 'true');
 const isUnderscoreToBracketEnabled = ref(localStorage.getItem('weilin_prompt_ui_underscore_to_bracket') === 'true');
-  const isCommaCloseAutocompleteEnabled = ref(localStorage.getItem('weilin_prompt_ui_comma_close_autocomplete') === 'true');
-  const isBracketEscapeEnabled = ref(localStorage.getItem('weilin_prompt_ui_bracket_escape') === 'true');
+const isCommaCloseAutocompleteEnabled = ref(localStorage.getItem('weilin_prompt_ui_comma_close_autocomplete') === 'true');
+const isBracketEscapeEnabled = ref(localStorage.getItem('weilin_prompt_ui_bracket_escape') === 'true');
 
 // 翻译库设置
 const selectedTranslatorService = ref('');
@@ -542,13 +549,13 @@ const saveFloatingBallSettings = () => {
 
 // 保存提示词设置
 const savePromptBoxSettings = () => {
-    localStorage.setItem('weilin_prompt_ui_comma_conversion', isCommaConversionEnabled.value);
-    localStorage.setItem('weilin_prompt_ui_period_conversion', isPeriodConversionEnabled.value);
-    localStorage.setItem('weilin_prompt_ui_bracket_conversion', isBracketConversionEnabled.value);
-    localStorage.setItem('weilin_prompt_ui_angle_bracket_conversion', isAngleBracketConversionEnabled.value);
-    localStorage.setItem('weilin_prompt_ui_underscore_to_bracket', isUnderscoreToBracketEnabled.value);
-    localStorage.setItem('weilin_prompt_ui_comma_close_autocomplete', isCommaCloseAutocompleteEnabled.value);
-    localStorage.setItem('weilin_prompt_ui_bracket_escape', isBracketEscapeEnabled.value);
+  localStorage.setItem('weilin_prompt_ui_comma_conversion', isCommaConversionEnabled.value);
+  localStorage.setItem('weilin_prompt_ui_period_conversion', isPeriodConversionEnabled.value);
+  localStorage.setItem('weilin_prompt_ui_bracket_conversion', isBracketConversionEnabled.value);
+  localStorage.setItem('weilin_prompt_ui_angle_bracket_conversion', isAngleBracketConversionEnabled.value);
+  localStorage.setItem('weilin_prompt_ui_underscore_to_bracket', isUnderscoreToBracketEnabled.value);
+  localStorage.setItem('weilin_prompt_ui_comma_close_autocomplete', isCommaCloseAutocompleteEnabled.value);
+  localStorage.setItem('weilin_prompt_ui_bracket_escape', isBracketEscapeEnabled.value);
   message({ type: "success", str: 'message.saveSuccess' });
 };
 

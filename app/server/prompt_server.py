@@ -23,6 +23,7 @@ from .ai_translator.ai_translator import (
 )
 from .prompt_api.random_tag_template import * 
 from .prompt_api.danbooru import *
+from .ai_server.siliconflow import translateObject,getModelList
 
 
 static_path = os.path.join(os.path.dirname(__file__), "../../dist/")
@@ -790,9 +791,14 @@ async def _tanslater_text(request):
         data_setting = get_translate_settings()     # service/source_lang/target_lang
 
         text = data['text']
+        strObjectData = data['str_object']
         if current_setting == "openai":
             # OpenAI 只需要目标语种来写 prompt
-            result = await openai_translate(text, data_setting['translate_target_lang'])
+            result = await openai_translate(strObjectData, data_setting['translate_target_lang'])
+        elif current_setting == "other_ai_plate":
+            aiInfoData = get_ai_info_setting()
+            if aiInfoData.get("base_url") == "https://api.siliconflow.cn/v1":
+                result = await translateObject(strObjectData, data_setting['translate_target_lang'])
         else:
             # 仍然走 translators（含 'translater' 与历史的 'network'）
             result = translateText(
@@ -801,7 +807,7 @@ async def _tanslater_text(request):
                 data_setting['translate_source_lang'],
                 data_setting['translate_target_lang']
             )
-        return web.json_response({"text": result})
+        return web.json_response({"data": result})
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
@@ -814,9 +820,14 @@ async def _tanslater_input_text(request):
         current_setting = get_translate_setting()
         data_setting = get_translate_settings()
         text = data['text']
+        strObjectData = data['str_object']
         if current_setting == "openai":
             # 反向时把“源语种代码”当成目标，复用同一 prompt 模板
-            result = await openai_translate(text, data_setting['translate_source_lang'])
+            result = await openai_translate(strObjectData, data_setting['translate_source_lang'])
+        elif current_setting == "other_ai_plate":
+            aiInfoData = get_ai_info_setting()
+            if aiInfoData.get("base_url") == "https://api.siliconflow.cn/v1":
+                result = await translateObject(strObjectData, data_setting['translate_source_lang'])
         else:
             result = translateText(
                 text,
@@ -824,7 +835,7 @@ async def _tanslater_input_text(request):
                 data_setting['translate_target_lang'],
                 data_setting['translate_source_lang']
             )
-        return web.json_response({"text": result})
+        return web.json_response({"data": result})
     except Exception as e:
         print(f"Error: {e}")
         return web.Response(status=500)
@@ -1035,6 +1046,35 @@ async def _run_danbooru_sql_text(request):
 
     return web.json_response(result)
 # ===================================================================================
+
+# ============================================ AI平台对接 ============================================
+
+@PromptServer.instance.routes.post(baseUrl+"ai_server/get_settings")
+async def _get_ai_server_setting(request):
+    return  web.json_response({"data":get_ai_info_setting()})
+
+
+@PromptServer.instance.routes.post(baseUrl+"ai_server/update_settings")
+async def _update_ai_server_settings(request):
+    data = await request.json()
+    try:
+        # 如果前端传递 {"ai_info_setting": {...}}，则取内部 dict
+        if "ai_info_setting" in data:
+            update_ai_info_setting(data["ai_info_setting"])
+        else:
+            update_ai_info_setting(data)
+    except Exception as e:
+        print(f"Error: {e}")
+        return web.Response(status=500)
+    return web.json_response({"info": 'ok'})
+
+@PromptServer.instance.routes.post(baseUrl+"ai_server/get_ai_models")
+def _get_ai_server_get_ai_models(request):
+    return  web.json_response({"data": getModelList()})
+
+
+
+# ============================================ AI平台对接 End ============================================
 
 print("======== WeiLin插件服务已启动 ========")
 print("======== WeiLin Server Init ========")

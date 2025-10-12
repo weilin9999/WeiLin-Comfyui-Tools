@@ -257,7 +257,7 @@ class WeiLinPromptUIOnlyLoraStack:
                 "lora_str": ("STRING", {
                     "multiline": True,
                     "default": "",
-                    "placeholder": placeholder_lora_text,
+                    "placeholder": "lora info box",
                 }),
                 "temp_lora_str": ("STRING", {
                     "multiline": True,
@@ -318,6 +318,8 @@ class WeiLinPromptUIOnlyLoraStack:
 
                 model_lora_secondA, clip_lora_secondA = load_lora_for_models(
                     model_lora_secondA, clip_lora_secondA, lora, strength_model, strength_clip)
+            else:
+                print("Lora堆没有可用的Lora信息")
 
         return (clip_lora_secondA, model_lora_secondA)
         # return (model_lora_second, clip_lora_second)

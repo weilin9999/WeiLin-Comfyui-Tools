@@ -59,21 +59,21 @@ export const translatorApi = {
         })
     },
     // 翻译文本
-    translaterText: async (text) => {
+    translaterText: async (str_object, text) => {
         return await request({
             url: '/translate/tran/text',
             method: 'post',
             timeout: 0,
-            data: { text }
+            data: { str_object, text }
         })
     },
     // 翻译输入的文本
-    translaterInputText: async (text) => {
+    translaterInputText: async (str_object, text) => {
         return await request({
             url: '/translate/tran/input',
             method: 'post',
             timeout: 0,
-            data: { text }
+            data: { str_object, text }
         })
     },
 }

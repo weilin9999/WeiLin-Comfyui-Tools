@@ -96,7 +96,7 @@ onMounted(() => {
     // 确保右侧保留最少100px的位置
     x = Math.min(x, viewportWidth - 100);
     // 确保顶部不超出边界
-    y = Math.max(50, y);
+    y = Math.max(100, y);
     // 确保底部保留最少100px的位置
     y = Math.min(y, viewportHeight - 100);
     
@@ -137,7 +137,7 @@ const handleDrag = (event) => {
     // 确保右侧保留最少100px的位置
     newX = Math.min(newX, viewportWidth - 100);
     // 确保顶部不超出边界
-    newY = Math.max(50, newY);
+    newY = Math.max(100, newY);
     // 确保底部保留最少100px的位置
     newY = Math.min(newY, viewportHeight - 100);
     

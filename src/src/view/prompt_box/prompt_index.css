@@ -234,23 +234,13 @@
     background: var(--weilin-prompt-ui-scrollbar-thumb-hover);
 }
 
-.center-container {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 12px;
-    padding: 0 0 10px 0;
-    width: 100%;
-    box-sizing: border-box;
-    background: var(--weilin-prompt-ui-primary-bg);
-}
-
 .action-item {
     position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
+    flex: 0 0 auto;
+    margin-right: 8px;
 }
 
 .language-switch-btn {
@@ -328,6 +318,34 @@
     height: 16px;
     fill: #ff4d4f;
     transition: transform 0.2s ease;
+}
+
+.favour-btn {
+  background: transparent;
+  border: none;
+  padding: 2px 4px;
+  cursor: pointer;
+  vertical-align: middle;
+  outline: none;
+  transition: background 0.2s;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.favour-btn svg {
+  display: block;
+  margin: 0 auto;
+  transition: filter 0.2s;
+}
+
+.favour-btn:hover {
+  background: #fffbe6a6;
+  box-shadow: 0 0 4px #ffd70044;
+}
+
+.favour-btn:active svg {
+  filter: brightness(0.85);
 }
 
 /* 禁用按钮特殊样式 */
@@ -408,13 +426,6 @@
 .fade-enter-from,
 .fade-leave-to {
     opacity: 0;
-}
-
-.action-item {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
 }
 
 .settings-btn {
@@ -1031,4 +1042,61 @@
 
 .weilin-comfyui-toolbar-right {
   margin-left: auto; 
+}
+
+/* 框选高亮样式 */
+.token-item-box-selected {
+  border: 2px solid #4285f4 !important;
+  box-shadow: 0 0 8px #4285f455;
+  background-color: rgba(66, 133, 244, 0.08) !important;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+  z-index: 2;
+}
+
+.center-container {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  white-space: nowrap;
+  align-items: center;
+  scrollbar-width: thin; /* Firefox */
+  margin-bottom: 8px;
+}
+
+.center-container::-webkit-scrollbar {
+  height: 8px;
+}
+.center-container::-webkit-scrollbar-thumb {
+  background: #e0e0e0;
+  border-radius: 4px;
+}
+.center-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.line-token-btn {
+  background: transparent;
+  border: none;
+  padding: 2px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  transition: background 0.2s;
+  font-size: 14px;
+}
+
+.line-token-btn svg {
+  margin-right: 2px;
+  vertical-align: middle;
+  transition: filter 0.2s;
+}
+
+.line-token-btn:hover {
+  background: #e6f7ff5d;
+  box-shadow: 0 0 4px #4285f444;
+}
+
+.line-token-btn:active svg {
+  filter: brightness(0.85);
 }

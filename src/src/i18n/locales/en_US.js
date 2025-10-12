@@ -21,6 +21,9 @@ export default {
         oneClickTranslate: "one Click Translate Tag",
         modelWeight: "Model Weight",
         textWeight: "Text Weight",
+        favour: "Favour",
+        lineToken: "Line Break",
+        addLineToken: "Add Line Break Token",
         settings: {
             title: 'Settings',
             cancel: 'Cancel',
@@ -211,6 +214,7 @@ export default {
         "description": "Tag",
         "descriptionPlaceholder": "Enter tag",
         "textRequired": "Tag and Tag description cannot be empty",
+        "favourRequired": "Tag and Tag description cannot be empty, and a group must be selected",
         "backgroundColor": "Background Color",
         "colorPickerTitle": "Select Color",
         "opacity": "Opacity",

@@ -24,9 +24,23 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 # Version update introduction
 
-> Last updated: 2025-09-23
+> Last updated: 2025-10-12
 
-> 0.0.65 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.66 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+>
+> 1. Fixed some known bugs
+>
+> 2. Merger PR # [44] (https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/44) thank you for your friend's help
+>
+> 3. New features: Tags can be bookmarked with one click in the Tag control bar. The ability to add a newline character has also been added
+>
+> 4. Translation overhaul! This update has changed all the translation functions, using AI for translation, and docking silicon based AI for API translation. If you want to connect with other AI platforms, you can submit suggestions in the group, and a new platform will be added in the subsequent update
+>
+
+<details>
+<summary>Click here for more updates from the past</summary>
+
+> 0.0.65 Public Beta Version 2025-09-23
 >
 > 1. Fixed a known BUG 
 >
@@ -34,9 +48,6 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 >
 > 3. Merge PR [#43](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/43) thank you for your friend's help
 >
-
-<details>
-<summary>Click here for more updates from the past</summary>
 
 > 0.0.64 Public Beta Version 2025-09-14
 >

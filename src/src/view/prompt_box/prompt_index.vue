@@ -1,44 +1,39 @@
 <template>
   <div class="weilin_prompt_ui_prompt-box">
-  <!-- 内部小提示框：更新标签 -->
-  <transition name="weilin-fade">
-    <div v-if="toastVisible" class="weilin-toast" role="status" aria-live="polite">已更新标签</div>
-  </transition>
+    <!-- 内部小提示框：更新标签 -->
+    <transition name="weilin-fade">
+      <div v-if="toastVisible" class="weilin-toast" role="status" aria-live="polite">已更新标签</div>
+    </transition>
 
     <!-- Lora栈 -->
     <LoraStack v-if="props.promptManager === 'prompt'" :is-open="loraOpen" :selected-loras="selectedLoras"
       @close="closeLora" />
     <!-- 主标签管理器（左侧边栏） -->
     <!-- <MainLabelManager ref="mainLabelManagerRef" :selected-id="selectedMainLabelId" @select="onSelectMainLabel" /> -->
-    <MainLabelManager v-if="isLabelManagerVisible" ref="mainLabelManagerRef" :selected-id="selectedMainLabelId" @select="onSelectMainLabel" />
+    <MainLabelManager v-if="isLabelManagerVisible" ref="mainLabelManagerRef" :selected-id="selectedMainLabelId"
+      @select="onSelectMainLabel" />
     <!-- 主要内容容器 -->
     <div :class="`${prefix}main-content`" :style="{ width: mainContentWidth }">
       <!-- 操作栏 -->
       <div class="center-container">
 
         <!-- <div class="action-item">
-          <button class="tag-manager-btn" @click="toggleLabelManager" :title="t(isLabelManagerVisible ? 'controls.hideSidebar' : 'controls.showSidebar')">
-            <svg class="sidebar-toggle-icon" :class="{ 'is-closed': !isLabelManagerVisible }" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-              <path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
-            </svg>
-            <span class="action-text">{{ t('controls.sidebar') }}</span>
-          </button>
-        </div> -->
+      <button class="tag-manager-btn" @click="toggleLabelManager" :title="t(isLabelManagerVisible ? 'controls.hideSidebar' : 'controls.showSidebar')">
+        <svg class="sidebar-toggle-icon" :class="{ 'is-closed': !isLabelManagerVisible }" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+          <path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+        </svg>
+        <span class="action-text">{{ t('controls.sidebar') }}</span>
+      </button>
+    </div> -->
         <div class="action-item">
-          <button 
-            class="tag-manager-btn" 
-            @click="toggleLabelManager" 
+          <button class="tag-manager-btn" @click="toggleLabelManager"
             :title="isLabelManagerVisible ? '收起标签栏' : '展开标签栏'">
-            
-            <svg 
-              class="weilin-comfyui-sidebar-toggle-icon" 
-              :class="{ 'is-closed': !isLabelManagerVisible }" 
-              xmlns="http://www.w3.org/2000/svg" 
-              viewBox="0 0 24 24" 
-              width="24" height="24">
-              <path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+
+            <svg class="weilin-comfyui-sidebar-toggle-icon" :class="{ 'is-closed': !isLabelManagerVisible }"
+              xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+              <path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
             </svg>
-            
+
             <span class="action-text">
               {{ isLabelManagerVisible ? '收起标签栏' : '展开标签栏' }}
             </span>
@@ -202,12 +197,8 @@
 
         <!-- 把“更新标签”按钮放在操作栏最右侧 -->
         <div class="action-item weilin-comfyui-toolbar-right">
-          <button
-            class="update-label-btn"
-            :class="{ 'is-dirty': unsavedChanges }"
-            :disabled="!selectedMainLabelId || !unsavedChanges"
-            @click="updateSelectedLabel"
-          >
+          <button class="update-label-btn" :class="{ 'is-dirty': unsavedChanges }"
+            :disabled="!selectedMainLabelId || !unsavedChanges" @click="updateSelectedLabel">
             更新标签
           </button>
         </div>
@@ -227,17 +218,21 @@
         </div>
 
         <style>
-        .token-counter {
-          position: absolute;
-          bottom: 5px;
-          left: 5px;
-          z-index: 10;
-          color: #aaa;
-          background-color: #f0f0f0; /* 灰色背景，可调整深浅 */
-          padding: 2px 6px; /* 给文字一点内边距，看起来更清晰 */
-          border-radius: 4px; /* 圆角，可选 */
-          user-select: none; /* 禁止文字被选中 */
-        }
+          .token-counter {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            z-index: 10;
+            color: #aaa;
+            background-color: #f0f0f0;
+            /* 灰色背景，可调整深浅 */
+            padding: 2px 6px;
+            /* 给文字一点内边距，看起来更清晰 */
+            border-radius: 4px;
+            /* 圆角，可选 */
+            user-select: none;
+            /* 禁止文字被选中 */
+          }
         </style>
 
         <!-- 自动补全窗口 -->
@@ -262,11 +257,16 @@
       <!--  中间小工具栏  -->
       <div class="prompt-input-translate-area">
 
-        <!-- 添加翻译输入框 -->
-        <input type="text" v-model="translateText" class="prompt-input-translate-area-textarea"
-          @keyup.enter="finishTranslateEnter()" :placeholder="t('promptBox.translatePlaceholder')" />
+        <!-- 添加翻译输入框和按钮 -->
+        <div style="display: flex; align-items: center;">
+          <input type="text" v-model="translateText" class="prompt-input-translate-area-textarea"
+            @keyup.enter="finishTranslateEnter()" :placeholder="t('promptBox.translatePlaceholder')" />
+          <button class="translate-btn" style="margin-left: 8px;" @click="finishTranslateEnter()">
+            翻译
+          </button>
+        </div>
 
-        <!-- 添加翻译按钮 -->
+        <!-- 添加一键翻译按钮 -->
         <button class="translate-btn" @click="oneClickTranslatePrompt" :title="t('promptBox.oneClickTranslate')">
           <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" class="token-item-icon" width="24"
             height="24">
@@ -314,7 +314,8 @@
         <template v-for="(token, index) in tokens" :key="'tag-item-'+index">
           <div class="token-item-box" :draggable="!token.isEditing" @dragstart="handleDragStart(index, $event)"
             @dragover.prevent="handleDragOver(index, $event)" @drop="handleDrop(index, $event)"
-            @dblclick="toggleHidden(index)" :style="{ backgroundColor: token.color }" :class="{ 'token-item-box-disabled': token.isHidden }">
+            @dblclick="toggleHidden(index)" :style="{ backgroundColor: token.color }"
+            :class="{ 'token-item-box-disabled': token.isHidden }">
 
             <!-- 换行标记 -->
             <div v-if="token.text === '\n'" class="newline-token">
@@ -370,8 +371,6 @@
             </div>
           </div>
 
-
-
           <!-- 如果是 换行，插入换行占位元素 -->
           <div v-if="token.text === '\n'" class="line-break"></div>
         </template>
@@ -406,6 +405,14 @@
             <span class="weight-label">{{ t('promptBox.textWeight') }}</span>
           </div>
         </div>
+
+        <!-- 收藏按钮 -->
+        <button class="favour-btn" @click="openFavourTag(tokens[activeControls])" :title="t('promptBox.favour')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+              fill="#FFD700" />
+          </svg>
+        </button>
 
         <button @click="handleDelete" class="delete-btn" :title="t('promptBox.delete')">
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -459,40 +466,54 @@
             </div>
           </div>
         </div>
+
+        <!-- 换行符按钮 -->
+        <button class="line-token-btn" @click="handelLineToken" :title="t('promptBox.addLineToken')"
+          style="margin-left: 8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M5 19h14v-2H5v2zm0-7h14v-2H5v2zm0-7v2h14V5H5z" fill="#888" />
+            <path d="M7 17v-2h2v2H7zm0-7V8h2v2H7zm0-7V3h2v2H7z" fill="#4285f4" />
+          </svg>
+        </button>
       </div>
 
       <!-- Lora管理器容器 -->
       <div class="tag-manager-section">
 
-      <!-- 框选操作菜单 -->
-      <div v-show="showSelectionActions" class="token-controls" :style="selectionActionsPosition" @mouseenter="isOverControls = true" @mouseleave="handleControlsLeave">
-        <div class="weilin-comfyui-selection-actions-content">
-          <div class="weilin-comfyui-selection-actions-count">选中 {{ selectedTokens.length }} 个标签</div>
-          <div class="weilin-comfyui-selection-actions-buttons">
-            <button class="delete-btn copy-btn" @click="copySelectedTokens" title="复制">
-              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-              </svg>
-            </button>
-            <button class="delete-btn" @click="disableSelectedTokens" title="禁用">
-              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="10" fill="none" stroke="#ff4d4f" stroke-width="2"/>
-                <path d="M8.5 8.5l7 7" stroke="#ff4d4f" stroke-width="2" stroke-linecap="round"/>
-              </svg>
-            </button>
-            <button class="delete-btn enable-btn" @click="enableSelectedTokens" title="启用">
-              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-              </svg>
-            </button>
-            <button class="delete-btn" @click="deleteSelectedTokens" title="删除">
-              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-              </svg>
-            </button>
+        <!-- 框选操作菜单 -->
+        <div v-show="showSelectionActions" class="token-controls" :style="selectionActionsPosition"
+          @mouseenter="isOverControls = true" @mouseleave="handleControlsLeave">
+          <div class="weilin-comfyui-selection-actions-content">
+            <div class="weilin-comfyui-selection-actions-count">选中 {{ selectedTokens.length }} 个标签</div>
+            <div class="weilin-comfyui-selection-actions-buttons">
+              <button class="delete-btn copy-btn" @click="copySelectedTokens" title="复制">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
+                </svg>
+              </button>
+              <button class="delete-btn" @click="disableSelectedTokens" title="禁用">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" fill="none" stroke="#ff4d4f" stroke-width="2" />
+                  <path d="M8.5 8.5l7 7" stroke="#ff4d4f" stroke-width="2" stroke-linecap="round" />
+                </svg>
+              </button>
+              <button class="delete-btn enable-btn" @click="enableSelectedTokens" title="启用">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                </svg>
+              </button>
+              <button class="delete-btn" @click="deleteSelectedTokens" title="删除">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+
         <div class="tag-manager-header" @click="toggleLoraManager">
           <div class="header-left">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" class="tag-icon" width="24" height="24">
@@ -541,6 +562,7 @@
   </div>
 
   <RandomSetting ref="randomSettingItem" />
+  <favourItem ref="favourItemRef" />
 </template>
 
 <script setup>
@@ -561,6 +583,7 @@ import LoraManager from "@/view/lora_manager/lora_index.vue"
 import RandomSetting from './components/random_setting.vue'
 import { randomTagApi } from '@/api/random_tag'
 import pako from 'pako'
+import favourItem from './components/favour.vue'
 
 const randomSettingItem = ref(null)
 
@@ -698,7 +721,7 @@ const MAIN_LABELS_STORAGE_KEY = 'weilin_prompt_ui_main_labels_v1'
 // --- 修改 mainContentWidth 计算属性 ---
 const mainContentWidth = computed(() => {
   // 根据 isLabelManagerVisible 决定左侧标签管理器的宽度
-  const labelManagerWidth = isLabelManagerVisible.value ? 280 : 0; 
+  const labelManagerWidth = isLabelManagerVisible.value ? 280 : 0;
   const left = (loraOpen.value ? 300 : 0) + labelManagerWidth; // Lora(可变) + 主标签管理器(可变)
   return `calc(100% - ${left}px)`;
 });
@@ -748,7 +771,7 @@ watch(tokens, () => {
 
 // 监听并持久化最后选中的主标签 ID
 watch(selectedMainLabelId, (id) => {
-  try { localStorage.setItem(LAST_LABEL_KEY, id || '') } catch {}
+  try { localStorage.setItem(LAST_LABEL_KEY, id || '') } catch { }
 })
 
 // 恢复最后一次选中的主标签
@@ -768,19 +791,19 @@ function restoreLastSelectedMainLabel() {
         inputAreaRef.value.value = inputText.value
         handleInput({ target: inputAreaRef.value })
       }
-    
+
       // 初始化渲染完毕，解除一次性抑制
       suppressUnsavedOnce = false
-})
+    })
     unsavedChanges.value = false
-  } catch {}
+  } catch { }
 }
 
 onMounted(() => {
   // 页面加载时尝试恢复上次的主标签选择
   restoreLastSelectedMainLabel()
   // 关闭页面前保存选中状态（兜底一次）
-  const saveLast = () => { try { localStorage.setItem(LAST_LABEL_KEY, selectedMainLabelId.value || '') } catch {} }
+  const saveLast = () => { try { localStorage.setItem(LAST_LABEL_KEY, selectedMainLabelId.value || '') } catch { } }
   window.addEventListener('beforeunload', saveLast)
   onBeforeUnmount(() => window.removeEventListener('beforeunload', saveLast))
 })
@@ -852,27 +875,27 @@ const applyWeight = () => {
     // 查找最内层的内容，不包括权重
     const innerMatch = text.match(/^([\(\[\{\<]*)(.*?)(?::[\d.]+)?([\)\]\}\>]*)$/);
     if (!innerMatch) return text;
-    
+
     let [, outerBrackets, content, outerCloseBrackets] = innerMatch;
-    
+
     // 如果内容中还有括号，递归处理
     if (/[\(\[\{\<].*[\)\]\}\>]/.test(content) && !content.includes('\\(') && !content.includes('\\)')) {
       const innerContent = extractInnerContent(content);
       return outerBrackets + innerContent + outerCloseBrackets;
     }
-    
+
     return content;
   };
 
   // 主要处理逻辑
   let newText = text;
-  
+
   // 检查是否整个文本已经有权重值（在末尾）
   const hasTrailingWeight = /:\d+(\.\d+)?$/.test(text);
-  
+
   // 检查是否已经是带权重的格式：(内容:权重)
   const weightedFormatMatch = text.match(/^\((.*?):(\d+(\.\d+)?)\)$/);
-  
+
   if (hasTrailingWeight || weightedFormatMatch) {
     // 已经有权重的情况
     if (weightValue.value === 1) {
@@ -897,7 +920,7 @@ const applyWeight = () => {
     }
   } else {
     // 处理没有权重的情况
-    
+
     // 处理ask_(askzy)格式 -> (ask (askzy):1.1)
     const underscoreBracketMatch = text.match(/^([^_]+)_(\([^)]+\))$/);
     if (underscoreBracketMatch && !text.includes('\\(') && !text.includes('\\)')) {
@@ -908,48 +931,48 @@ const applyWeight = () => {
         newText = `(${prefix} ${bracketContent}:${weightValue.value})`;
       }
     }
-      // 处理ask_\(askzy\)格式 -> (ask_\(askzy\):1.1)
-      else if (text.includes('\\(') && text.includes('\\)') && !/[\(\)\[\]\{\}<>]/.test(text.replace(/\\[\(\)\[\]\{\}<>]/g, ''))) {
-        if (weightValue.value === 1) {
-          newText = text; // 权重为1时保持原样
-        } else {
-          // 检查是否已经有外层括号
-          if (text.startsWith('(') && text.endsWith(')')) {
-            newText = text.replace(/\)$/, `:${weightValue.value})`);
-          } else {
-            newText = `(${text}:${weightValue.value})`;
-          }
-        }
-      }
-      // 处理没有任何括号的情况
-      else if (!/[\(\[\{\<\)\]\}\>]/.test(text)) {
-        if (weightValue.value === 1) {
-          newText = text; // 权重为1时保持原样
+    // 处理ask_\(askzy\)格式 -> (ask_\(askzy\):1.1)
+    else if (text.includes('\\(') && text.includes('\\)') && !/[\(\)\[\]\{\}<>]/.test(text.replace(/\\[\(\)\[\]\{\}<>]/g, ''))) {
+      if (weightValue.value === 1) {
+        newText = text; // 权重为1时保持原样
+      } else {
+        // 检查是否已经有外层括号
+        if (text.startsWith('(') && text.endsWith(')')) {
+          newText = text.replace(/\)$/, `:${weightValue.value})`);
         } else {
           newText = `(${text}:${weightValue.value})`;
         }
       }
-      // 处理只有一层圆括号的情况，权重为1时移除括号
-      else if (weightValue.value === 1 && hasOnlySingleParentheses(text)) {
-        newText = text.slice(1, -1);
+    }
+    // 处理没有任何括号的情况
+    else if (!/[\(\[\{\<\)\]\}\>]/.test(text)) {
+      if (weightValue.value === 1) {
+        newText = text; // 权重为1时保持原样
+      } else {
+        newText = `(${text}:${weightValue.value})`;
       }
-      // 处理包含内部括号的情况，确保权重调整应用于整个文本
-      else {
-        if (weightValue.value === 1) {
-          // 权重为1时，保持原样
-          newText = text;
+    }
+    // 处理只有一层圆括号的情况，权重为1时移除括号
+    else if (weightValue.value === 1 && hasOnlySingleParentheses(text)) {
+      newText = text.slice(1, -1);
+    }
+    // 处理包含内部括号的情况，确保权重调整应用于整个文本
+    else {
+      if (weightValue.value === 1) {
+        // 权重为1时，保持原样
+        newText = text;
+      } else {
+        // 检查文本是否已经被括号包裹
+        if (text.startsWith('(') && text.endsWith(')')) {
+          // 已经有圆括号包裹，直接在末尾添加权重
+          newText = text.replace(/\)$/, `:${weightValue.value})`);
         } else {
-          // 检查文本是否已经被括号包裹
-          if (text.startsWith('(') && text.endsWith(')')) {
-            // 已经有圆括号包裹，直接在末尾添加权重
-            newText = text.replace(/\)$/, `:${weightValue.value})`);
-          } else {
-            // 添加圆括号并在内部末尾添加权重
-            newText = `(${text}:${weightValue.value})`;
-          }
+          // 添加圆括号并在内部末尾添加权重
+          newText = `(${text}:${weightValue.value})`;
         }
       }
     }
+  }
 
   tokens.value[activeControls.value].text = newText;
   updateInputText();
@@ -1284,11 +1307,11 @@ const handleInput = (event) => {
 
   // 检查是否启用了逗号关闭补全窗口功能
   const isCommaCloseAutocompleteEnabled = localStorage.getItem('weilin_prompt_ui_comma_close_autocomplete') === 'true';
-  
+
   // 检查是否刚刚输入了逗号或空格
   const lastChar = newCursorPosition > 0 ? textBeforeCursor[newCursorPosition - 1] : '';
   const justTypedDelimiter = lastChar === ',' || lastChar === ' ';
-  
+
   // 如果输入了逗号或空格，并且启用了该功能，立即关闭补全列表
   if (justTypedDelimiter && isCommaCloseAutocompleteEnabled) {
     showAutocomplete.value = false;
@@ -1301,15 +1324,15 @@ const handleInput = (event) => {
       const currentCursorPos = inputAreaRef.value?.selectionStart || 0;
       const currentText = inputText.value || '';
       const textBeforeCursor = currentText.substring(0, currentCursorPos);
-      
+
       // 查找当前单词起始位置
       let wordStart = currentCursorPos;
       while (wordStart > 0 && !/[,\s]/.test(textBeforeCursor[wordStart - 1])) {
         wordStart--;
       }
-      
+
       const currentWord = textBeforeCursor.substring(wordStart, currentCursorPos).trim();
-      
+
       // 触发自动补全
       if (currentWord) {
         triggerAutocomplete(currentWord);
@@ -1749,48 +1772,77 @@ const processInput = async () => {
 };
 
 const oneClickTranslatePrompt = async () => {
-  const batchSize = 20; // 每批处理的数量
-  let currentIndex = 0;
+  // const batchSize = 20; // 每批处理的数量
+  // let currentIndex = 0;
 
-  while (currentIndex < tokens.value.length) {
-    const endIndex = Math.min(currentIndex + batchSize, tokens.value.length);
-    const promises = [];
+  // while (currentIndex < tokens.value.length) {
+  //   const endIndex = Math.min(currentIndex + batchSize, tokens.value.length);
+  //   const promises = [];
 
-    for (let i = currentIndex; i < endIndex; i++) {
-      const token = tokens.value[i];
-      // 检查translate是否包含英文字符
-      if (token.translate && /[a-zA-Z]/.test(token.translate)) {
-        // 提取需要翻译的文本
-        const textToTranslate = token.text;
-        const promise = new Promise((resolve) => {
+  //   for (let i = currentIndex; i < endIndex; i++) {
+  //     const token = tokens.value[i];
+  //     // 检查translate是否包含英文字符 /[a-zA-Z]/.test(token.translate)
+  //     if (token.translate && token.translate === token.text) {
+  //       // 提取需要翻译的文本
+  //       const textToTranslate = token.text;
+  //       const promise = new Promise((resolve) => {
 
-          if (localStorage.getItem('weilin_prompt_ui_translater_setting') == 'network') {
-            translate.request.translateText(textToTranslate, function (data) {
-              if (data.result > 0) {
-                const translatedText = data.text.map(item => item.replace(/[\[\]“”]/g, '')).join(', ');
-                tokens.value[i].translate = translatedText;
-              }
-              resolve();
-            });
-          } else {
-            translatorApi.translaterText(textToTranslate).then(res => {
-              // console.log(res)
-              if (res.text.length > 0) {
-                tokens.value[i].translate = res.text;
-              }
-              resolve();
-            })
+  //         if (localStorage.getItem('weilin_prompt_ui_translater_setting') == 'network') {
+  //           translate.request.translateText(textToTranslate, function (data) {
+  //             if (data.result > 0) {
+  //               const translatedText = data.text.map(item => item.replace(/[\[\]“”]/g, '')).join(', ');
+  //               tokens.value[i].translate = translatedText;
+  //             }
+  //             resolve();
+  //           });
+  //         } else {
+  //           translatorApi.translaterText(textToTranslate).then(res => {
+  //             // console.log(res)
+  //             if (res.text.length > 0) {
+  //               tokens.value[i].translate = res.text;
+  //             }
+  //             resolve();
+  //           })
+  //         }
+
+  //       });
+  //       promises.push(promise);
+  //     }
+  //   }
+
+  //   // 等待当前批次完成
+  //   await Promise.all(promises);
+  //   currentIndex = endIndex;
+  // }
+
+  let needTranslateData = []
+  for (let i = 0; i < tokens.value.length; i++) {
+    const token = tokens.value[i];
+    // 检查translate是否包含英文字符 /[a-zA-Z]/.test(token.translate)
+    if (token.translate && token.translate === token.text) {
+      // 提取需要翻译的文本
+      const textToTranslate = token.text;
+      needTranslateData.push({ index: token.id, text: textToTranslate, translate: '' });
+    }
+  }
+
+  const jsonString = JSON.stringify(needTranslateData)
+
+  translatorApi.translaterText(jsonString, "").then(res => {
+    if (res) {
+      if (res.data) {
+        const jsonData = JSON.parse(res.data)
+        // console.log(jsonData)
+        for (let i = 0; i < jsonData.length; i++) {
+          const item = jsonData[i];
+          const tokenIndex = tokens.value.findIndex(t => t.id === item.index);
+          if (tokenIndex !== -1) {
+            tokens.value[tokenIndex].translate = item.translate;
           }
-
-        });
-        promises.push(promise);
+        }
       }
     }
-
-    // 等待当前批次完成
-    await Promise.all(promises);
-    currentIndex = endIndex;
-  }
+  })
 };
 
 
@@ -1877,7 +1929,7 @@ const showControls = (index, event) => {
   if (isBoxSelectMode.value) {
     return;
   }
-  
+
   // 清除任何现有的定时器
   if (hideTimeout.value) {
     clearTimeout(hideTimeout.value)
@@ -1978,6 +2030,24 @@ const handleDelete = () => {
   }
 }
 
+
+// 处理添加换行符
+const handelLineToken = () => {
+  if (activeControls.value !== null) {
+    const index = activeControls.value;
+    // 在当前 token 后插入一个换行符 token
+    tokens.value.splice(index + 1, 0, {
+      id: generateUniqueId(),
+      text: '\n',
+      translate: '',
+      isPunctuation: false,
+      isEditing: false,
+      isHidden: false,
+      color: ''
+    });
+    updateInputText();
+  }
+}
 // 删除词组
 const deleteToken = (index) => {
   const text = inputText.value
@@ -2124,7 +2194,7 @@ const startEditing = (index) => {
       adjustInputWidth(input);
       input.addEventListener('input', () => adjustInputWidth(input));
       finishPromptPutItHistory()
-    unsavedChanges.value = true
+      unsavedChanges.value = true
     }
   });
 }
@@ -2289,7 +2359,7 @@ onMounted(() => {
   nextTick(() => {
     restoreTextareaHeight();
   });
-  
+
   // 添加框选功能的事件监听 - 修复嵌套nextTick问题
   // 直接在主nextTick后绑定事件，不再使用嵌套的nextTick
   setTimeout(() => {
@@ -2297,24 +2367,24 @@ onMounted(() => {
     if (!tokensContainerRef.value) {
       tokensContainerRef.value = document.querySelector('.tokens-container')
     }
-    
+
     if (tokensContainerRef.value) {
       // 移除可能存在的旧监听器，避免重复绑定
       tokensContainerRef.value.removeEventListener('mousedown', handleMouseDown)
       tokensContainerRef.value.removeEventListener('mousemove', handleMouseMove)
       tokensContainerRef.value.removeEventListener('mouseup', handleMouseUp)
       tokensContainerRef.value.removeEventListener('mouseleave', handleMouseUp)
-      
+
       // 重新绑定监听器
       tokensContainerRef.value.addEventListener('mousedown', handleMouseDown)
       tokensContainerRef.value.addEventListener('mousemove', handleMouseMove)
       tokensContainerRef.value.addEventListener('mouseup', handleMouseUp)
       tokensContainerRef.value.addEventListener('mouseleave', handleMouseUp)
-      
+
       // 确保容器有合适的样式允许框选
       tokensContainerRef.value.style.userSelect = 'none';
       tokensContainerRef.value.style.cursor = 'default';
-      
+
       console.log('框选功能事件监听器绑定成功')
     } else {
       console.warn('未能找到tokens-container元素，框选功能可能无法正常工作')
@@ -2342,7 +2412,7 @@ const handleMouseDown = (event) => {
     // 检查点击目标是否在标签容器内且不是标签本身或控制元素
     const tokenItem = event.target.closest('.token-item-box, .token-item, .lora-tag-icon, .newline-token, .tab-token, .delete-btn, .weight-control, .bracket-btn, .translate-button, .tag-tips-box, .token-controls')
     const tokensContainer = tokensContainerRef.value
-    
+
     // 如果点击的是空白区域，记录起始位置但不立即创建选择框
     if (tokensContainer && !tokenItem) {
       // 重置所有相关状态变量，确保开始新的框选操作前状态是干净的
@@ -2350,13 +2420,13 @@ const handleMouseDown = (event) => {
       isSelecting.value = false
       isUpdatingSelectionBox.value = false
       isUpdatingSelectedTokens.value = false
-      
+
       // 在开始新的框选前，先关闭任何已存在的操作菜单
       closeSelectionActions()
-      
+
       // 移除任何可能残留的选择框
       removeSelectionBox()
-      
+
       // 获取容器的位置，将选择框限制在容器内
       const containerRect = tokensContainer.getBoundingClientRect()
       selectionStart.value = {
@@ -2367,13 +2437,13 @@ const handleMouseDown = (event) => {
         x: Math.max(event.clientX, containerRect.left),
         y: Math.max(event.clientY, containerRect.top)
       }
-      
+
       // 标记为潜在的框选操作，但不立即开始框选
       isPotentialBoxSelection.value = true
-      
+
       // 记录日志以便调试
       console.log('记录框选起始位置')
-      
+
       // 正常的左键点击应该允许默认行为，比如让文本框失焦
       // 不再阻止默认行为和冒泡，以保留正常的左键功能
     }
@@ -2389,40 +2459,40 @@ const handleMouseMove = (event) => {
       Math.pow(event.clientX - selectionStart.value.x, 2) +
       Math.pow(event.clientY - selectionStart.value.y, 2)
     )
-    
+
     // 如果移动距离超过阈值（例如3像素），才真正开始框选
     if (moveDistance > 3) {
       // 强制阻止默认行为和冒泡，防止浏览器默认的文本选择
       event.preventDefault()
       event.stopPropagation()
-      
+
       // 进入框选模式
       isSelecting.value = true
       isBoxSelectMode.value = true
-      
+
       // 清空选中的标签
       selectedTokens.value = []
-      
+
       // 创建选择框元素
       createSelectionBox()
-      
+
       console.log('开始实际框选')
     }
   }
-  
+
   // 已经处于框选模式，更新选择框
   if (isSelecting.value && tokensContainerRef.value) {
     // 强制阻止默认行为和冒泡，防止浏览器默认的文本选择
     event.preventDefault()
     event.stopPropagation()
-    
+
     // 获取容器的位置，将选择框限制在容器内
     const containerRect = tokensContainerRef.value.getBoundingClientRect()
     selectionEnd.value = {
       x: Math.min(Math.max(event.clientX, containerRect.left), containerRect.right),
       y: Math.min(Math.max(event.clientY, containerRect.top), containerRect.bottom)
     }
-    
+
     // 确保选择框至少有最小尺寸可见
     const minSize = 5
     if (Math.abs(selectionEnd.value.x - selectionStart.value.x) < minSize) {
@@ -2431,7 +2501,7 @@ const handleMouseMove = (event) => {
     if (Math.abs(selectionEnd.value.y - selectionStart.value.y) < minSize) {
       selectionEnd.value.y = selectionStart.value.y + minSize;
     }
-    
+
     // 分离选择框更新和标签选中状态更新
     // 1. 选择框更新：使用requestAnimationFrame保持流畅动画，不使用节流
     // 添加防御性检查，确保即使isUpdatingSelectionBox被卡住也能继续更新
@@ -2442,7 +2512,7 @@ const handleMouseMove = (event) => {
         isUpdatingSelectionBox.value = false
       })
     }
-    
+
     // 2. 标签选中状态更新：使用节流控制，减少性能消耗
     const currentTime = Date.now()
     if (!isUpdatingSelectedTokens.value && (currentTime - lastUpdateTime.value > throttleInterval)) {
@@ -2460,20 +2530,20 @@ const handleMouseMove = (event) => {
 const handleMouseUp = () => {
   // 清理潜在的框选状态
   isPotentialBoxSelection.value = false
-  
+
   if (isSelecting.value) {
     // 先保存选中的标签数量，然后才结束框选模式
     const selectedCount = selectedTokens.value.length
-    
+
     // 确保所有状态变量都被正确重置
     isSelecting.value = false
     isBoxSelectMode.value = false // 退出框选模式
     isUpdatingSelectionBox.value = false
     isUpdatingSelectedTokens.value = false
-    
+
     // 移除选择框
     removeSelectionBox()
-    
+
     // 如果有选中的标签，显示操作菜单
     if (selectedCount > 0) {
       showSelectionActionsMenu()
@@ -2490,11 +2560,11 @@ const createSelectionBox = () => {
       // 如果存在，先移除它
       document.body.removeChild(selectionBox)
     }
-    
+
     // 创建新的选择框
     selectionBox = document.createElement('div')
     selectionBox.id = selectionBoxId
-    
+
     // 增强选择框的可见性，使用更醒目的样式
     selectionBox.style.cssText = `
       position: fixed;
@@ -2507,7 +2577,7 @@ const createSelectionBox = () => {
       opacity: 1;
       display: block;
     `
-    
+
     document.body.appendChild(selectionBox)
     console.log('选择框已创建')
     updateSelectionBox()
@@ -2528,17 +2598,17 @@ const updateSelectionBox = () => {
       selectionBox = document.getElementById(selectionBoxId)
       if (!selectionBox) return
     }
-    
+
     const left = Math.min(selectionStart.value.x, selectionEnd.value.x)
     const top = Math.min(selectionStart.value.y, selectionEnd.value.y)
     const width = Math.abs(selectionEnd.value.x - selectionStart.value.x)
     const height = Math.abs(selectionEnd.value.y - selectionStart.value.y)
-    
+
     // 确保选择框有足够的大小可见
     const minSize = 5
     const effectiveWidth = Math.max(width, minSize)
     const effectiveHeight = Math.max(height, minSize)
-    
+
     if (selectionBox) {
       selectionBox.style.left = `${left}px`
       selectionBox.style.top = `${top}px`
@@ -2567,30 +2637,30 @@ const removeSelectionBox = () => {
 // 更新选中的标签索引（框选时使用）
 const updateSelectedTokens = () => {
   selectedTokens.value = []
-  
+
   const left = Math.min(selectionStart.value.x, selectionEnd.value.x)
   const top = Math.min(selectionStart.value.y, selectionEnd.value.y)
   const right = Math.max(selectionStart.value.x, selectionEnd.value.x)
   const bottom = Math.max(selectionStart.value.y, selectionEnd.value.y)
-  
+
   // 获取所有类型的标签容器元素
   const tokenBoxes = document.querySelectorAll('.token-item-box')
-  
+
   tokenBoxes.forEach((box, index) => {
     // 获取标签内部的实际显示元素
     const tokenElement = box.querySelector('.token-item, .lora-tag-icon, .newline-token, .tab-token')
     if (!tokenElement) return
-    
+
     const rect = box.getBoundingClientRect()
-    
+
     // 检查标签是否与选择框有交集
     const isInSelection = rect.right >= left && rect.left <= right && rect.bottom >= top && rect.top <= bottom
-    
+
     if (isInSelection) {
       selectedTokens.value.push(index)
     }
   })
-  
+
   // 应用选中样式
   applySelectedStyle()
 }
@@ -2599,11 +2669,11 @@ const updateSelectedTokens = () => {
 const applySelectedStyle = () => {
   // 获取所有类型的标签容器元素
   const tokenBoxes = document.querySelectorAll('.token-item-box')
-  
+
   // 避免重复操作DOM，先记录需要更新的元素
   const toSelect = []
   const toDeselect = []
-  
+
   tokenBoxes.forEach((box, index) => {
     if (selectedTokens.value.includes(index)) {
       toSelect.push(box)
@@ -2611,13 +2681,13 @@ const applySelectedStyle = () => {
       toDeselect.push(box)
     }
   })
-  
+
   // 批量更新DOM，减少重排重绘
   toSelect.forEach(box => {
     // 为整个标签容器添加选中类，通过CSS优先级确保显示在禁用样式之上
     box.classList.add('token-item-box-selected')
   })
-  
+
   toDeselect.forEach(box => {
     // 移除视觉反馈
     box.classList.remove('token-item-box-selected')
@@ -2636,15 +2706,15 @@ const showSelectionActionsMenu = () => {
     const top = Math.min(selectionStart.value.y, selectionEnd.value.y)
     const right = Math.max(selectionStart.value.x, selectionEnd.value.x)
     const bottom = Math.max(selectionStart.value.y, selectionEnd.value.y)
-    
+
     // 设置菜单位置在选择区域中央
     selectionActionsPosition.value = {
       top: `${top - 50}px`,
       left: `${(left + right) / 2}px`
     }
-    
+
     showSelectionActions.value = true
-    
+
     // 添加点击外部关闭菜单的事件监听
     setTimeout(() => {
       document.addEventListener('click', closeSelectionActionsOnClickOutside)
@@ -2655,12 +2725,12 @@ const showSelectionActionsMenu = () => {
 // 复制选中的标签文本
 const copySelectedTokens = () => {
   if (selectedTokens.value.length === 0) return
-  
+
   // 按顺序获取选中标签的文本
   const sortedIndices = [...selectedTokens.value].sort((a, b) => a - b)
   const texts = sortedIndices.map(index => tokens.value[index].text)
   const combinedText = texts.join(', ')
-  
+
   // 复制到剪贴板
   navigator.clipboard.writeText(combinedText).then(() => {
     // 可以添加一个简单的提示
@@ -2677,12 +2747,12 @@ const copySelectedTokens = () => {
     `
     tempMessage.textContent = '已复制到剪贴板'
     document.body.appendChild(tempMessage)
-    
+
     setTimeout(() => {
       document.body.removeChild(tempMessage)
     }, 2000)
   })
-  
+
   // 关闭菜单并清除选中状态
   closeSelectionActions()
 }
@@ -2690,7 +2760,7 @@ const copySelectedTokens = () => {
 // 禁用选中的标签
 const disableSelectedTokens = () => {
   if (selectedTokens.value.length === 0) return
-  
+
   selectedTokens.value.forEach(index => {
     if (tokens.value[index] && !tokens.value[index].isHidden) {
       // 不修改标签文本，只设置隐藏状态（与双击禁用行为一致）
@@ -2698,10 +2768,10 @@ const disableSelectedTokens = () => {
       tokens.value[index].hiddenHint = t('promptBox.hiddenHint') // 使用国际化提示
     }
   })
-  
+
   updateInputText()
   finishPromptPutItHistory()
-  
+
   // 关闭菜单并清除选中状态
   closeSelectionActions()
 }
@@ -2709,7 +2779,7 @@ const disableSelectedTokens = () => {
 // 启用选中的标签
 const enableSelectedTokens = () => {
   if (selectedTokens.value.length === 0) return
-  
+
   selectedTokens.value.forEach(index => {
     if (tokens.value[index] && tokens.value[index].isHidden) {
       // 只需要清除隐藏状态，不需要恢复原始文本（与双击禁用行为一致）
@@ -2717,10 +2787,10 @@ const enableSelectedTokens = () => {
       tokens.value[index].hiddenHint = ''
     }
   })
-  
+
   updateInputText()
   finishPromptPutItHistory()
-  
+
   // 关闭菜单并清除选中状态
   closeSelectionActions()
 }
@@ -2755,19 +2825,19 @@ const closeSelectionActionsOnClickOutside = (event) => {
 // 批量删除选中的标签
 const bulkDeleteSelectedTokens = () => {
   if (selectedTokens.value.length === 0) return
-  
+
   // 确保按照从后往前的顺序删除，避免索引偏移
   const sortedIndices = [...selectedTokens.value].sort((a, b) => b - a)
-  
+
   // 先删除tokens数组中的元素
   sortedIndices.forEach(index => {
     tokens.value.splice(index, 1)
   })
-  
+
   // 然后更新输入文本
   updateInputText()
   finishPromptPutItHistory()
-  
+
   // 清除选中状态
   clearSelectedTokens()
 }
@@ -2784,10 +2854,10 @@ const clearSelectedTokens = () => {
     box.style.boxShadow = ''
     box.style.backgroundColor = box.dataset.originalBgColor || ''
   })
-  
+
   // 清空选中状态数组
   selectedTokens.value = []
-  
+
   // 如果操作菜单可见，也关闭它
   if (showSelectionActions.value) {
     showSelectionActions.value = false
@@ -2799,14 +2869,14 @@ const clearSelectedTokens = () => {
 const handleClickToClearSelection = (event) => {
   // 只有当有选中项时才需要处理
   if (selectedTokens.value.length === 0) return;
-  
+
   // 检查点击目标是否在标签容器内且不是标签本身、控制元素或操作菜单
   const tokenItem = event.target.closest('.token-item-box, .token-item, .token-controls, .delete-btn, .weight-control, .bracket-btn, .translate-button, .tag-tips-box');
   const tokensContainer = tokensContainerRef.value;
-  
+
   // 如果点击的是文本框或完全在标签容器外部的空白区域，则清除选中状态
-  if (event.target === inputAreaRef.value || 
-      (!tokenItem && (!tokensContainer || !tokensContainer.contains(event.target)))) {
+  if (event.target === inputAreaRef.value ||
+    (!tokenItem && (!tokensContainer || !tokensContainer.contains(event.target)))) {
     clearSelectedTokens();
   }
 }
@@ -2945,7 +3015,7 @@ const initTranslate = async () => {
     translate.language.setLocal(savedSourceLanguage);
   }
   translate.language.setDefaultTo(savedTargetLanguage);
-  
+
   // 解决common命名空间翻译未生效问题：强制触发Vue I18n更新
   await nextTick();
 }
@@ -2961,12 +3031,25 @@ const translateFunction = (texts, token) => {
       // console.log(data);
     });
   } else {
-    translatorApi.translaterText(texts).then(res => {
-      // console.log(res)
-      if (res.text.length > 0) {
-        token.translate = res.text;
+
+    let needTranslateData = { index: token.id, text: token.text, translate: '' }
+    const jsonString = JSON.stringify(needTranslateData)
+
+    translatorApi.translaterText(jsonString, "").then(res => {
+      if (res) {
+        if (res.data) {
+          const jsonData = JSON.parse(res.data)
+          // console.log(jsonData)
+          token.translate = jsonData.translate
+        }
       }
     })
+    // translatorApi.translaterText(texts).then(res => {
+    //   // console.log(res)
+    //   if (res.text.length > 0) {
+    //     token.translate = res.text;
+    //   }
+    // })
   }
 }
 
@@ -2998,21 +3081,46 @@ const finishTranslateEnter = () => {
       // console.log(data);
     });
   } else {
-    translatorApi.translaterInputText(translateText.value).then(res => {
-      // console.log(res)
-      if (res.text.length > 0) {
-        tokens.value.push({
-          text: res.text,
-          translate: translateText.value,
-          isPunctuation: false,
-          isEditing: false,
-          isHidden: false,
-          color: ''
-        });
-        translateText.value = ''
-        updateInputText()
+
+    let needTranslateData = { text: translateText.value, translate: '' }
+    const jsonString = JSON.stringify(needTranslateData)
+
+    translatorApi.translaterInputText(jsonString, "").then(res => {
+      if (res) {
+        if (res.data) {
+          const jsonData = JSON.parse(res.data)
+          // console.log(jsonData)
+          // token.translate = jsonData.translate
+
+          tokens.value.push({
+            text: jsonData.translate,
+            translate: translateText.value,
+            isPunctuation: false,
+            isEditing: false,
+            isHidden: false,
+            color: ''
+          });
+          translateText.value = ''
+          updateInputText()
+        }
       }
     })
+
+    // translatorApi.translaterInputText(translateText.value).then(res => {
+    //   // console.log(res)
+    //   if (res.text.length > 0) {
+    //     tokens.value.push({
+    //       text: res.text,
+    //       translate: translateText.value,
+    //       isPunctuation: false,
+    //       isEditing: false,
+    //       isHidden: false,
+    //       color: ''
+    //     });
+    //     translateText.value = ''
+    //     updateInputText()
+    //   }
+    // })
   }
 
 }
@@ -3309,7 +3417,7 @@ const initializeDragState = (index, useMultipleSelection = false) => {
   isDragging.value = true;
   dragStartIndex.value = null;
   draggedTokens.value = [];
-  
+
   if (useMultipleSelection && selectedTokens.value.length > 1 && selectedTokens.value.includes(index)) {
     // 批量拖拽模式
     draggedTokens.value = [...selectedTokens.value].sort((a, b) => a - b);
@@ -3318,12 +3426,12 @@ const initializeDragState = (index, useMultipleSelection = false) => {
     selectedTokens.value = [];
     dragStartIndex.value = index;
   }
-  
+
   // 初始化临时状态，用于在拖拽过程中进行计算
   dragTempState = {
     originalTokens: [...tokens.value],
-    draggedItems: draggedTokens.value.length > 0 
-      ? draggedTokens.value.map(i => tokens.value[i]) 
+    draggedItems: draggedTokens.value.length > 0
+      ? draggedTokens.value.map(i => tokens.value[i])
       : [tokens.value[index]]
   };
 };
@@ -3334,10 +3442,10 @@ const handleDragStart = (index, event) => {
     event.preventDefault();
     return;
   }
-  
+
   // 初始化拖拽状态
   initializeDragState(index, true);
-  
+
   event.dataTransfer.effectAllowed = 'move';
 };
 
@@ -3345,27 +3453,27 @@ const handleDragStart = (index, event) => {
 const calculateInsertPosition = (originalTokens, draggedIndexes, targetIndex) => {
   // 计算在原始数组中，有多少被拖动的元素位于目标索引之前
   const elementsBeforeIndex = draggedIndexes.filter(i => i < targetIndex).length;
-  
+
   // 调整插入位置，考虑被删除的元素
   let insertIndex = Math.max(0, targetIndex - elementsBeforeIndex);
-  
+
   // 确保插入位置在有效范围内
   const validRange = originalTokens.length - draggedIndexes.length;
   insertIndex = Math.min(insertIndex, validRange);
-  
+
   return insertIndex;
 };
 
 // 执行拖拽更新的函数
 const performDragUpdate = (targetIndex) => {
   if (!dragTempState) return;
-  
+
   const newTokens = [...dragTempState.originalTokens];
   const draggedIndexes = draggedTokens.value.length > 0 ? draggedTokens.value : [dragStartIndex.value];
-  
+
   // 保存要拖动的元素内容，用于后续重新映射选中状态
   const draggedElements = draggedIndexes.map(idx => dragTempState.originalTokens[idx]);
-  
+
   // 从后往前删除，避免索引错误
   for (let i = draggedIndexes.length - 1; i >= 0; i--) {
     const idx = draggedIndexes[i];
@@ -3373,28 +3481,28 @@ const performDragUpdate = (targetIndex) => {
       newTokens.splice(idx, 1);
     }
   }
-  
+
   // 计算插入位置
   const insertIndex = calculateInsertPosition(
-    dragTempState.originalTokens, 
-    draggedIndexes, 
+    dragTempState.originalTokens,
+    draggedIndexes,
     targetIndex
   );
-  
+
   // 插入被拖动的元素
   dragTempState.draggedItems.forEach((item, i) => {
     newTokens.splice(insertIndex + i, 0, item);
   });
-  
+
   // 更新tokens数组和输入文本
   tokens.value = newTokens;
   updateInputText();
-  
+
   // 如果是批量拖拽且有选中的标签，更新选中状态
   if (draggedTokens.value.length > 0 && selectedTokens.value.length > 0) {
     // 创建新的选中索引数组，确保它只包含当前可见且有效的标签索引
     const newSelectedTokens = [];
-    
+
     // 查找新位置的拖动元素索引
     for (let i = 0; i < newTokens.length; i++) {
       // 通过内容匹配确定元素位置（对于复杂对象，可能需要使用唯一标识符）
@@ -3403,10 +3511,10 @@ const performDragUpdate = (targetIndex) => {
         newSelectedTokens.push(i);
       }
     }
-    
+
     // 更新选中状态
     selectedTokens.value = newSelectedTokens;
-    
+
     // 在下一个DOM更新周期应用选中样式，确保DOM已更新
     setTimeout(() => {
       applySelectedStyle();
@@ -3421,28 +3529,28 @@ const handleDragOver = (index, event) => {
     return;
   }
   event.preventDefault();
-  
+
   // 检查是否在拖拽状态
   if (!isDragging.value) return;
-  
+
   // 检查目标索引是否有效
   if (index < 0 || index >= tokens.value.length) return;
-  
+
   // 检查目标索引是否在被拖动的元素中
   if (draggedTokens.value.length > 0 && draggedTokens.value.includes(index)) {
     return;
   }
-  
+
   // 如果是单个拖拽，检查是否拖到了自己上面
   if (draggedTokens.value.length === 0 && dragStartIndex.value === index) {
     return;
   }
-  
+
   // 清除之前的定时器
   if (dragUpdateTimer) {
     clearTimeout(dragUpdateTimer);
   }
-  
+
   // 设置新的定时器，延迟更新以减少闪烁
   dragUpdateTimer = setTimeout(() => {
     performDragUpdate(index);
@@ -3451,18 +3559,18 @@ const handleDragOver = (index, event) => {
 
 const handleDrop = (index, event) => {
   event.preventDefault();
-  
+
   // 清除定时器和重置拖拽状态
   if (dragUpdateTimer) {
     clearTimeout(dragUpdateTimer);
     dragUpdateTimer = null;
   }
-  
+
   // 执行最终的拖拽更新
   if (isDragging.value && dragTempState) {
     performDragUpdate(index);
   }
-  
+
   // 重置拖拽相关状态，但保留选中状态(selectedTokens)
   isDragging.value = false;
   dragStartIndex.value = null;
@@ -3647,6 +3755,13 @@ const onClickLocalTemplateRandomTag = async (name) => {
   }
 }
 
+const favourItemRef = ref(null);
+const openFavourTag = (tokenInfo) => {
+  if (favourItemRef.value) {
+    favourItemRef.value.open(tokenInfo.text, tokenInfo.translate)
+  }
+}
+
 /**
  * 从短码反向解析出原始路径
  * 
@@ -3708,10 +3823,13 @@ defineExpose({
   transform: translate(-50%, -50%);
   background: rgba(0, 0, 0, 0.85);
   color: #fff;
-  padding: 12px 20px; /* 增加内边距让提示更突出 */
+  padding: 12px 20px;
+  /* 增加内边距让提示更突出 */
   border-radius: 12px;
-  font-size: 16px; /* 字体更大 */
-  font-weight: 500; /* 略加粗 */
+  font-size: 16px;
+  /* 字体更大 */
+  font-weight: 500;
+  /* 略加粗 */
   line-height: 1.4;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
   pointer-events: none;
@@ -3722,14 +3840,14 @@ defineExpose({
 }
 
 /* 淡入淡出 + 缩放动画 */
-.weilin-fade-enter-active, .weilin-fade-leave-active {
+.weilin-fade-enter-active,
+.weilin-fade-leave-active {
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-.weilin-fade-enter-from, .weilin-fade-leave-to {
+.weilin-fade-enter-from,
+.weilin-fade-leave-to {
   opacity: 0;
   transform: translate(-50%, -50%) scale(0.9);
 }
-
-
 </style>

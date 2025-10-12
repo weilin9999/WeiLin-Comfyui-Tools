@@ -21,6 +21,9 @@ export default {
         oneClickTranslate: "一键翻译Tag",
         modelWeight: "模型权重",
         textWeight: "文本权重",
+        favour: "收藏",
+        lineToken: "换行",
+        addLineToken: "添加换行符",
         settings: {
             title: '设置',
             cancel: '取消',
@@ -228,6 +231,7 @@ export default {
         "description": "Tag",
         "descriptionPlaceholder": "请输入Tag",
         "textRequired": "Tag和Tag描述不能为空",
+        "favourRequired": "Tag和Tag描述不能为空，且必须选择分组",
         "backgroundColor": "背景颜色",
         "colorPickerTitle": "选择颜色",
         "opacity": "透明度",

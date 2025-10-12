@@ -550,8 +550,8 @@ const selectLora = (lora) => {
         name: lora.model_name,
         display_name: retLoraName(lora),
         lora: lora.name,
-        weight: lora.local_info?.strengthMin ? lora.local_info.strengthMin : 0.5,
-        text_encoder_weight: lora.local_info?.strWeight ? lora.local_info.strWeight : 0.5,
+        weight: lora.local_info?.strengthMin ? lora.local_info.strengthMin : 1,
+        text_encoder_weight: lora.local_info?.strWeight ? lora.local_info.strWeight : 1,
         loraWorks: lora.local_info?.loraWorks ? lora.local_info.loraWorks : '',
       }
     }, '*')
@@ -562,8 +562,8 @@ const selectLora = (lora) => {
         name: lora.model_name,
         display_name: retLoraName(lora),
         lora: lora.name,
-        weight: lora.local_info?.strengthMin ? lora.local_info.strengthMin : 0.5,
-        text_encoder_weight: lora.local_info?.strWeight ? lora.local_info.strWeight : 0.5,
+        weight: lora.local_info?.strengthMin ? lora.local_info.strengthMin : 1,
+        text_encoder_weight: lora.local_info?.strWeight ? lora.local_info.strWeight : 1,
         loraWorks: lora.local_info?.loraWorks ? lora.local_info.loraWorks : '',
       }
     }, '*')
@@ -574,8 +574,8 @@ const selectLora = (lora) => {
         name: lora.model_name,
         display_name: retLoraName(lora),
         lora: lora.name,
-        weight: lora.local_info?.strengthMin ? lora.local_info.strengthMin : 0.5,
-        text_encoder_weight: lora.local_info?.strWeight ? lora.local_info.strWeight : 0.5,
+        weight: lora.local_info?.strengthMin ? lora.local_info.strengthMin : 1,
+        text_encoder_weight: lora.local_info?.strWeight ? lora.local_info.strWeight : 1,
         loraWorks: lora.local_info?.loraWorks ? lora.local_info.loraWorks : '',
       }
     }, '*')
@@ -590,7 +590,7 @@ const addLoraTag = (loraData) => {
   window.postMessage({
     type: 'weilin_prompt_ui_addLoraTag_inner',
     lora: {
-      tag: `<wlr:${loraData.model_name}:${loraData.local_info?.strengthMin ? loraData.local_info.strengthMin : 0.5}:${loraData.local_info?.strWeight ? loraData.local_info.strWeight : 0.5}>`,
+      tag: `<wlr:${loraData.model_name}:${loraData.local_info?.strengthMin ? loraData.local_info.strengthMin : 1}:${loraData.local_info?.strWeight ? loraData.local_info.strWeight : 1}>`,
       loraWorks: loraData.local_info?.loraWorks ? loraData.local_info.loraWorks : '',
     }
   }, '*');

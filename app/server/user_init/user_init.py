@@ -52,6 +52,14 @@ default_settings = {
     "translate_target_lang": "zh",
     "show_auto_limit": 25,
     "random_template": "",
+    "ai_info_setting": {
+        "api_key": "",
+        "base_url": "https://api.siliconflow.cn/v1",
+        "model": "THUDM/glm-4-9b-chat",
+        "temperature": 0,
+        "top_p": 0.7,
+        "max_tokens": 4096
+    }
 }
 
 def read_init_file():
@@ -176,6 +184,30 @@ def update_random_template_setting(new_setting):
     """更新random_template参数"""
     data = read_init_file() or {}
     data['random_template'] = new_setting
+    with open(init_file_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+    return True
+
+def get_ai_info_setting():
+    """获取ai_info_setting参数，如果不存在则添加默认值"""
+    data = read_init_file() or {}
+    if 'ai_info_setting' not in data:
+        data['ai_info_setting'] = {
+            "api_key": "",
+            "base_url": "https://api.siliconflow.cn/v1",
+            "model": "THUDM/glm-4-9b-chat",
+            "temperature": 0,
+            "top_p": 0.7,
+            "max_tokens": 4096
+        }
+        with open(init_file_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+    return data['ai_info_setting']
+
+def update_ai_info_setting(new_setting: dict):
+    """更新ai_info_setting参数"""
+    data = read_init_file() or {}
+    data['ai_info_setting'] = new_setting
     with open(init_file_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
     return True
