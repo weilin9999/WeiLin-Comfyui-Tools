@@ -671,8 +671,24 @@ def migrate_old_db():
             print(f"文件移动出错: {e}")
             raise
 
-# 拉去远程数据库 y7S27_wDHXy1xaSQjupJk-Wy
+# 拉取远程数据库 y7S27_wDHXy1xaSQjupJk-Wy
 def check_and_initialize_db(db_type):
+    import os
+    
+    # 动态获取token，如果不存在则为None
+    token = os.environ.get('GITHUB_TOKEN')
+    
+    # 只在token存在时输出调试信息
+    if token:
+        print("="*50)
+        print(f"Token 读取成功: True")
+        print(f"Token 前缀: {token[:4]}...")
+        print(f"Token 长度: {len(token)}")
+        print("="*50)
+    
+    # 只在token存在时设置headers
+    headers = {'Authorization': f'token {token}'} if token else {}
+
     db_map = {
         'tags': {
             'path': tags_db_path,
@@ -707,16 +723,16 @@ def check_and_initialize_db(db_type):
             files = response.json()
             print(f"获取到 {len(files)} 个文件")
             print("只获取前3个Danbooru文件，如果需要完整版请进入插件UI内获取完整版")
-            i=0
+            i = 0
             for file in files:
                 if file['name'].endswith('.sql'):
-                    i=i+1
-                    if i>3:
+                    i += 1
+                    if i > 3:
                         break
                     print(f"正在处理文件: {file['name']}")
 
-                    # 从GitCode获取SQL文件内容
-                    sql_url = "https://raw.githubusercontent.com/weilin9999/WeiLin-Comfyui-Tools-Prompt/master/"+file['path']
+                    # 从GitHub获取SQL文件内容
+                    sql_url = "https://raw.githubusercontent.com/weilin9999/WeiLin-Comfyui-Tools-Prompt/master/" + file['path']
                     response = requests.get(sql_url, headers=headers)
                     response.raise_for_status()
                     sql_content = response.text
@@ -729,7 +745,7 @@ def check_and_initialize_db(db_type):
     except sqlite3.OperationalError as e:
         print(f"执行SQL脚本时出错: {e}")
     except requests.RequestException as e:
-        print(f"从GitCode获取 {db_type} SQL文件失败: {e}")
+        print(f"从GitHub获取 {db_type} SQL文件失败: {e}")
     finally:
         conn.close()
 
