@@ -349,6 +349,15 @@
               <input v-else-if="!token.isPunctuation" :value="token.text" @input="handleTokenEdit(index, $event)"
                 @blur="finishEditing(index)" @keyup.enter="finishEditing(index)"
                 :ref="el => { if (el) tokenInputRefs[index] = el }">
+              <!-- 右侧快捷删除按钮 -->
+              <button class="quick-delete-btn" @click.stop="deleteToken(index)" :title="t('promptBox.delete')"
+                style="margin-left: 4px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                    fill="#ff4d4f70" />
+                </svg>
+              </button>
             </div>
 
 
@@ -1815,36 +1824,85 @@ const oneClickTranslatePrompt = async () => {
   //   currentIndex = endIndex;
   // }
 
-  let needTranslateData = []
-  for (let i = 0; i < tokens.value.length; i++) {
-    const token = tokens.value[i];
-    // 检查translate是否包含英文字符 /[a-zA-Z]/.test(token.translate)
-    if (token.translate && token.translate === token.text) {
-      // 提取需要翻译的文本
-      const textToTranslate = token.text;
-      needTranslateData.push({ index: token.id, text: textToTranslate, translate: '' });
+  const batchSize = 2; // 每批最多2个
+  let currentIndex = 0;
+  const MAX_TOKEN_LENGTH = 20; // 超过20单独翻译
+
+  while (currentIndex < tokens.value.length) {
+    let batchTranslateData = [];
+    let batchTokenIds = [];
+    let batchTokenLength = 0;
+    let batchCount = 0;
+
+    // 收集本批次
+    for (let i = currentIndex; i < tokens.value.length; i++) {
+      const token = tokens.value[i];
+      if (
+        token.translate &&
+        /[a-zA-Z]/.test(token.translate) &&
+        !(typeof token.text === 'string' && token.text.startsWith('<wlr'))
+      ) {
+        const textToTranslate = token.text;
+        const textLen = textToTranslate.length;
+
+        if (textLen > MAX_TOKEN_LENGTH) {
+          // 单独翻译
+          const jsonString = JSON.stringify([{ index: token.id, text: textToTranslate, translate: '' }]);
+          await tryTranslate(jsonString, [token.id]);
+          currentIndex = i + 1;
+          break;
+        } else {
+          batchTranslateData.push({ index: token.id, text: textToTranslate, translate: '' });
+          batchTokenIds.push(token.id);
+          batchTokenLength += textLen;
+          batchCount++;
+        }
+      }
+
+      // 满2个就发起翻译
+      if (batchCount === batchSize) {
+        break;
+      }
     }
+
+    if (batchTranslateData.length > 0) {
+      const jsonString = JSON.stringify(batchTranslateData);
+      await tryTranslate(jsonString, batchTokenIds);
+    }
+
+    // 跳过已处理的token
+    currentIndex += batchCount > 0 ? batchCount : 1;
   }
 
-  const jsonString = JSON.stringify(needTranslateData)
+};
 
-  translatorApi.translaterText(jsonString, "").then(res => {
-    if (res) {
-      if (res.data) {
-        const jsonData = JSON.parse(res.data)
-        // console.log(jsonData)
-        for (let i = 0; i < jsonData.length; i++) {
-          const item = jsonData[i];
+const tryTranslate = async (jsonString, tokenIds) => {
+  let retry = 0;
+  while (retry < 2) {
+    try {
+      const res = await translatorApi.translaterText(jsonString, "");
+      if (res && res.data) {
+        const jsonData = JSON.parse(res.data);
+        for (let j = 0; j < jsonData.length; j++) {
+          const item = jsonData[j];
           const tokenIndex = tokens.value.findIndex(t => t.id === item.index);
           if (tokenIndex !== -1) {
             tokens.value[tokenIndex].translate = item.translate;
           }
         }
+        return true; // 成功
+      }
+      return false;
+    } catch (e) {
+      retry++;
+      if (retry >= 2) {
+        // 最多重试一次，失败则跳过
+        return false;
       }
     }
-  })
+  }
+  return false;
 };
-
 
 const tempInputText = ref('')
 

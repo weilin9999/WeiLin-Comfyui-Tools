@@ -1100,3 +1100,26 @@
 .line-token-btn:active svg {
   filter: brightness(0.85);
 }
+
+.quick-delete-btn {
+  background: transparent;
+  border: none;
+  padding: 2px 2px;
+  margin-left: 2px;
+  cursor: pointer;
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  transition: background 0.2s;
+  vertical-align: middle;
+}
+.quick-delete-btn:hover {
+  background: #fff1f0;
+}
+.quick-delete-btn svg {
+  display: block;
+  transition: filter 0.2s;
+}
+.quick-delete-btn:active svg {
+  filter: brightness(0.85);
+}

@@ -61,7 +61,16 @@ async def translateObject(objectData: str, target_lang_code: str = "zh") -> str:
 
     response = requests.post(url, json=payload, headers=headers)
     dataResponse = response.json()
-    print(f"💡[WeiLin-Comfyui-Tools] 硅基AI翻译接口-翻译完成，以下是使用信息：\n - PromptToken：{dataResponse['usage']['total_tokens']}，\n - CompletionTokens：{dataResponse['usage']['completion_tokens']}，\n - TotalTokens：{dataResponse['usage']['total_tokens']}")
+    if response.status_code != 200:
+        raise RuntimeError(
+            f"📌[WeiLin-Comfyui-Tools] 硅基AI接口错误: {response.status_code} {dataResponse}")
+    
+    print("💡[WeiLin-Comfyui-Tools] 硅基AI翻译接口-翻译结果：", dataResponse["choices"][0]["message"]["content"][:20], "...")
+    try:
+        print(f"💡[WeiLin-Comfyui-Tools] 硅基AI翻译接口-翻译完成，以下是使用信息：\n - PromptToken：{dataResponse['usage']['total_tokens']}，\n - CompletionTokens：{dataResponse['usage']['completion_tokens']}，\n - TotalTokens：{dataResponse['usage']['total_tokens']}")
+    except KeyError as e:
+        print("💡[WeiLin-Comfyui-Tools] 硅基AI翻译接口-使用信息获取失败，可能是接口返回异常，错误信息：", str(e))
+    print("💡[WeiLin-Comfyui-Tools] 硅基AI翻译接口：", dataResponse["choices"][0]["finish_reason"])
     return dataResponse["choices"][0]["message"]["content"]
 
 
@@ -78,5 +87,9 @@ def getModelList() -> dict:
     querystring = {"type": "text"}
 
     response = requests.get(url, headers=headers, params=querystring)
+
+    if response.status_code != 200:
+        raise RuntimeError(
+            f"📌[WeiLin-Comfyui-Tools] 硅基AI接口错误: {response.status_code} {response.json()}")
 
     return response.json()
