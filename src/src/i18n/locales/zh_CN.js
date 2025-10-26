@@ -50,6 +50,7 @@ export default {
             enableBracketConversion: '启用括号转换，全角括号转为半角括号',
             enableAngleBracketConversion: '启用尖括号转换，全角尖括号转为半角尖括号',
             enableUnderscoreToBracket: '启用下划线转换，下划线转换为空格',
+            showDeleteButton: '显示标签删除按钮',
             enableBracketEscape: '启用括号转义，自动添加\\转义括号',
             enableCommaCloseAutocomplete: '启动逗号关闭补全，输入逗号立即关闭补全列表',
             setting_openai_box: 'OpenAI设置',

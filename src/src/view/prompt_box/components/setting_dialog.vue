@@ -277,6 +277,7 @@
                 {{ t('promptBox.settings.enableBracketEscape') }}
               </label>
             </div>
+
             <button class="weilin-comfyui-save-button" @click="savePromptBoxSettings">
               {{ t('promptBox.settings.save') }}
             </button>

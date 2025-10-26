@@ -280,6 +280,17 @@
           <span style="margin-left: 5px;" class="action-text">{{ t('promptBox.oneClickTranslate') }}</span>
         </button>
 
+        <!-- 添加显示标签删除按钮开关 -->
+        <button class="translate-btn delete-button-toggle" @click="toggleDeleteButton" :title="t('promptBox.settings.showDeleteButton')">
+          <svg v-if="showDeleteButton" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="#ff4d4f"/>
+          </svg>
+          <svg v-else viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="#999"/>
+          </svg>
+          <span style="margin-left: 5px;" class="action-text">{{ t('promptBox.settings.showDeleteButton') }}</span>
+        </button>
+
         <!-- 添加设置随机Tag规则按钮 -->
         <button class="translate-btn random-tag-settings-btn" @click="openRandomTagSettings"
           :title="t('promptBox.randomTagSettings')">
@@ -350,7 +361,7 @@
                 @blur="finishEditing(index)" @keyup.enter="finishEditing(index)"
                 :ref="el => { if (el) tokenInputRefs[index] = el }">
               <!-- 右侧快捷删除按钮 -->
-              <button class="quick-delete-btn" @click.stop="deleteToken(index)" :title="t('promptBox.delete')"
+              <button v-if="showDeleteButton" class="quick-delete-btn" @click.stop="deleteToken(index)" :title="t('promptBox.delete')"
                 style="margin-left: 4px;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                   <path
@@ -685,6 +696,9 @@ const tokenIdCounter = ref(0);
 // 控制左侧标签管理器是否可见的状态
 const isLabelManagerVisible = ref(true);
 
+// 控制标签删除按钮是否显示的状态
+const showDeleteButton = ref(localStorage.getItem('weilin_prompt_ui_show_delete_button') !== 'false');
+
 // 用于本地存储的键名
 const STORAGE_KEY_SIDEBAR_VISIBLE = 'weilin_prompt_ui_sidebar_visible';
 
@@ -703,6 +717,21 @@ onMounted(() => {
   const savedState = localStorage.getItem(STORAGE_KEY_SIDEBAR_VISIBLE);
   // 默认值为 true (显示)，如果存储了 'false' 则为 false
   isLabelManagerVisible.value = savedState !== 'false';
+  
+  // 监听删除按钮设置的变化
+  const handleStorageChange = (e) => {
+    if (e.key === 'weilin_prompt_ui_show_delete_button') {
+      showDeleteButton.value = e.newValue !== 'false';
+    }
+  };
+  
+  window.addEventListener('storage', handleStorageChange);
+  
+  // 组件卸载时移除监听器
+  onUnmounted(() => {
+    window.removeEventListener('storage', handleStorageChange);
+  });
+  
   // ... 其他 onMounted 逻辑
 });
 
@@ -710,6 +739,17 @@ onMounted(() => {
 const generateUniqueId = () => {
   tokenIdCounter.value++;
   return `token_${tokenIdCounter.value}_${Date.now()}`;
+};
+
+// 保存删除按钮设置到localStorage
+const saveShowDeleteButtonSetting = () => {
+  localStorage.setItem('weilin_prompt_ui_show_delete_button', String(showDeleteButton.value));
+};
+
+// 切换删除按钮显示状态
+const toggleDeleteButton = () => {
+  showDeleteButton.value = !showDeleteButton.value;
+  saveShowDeleteButtonSetting();
 };
 
 const toggleLora = () => {

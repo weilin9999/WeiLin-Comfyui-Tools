@@ -50,6 +50,7 @@ export default {
             enableBracketConversion: 'Enable Bracket Conversion',
             enableAngleBracketConversion: 'Enable Angle Bracket Conversion',
             enableUnderscoreToBracket: 'Enable Underscore to Bracket',
+            showDeleteButton: 'Show Tag Delete Button',
             setting_openai_box: 'OpenAI Settings',
             openai_api_key: 'API Key',
             openai_api_key_placeholder: 'Please enter API Key',

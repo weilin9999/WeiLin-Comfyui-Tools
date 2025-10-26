@@ -928,6 +928,17 @@
     margin-left: 4px;
 }
 
+/* 删除按钮开关样式 */
+.delete-button-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-button-toggle .action-text {
+    margin-left: 4px;
+}
+
 .utils-item-icon {
     fill: var(--weilin-prompt-ui-icon-color);
 }
