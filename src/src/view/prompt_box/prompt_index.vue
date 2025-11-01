@@ -3415,20 +3415,14 @@ const selectAutocomplete = (index, event) => {
     replaceEnd++;
   }
 
-  // 执行替换
+  // 执行替换 - 始终在补全的tag后添加逗号和空格
   let newText =
     currentText.substring(0, replaceStart) +
-    tagText +
+    tagText + ', ' +
     currentText.substring(replaceEnd);
 
-  // 如果右侧不是分隔符，在新 tag 与右侧之间补上分隔符，避免覆盖后续 tag
-  if (currentText[replaceEnd] && !(/[\,\s]/.test(currentText[replaceEnd]))) {
-    newText = currentText.substring(0, replaceStart) + tagText + ', ' + currentText.substring(replaceEnd);
-  }
-
-  // 计算新光标位置
-  const separatorAdded = currentText[replaceEnd] && !(/[\,\s]/.test(currentText[replaceEnd]));
-  const newCursorPosition = replaceStart + tagText.length + (separatorAdded ? 2 : 0);
+  // 计算新光标位置 - 确保光标在逗号和空格后面
+  const newCursorPosition = replaceStart + tagText.length + 2;
 
   // 更新输入文本
   inputText.value = newText;
