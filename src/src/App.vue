@@ -1,5 +1,5 @@
 <template>
-  <div id="weilin_comfyui_tools_prompt_ui_div">
+  <div id="weilin_comfyui_tools_prompt_ui_container_main">
     <!-- 提示词窗口 -->
     <DraggableWindow name="promptBox" v-if="windows.prompt.visible"
       :title="promptManager === 'prompt' ? t('promptBox.windowTitle') : t('promptBox.windowTitleGlobal')"

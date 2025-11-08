@@ -815,6 +815,8 @@
     color: var(--weilin-prompt-ui-primary-text);
     cursor: pointer;
     transition: background 0.2s;
+    display: flex;
+    align-items: center;
 }
 
 .translate-btn:hover {

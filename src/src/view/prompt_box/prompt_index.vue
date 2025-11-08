@@ -31,7 +31,7 @@
 
             <svg class="weilin-comfyui-sidebar-toggle-icon" :class="{ 'is-closed': !isLabelManagerVisible }"
               xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-              <path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+              <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
             </svg>
 
             <span class="action-text">
@@ -305,6 +305,26 @@
             </path>
           </svg>
           <span class="action-text">{{ t('promptBox.oneClickRandomTag') }}</span>
+        </button>
+
+        <!-- 一键清空按钮 -->
+        <button class="translate-btn clear-all-btn" @click="clearAllPrompt" :title="t('promptBox.oneClickCleanAll')">
+          <svg class="utils-item-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
+            p-id="1605" width="24" height="24">
+            <path
+              d="M716.8 338.944H307.2v-102.4a76.8 76.8 0 0 1 76.8-76.8h256a77.312 77.312 0 0 1 76.8 76.8z m-358.4-51.2h307.2v-51.2a26.112 26.112 0 0 0-25.6-25.6h-256a25.6 25.6 0 0 0-25.6 25.6zM702.464 856.576H321.536A65.024 65.024 0 0 1 256 791.04V406.528a25.6 25.6 0 0 1 25.6-25.6 25.6 25.6 0 0 1 25.6 25.6v384.512a14.336 14.336 0 0 0 13.824 14.336h380.928a14.848 14.848 0 0 0 14.336-14.336V406.528a25.6 25.6 0 0 1 25.6-25.6 25.6 25.6 0 0 1 25.6 25.6v384.512a65.536 65.536 0 0 1-65.024 65.536z">
+            </path>
+            <path
+              d="M432.128 678.912a25.6 25.6 0 0 1-25.6-25.6v-220.16a25.6 25.6 0 0 1 25.6-25.6 26.112 26.112 0 0 1 25.6 25.6v220.16a25.6 25.6 0 0 1-25.6 25.6z">
+            </path>
+            <path
+              d="M593.408 678.912a25.6 25.6 0 0 1-25.6-25.6v-220.16a26.112 26.112 0 0 1 25.6-25.6 25.6 25.6 0 0 1 25.6 25.6v220.16a25.6 25.6 0 0 1-25.6 25.6z">
+            </path>
+            <path
+              d="M828.416 338.944H196.096a25.6 25.6 0 0 1-25.6-25.6 25.6 25.6 0 0 1 25.6-25.6h632.32a25.6 25.6 0 0 1 25.6 25.6 25.6 25.6 0 0 1-25.6 25.6z">
+            </path>
+          </svg>
+          <span class="action-text">{{ t('promptBox.oneClickCleanAll') }}</span>
         </button>
 
       </div>
@@ -875,7 +895,7 @@ const applyWeight = () => {
 
   // 辅助函数：查找文本中的现有权重值
   const getExistingWeight = (text) => {
-    const weightMatch = text.match(/:(\d+(\.\d+)?)$/);
+    const weightMatch = text.match(/:(-?\d+(\.\d+)?)$/); // 支持负数
     return weightMatch ? parseFloat(weightMatch[1]) : null;
   };
 
@@ -900,10 +920,10 @@ const applyWeight = () => {
   let newText = text;
 
   // 检查是否整个文本已经有权重值（在末尾）
-  const hasTrailingWeight = /:\d+(\.\d+)?$/.test(text);
+  const hasTrailingWeight = /:(-?\d+(\.\d+)?)$/.test(text);
 
   // 检查是否已经是带权重的格式：(内容:权重)
-  const weightedFormatMatch = text.match(/^\((.*?):(\d+(\.\d+)?)\)$/);
+  const weightedFormatMatch = text.match(/^\((.*?):(-?\d+(\.\d+)?)\)$/);
 
   if (hasTrailingWeight || weightedFormatMatch) {
     // 已经有权重的情况
@@ -924,7 +944,7 @@ const applyWeight = () => {
         newText = `(${weightedFormatMatch[1]}:${weightValue.value})`;
       } else {
         // 只有末尾有权重
-        newText = text.replace(/:(\d+(\.\d+)?)$/, `:${weightValue.value}`);
+        newText = text.replace(/:(-?\d+(\.\d+)?)$/, `:${weightValue.value}`);;
       }
     }
   } else {
@@ -1964,6 +1984,7 @@ const postMessageToWindowsPrompt = () => {
       type: 'weilin_prompt_ui_prompt_finish_prompt',
       data: jsonStr
     }, '*')
+    // console.log('postMessageToWindowsPrompt sent with lora:', jsonStr);
   } else {
     tempInputText.value = inputText.value
     const putJson = {
@@ -1977,6 +1998,7 @@ const postMessageToWindowsPrompt = () => {
       type: 'weilin_prompt_ui_prompt_finish_prompt',
       data: jsonStr
     }, '*')
+    // console.log('postMessageToWindowsPrompt sent with lora:', jsonStr);
   }
 }
 
@@ -3863,6 +3885,16 @@ const shortcodeToPath = (shortcode) => {
 // 打开随机Tag设置对话框
 const openRandomTagSettings = () => {
   randomSettingItem.value.open(props.promptManager)
+};
+
+const clearAllPrompt = () => {
+  inputText.value = '';
+  tokens.value = [];
+  translateText.value = '';
+  selectedLoras.value = [];
+  lastInputValue.value = '';
+  // 如有其它需要清空的内容可一并处理
+  updateInputText();
 };
 
 defineExpose({

@@ -24,9 +24,21 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 # Version update introduction
 
-> Last updated: 2025-10-26
+> Last updated: 2025-11-08
 
-> 0.0.67 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.68 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+>
+> 1. Fixed the missing style of the hover ball menu
+>
+> 2. Fix some known bugs (last Lora heap can't be removed, Tag prompt empty issue, negative Tag weight issue)
+>
+> 3. New feature: One click clear function, can clear all the content
+>
+
+<details>
+<summary>Click here for more updates from the past</summary>
+
+> 0.0.67 Public Beta Version 2025-10-26
 >
 > 1. Fixed the issue of incomplete one-click translation
 >
@@ -34,9 +46,6 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 >
 > 3. New feature: A delete button has been added to the right side of the Tag for convenient Tag deletion
 >
-
-<details>
-<summary>Click here for more updates from the past</summary>
 
 > 0.0.66 Public Beta Version 2025-10-12
 >

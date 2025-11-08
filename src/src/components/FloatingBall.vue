@@ -397,9 +397,9 @@ onUnmounted(() => {
     max-height: 330px;
     width: 120px;
     transform: translateX(-50%);
-    background-color: var(--p-menubar-submenu-background);
+    background-color: var(--weilin-prompt-ui-primary-bg);
     /* 使用主题背景色 */
-    border: 1px solid var(--p-menubar-submenu-border-color);
+    border: 1px solid var(--weilin-prompt-ui-border-color);
     /* 使用边框颜色 */
     border-radius: 8px;
     box-shadow: 0 4px 12px var(--weilin-prompt-ui-shadow-color);
@@ -414,11 +414,12 @@ onUnmounted(() => {
     cursor: pointer;
     transition: background-color 0.2s ease;
     font-size: 12px;
+    color: var(--weilin-prompt-ui-tag-text);
 }
 
 .weilin_prompt_ui_menu-item:hover {
-    color: var(--p-menubar-item-focus-color);
-    background-color: var(--p-menubar-item-focus-background);
+    color: var(--weilin-prompt-ui-tag-text);
+    background-color: var(--weilin-prompt-ui-tag-hover);
     /* 使用悬停背景色 */
 }
 </style>

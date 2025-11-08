@@ -17,6 +17,7 @@ export default {
         hiddenHint: "双击显示提示词",
         tagTips: "鼠标左键双击屏蔽Tag<br>鼠标左键单击Tag可以编辑<br>鼠标左键拖动可以拖动Tag",
         oneClickRandomTag: '一键随机Tag',
+        oneClickCleanAll: '一键清空所有',
         randomTagSettings: '设置随机Tag规则',
         oneClickTranslate: "一键翻译Tag",
         modelWeight: "模型权重",

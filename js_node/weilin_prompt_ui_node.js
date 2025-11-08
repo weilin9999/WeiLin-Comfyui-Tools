@@ -325,11 +325,15 @@ app.registerExtension({
 
             if (jsonReponse.temp_prompt && jsonReponse.temp_prompt != "") {
               nodeTextAreaList[2].value = JSON.stringify(jsonReponse.temp_prompt);
+            }else {
+              nodeTextAreaList[2].value = "";
             }
 
             if (nodeData.name === "WeiLinPromptUI") {
               if (jsonReponse.temp_lora && jsonReponse.temp_lora != "") {
                 nodeTextAreaList[3].value = JSON.stringify(jsonReponse.temp_lora);
+              }else {
+                nodeTextAreaList[3].value = "";
               }
             }
 

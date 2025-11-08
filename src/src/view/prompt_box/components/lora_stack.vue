@@ -190,7 +190,7 @@ const toggleHideLora = (lora) => {
 // 添加Lora
 const addLora = (lora) => {
   // 检查是否已存在
-  console.log(props.selectedLoras)
+  // console.log(props.selectedLoras)
   if (props.selectedLoras && !props.selectedLoras.find(item => item.name === lora.name)) {
     props.selectedLoras.push({
       name: lora.name,
@@ -207,6 +207,7 @@ const removeLora = (lora) => {
   const index = props.selectedLoras.findIndex(item => item.name === lora.name)
   if (index > -1) {
     props.selectedLoras.splice(index, 1)
+    // console.log('removeLora', props.selectedLoras)
     emit('update:selectedLoras', props.selectedLoras)
   }
 }

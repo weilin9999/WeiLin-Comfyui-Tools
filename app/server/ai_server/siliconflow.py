@@ -33,7 +33,7 @@ async def translateObject(objectData: str, target_lang_code: str = "zh") -> str:
         "messages": [
             {
                 "role": "system",
-                "content": f"You are an expert in data translation processing. translate the text field of the JSON string data passed by the user into {_lang_to_name(target_lang_code)} and fill it in the corresponding translate field. You only need to return the corresponding JSON string data and do not modify any other data or parameters"
+                "content": f"ying You are a data translation processing expert, translate the text field of the JSON string data passed by the user into {_lang_to_name(target_lang_code)} (excluding numbers and other special characters, only translate the text) and fill in the corresponding translate field. You only need to return the corresponding JSON string data and do not modify any other data or parameters"
             },
             {
                 "content": objectData,

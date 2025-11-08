@@ -17,6 +17,7 @@ export default {
         hiddenHint: "Double-click to show",
         tagTips: "Double-click the left mouse button to mask the Tag<br>click the Tag to edit<br>and drag the Tag to drag",
         oneClickRandomTag: 'one Click Random Tag',
+        oneClickCleanAll: 'one Click Clean All',
         randomTagSettings: 'setting Random Tag',
         oneClickTranslate: "one Click Translate Tag",
         modelWeight: "Model Weight",
