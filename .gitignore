@@ -6,3 +6,5 @@ __pycache__
 init.json
 /panel
 user_cloud_package.json
+tag_labels.json
+.claude/
