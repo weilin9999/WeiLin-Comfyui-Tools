@@ -5,7 +5,7 @@
       <button class="mlm-add" @click="createNew">+ 新建标签</button>
 
       <!-- 从浏览器迁移数据按钮 -->
-      <button v-if="hasLocalStorageData" class="mlm-migrate" @click="migrateFromLocalStorage" title="将浏览器中的旧数据迁移到服务器">
+      <button class="mlm-migrate" @click="migrateFromLocalStorage" title="将浏览器中的旧数据迁移到服务器">
         📦 从浏览器迁移数据
       </button>
 
@@ -101,7 +101,6 @@ const dragOverId = ref(null)
 
 // localStorage 迁移相关
 const LEGACY_STORAGE_KEY = 'weilin_prompt_ui_main_labels_v1'
-const hasLocalStorageData = ref(false)
 
 /** ---------------- 持久化 ---------------- **/
 async function save() {
@@ -160,7 +159,6 @@ async function load() {
 /** ---------------- 生命周期 ---------------- **/
 onMounted(() => {
   load()
-  checkLocalStorageData()
 
   // 1) 首次无数据：初始化示例并选中 + 通知父组件
   if (items.value.length === 0) {
@@ -423,16 +421,6 @@ function onDragEnd() {
 }
 
 /** ---------------- localStorage 迁移功能 ---------------- **/
-function checkLocalStorageData() {
-  // 检查是否存在旧的 localStorage 数据
-  try {
-    const raw = localStorage.getItem(LEGACY_STORAGE_KEY)
-    hasLocalStorageData.value = !!raw && raw !== 'null' && raw !== 'undefined'
-  } catch {
-    hasLocalStorageData.value = false
-  }
-}
-
 async function migrateFromLocalStorage() {
   try {
     const raw = localStorage.getItem(LEGACY_STORAGE_KEY)
@@ -456,8 +444,7 @@ async function migrateFromLocalStorage() {
     const confirmed = window.confirm(
       `发现浏览器中有 ${localItems.length} 个标签\n\n` +
       `点击"确定"将这些数据迁移到服务器\n` +
-      `（会与服务器现有数据合并，不会覆盖）\n\n` +
-      `迁移后，浏览器中的旧数据会被清除`
+      `（会与服务器现有数据合并，不会覆盖）`
     )
 
     if (!confirmed) return
@@ -503,11 +490,7 @@ async function migrateFromLocalStorage() {
     // 保存到服务器
     await save()
 
-    // 清除 localStorage 中的旧数据
-    localStorage.removeItem(LEGACY_STORAGE_KEY)
-    hasLocalStorageData.value = false
-
-    alert(`迁移成功！\n\n已从浏览器迁移 ${addedCount} 个标签到服务器\n当前共 ${items.value.length} 个标签\n\n浏览器中的旧数据已清除`)
+    alert(`迁移成功！\n\n已从浏览器迁移 ${addedCount} 个标签到服务器\n当前共 ${items.value.length} 个标签`)
 
   } catch (error) {
     console.error('迁移失败:', error)
