@@ -5,5 +5,6 @@ __pycache__
 /loras_userdatas/info
 init.json
 /panel
-user_cloud_package.jsontag_labels.json
+user_cloud_package.json
+tag_labels.json
 .claude/

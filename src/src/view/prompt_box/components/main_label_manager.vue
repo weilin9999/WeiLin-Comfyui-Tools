@@ -157,8 +157,9 @@ async function load() {
 }
 
 /** ---------------- 生命周期 ---------------- **/
-onMounted(() => {
-  load()
+onMounted(async () => {
+  // 等待数据加载完成
+  await load()
 
   // 1) 首次无数据：初始化示例并选中 + 通知父组件
   if (items.value.length === 0) {
@@ -173,7 +174,7 @@ onMounted(() => {
       highlighted: false,
       order: 0
     })
-    save()
+    await save()
     internalSelectedId.value = id         // 触发上面的 watcher -> 会 emit('select', {...})
     return
   }

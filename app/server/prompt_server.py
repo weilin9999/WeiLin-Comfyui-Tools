@@ -1090,8 +1090,11 @@ async def _get_tag_labels(request):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         json_path = os.path.join(current_dir, '../../tag_labels.json')
 
+        print(f"[WeiLin] 读取标签数据从: {json_path}")
+
         # 如果文件不存在，返回默认空数据
         if not os.path.exists(json_path):
+            print(f"[WeiLin] 文件不存在，返回默认数据")
             default_data = {
                 "items": [],
                 "settings": {
@@ -1110,12 +1113,16 @@ async def _get_tag_labels(request):
         with open(json_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
 
+        print(f"[WeiLin] 读取到 {len(data.get('items', []))} 个标签")
+
         return web.json_response({
             "code": 200,
             "data": data
         })
     except Exception as e:
-        print(f"Error getting tag labels: {e}")
+        print(f"[WeiLin] Error getting tag labels: {e}")
+        import traceback
+        traceback.print_exc()
         return web.Response(status=500, text=str(e))
 
 
@@ -1136,9 +1143,14 @@ async def _save_tag_labels(request):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         json_path = os.path.join(current_dir, '../../tag_labels.json')
 
+        print(f"[WeiLin] 保存标签数据到: {json_path}")
+        print(f"[WeiLin] 标签数量: {len(data.get('items', []))}")
+
         # 写入 JSON 文件
         with open(json_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
+
+        print(f"[WeiLin] 标签数据保存成功")
 
         return web.json_response({
             "code": 200,
@@ -1146,7 +1158,9 @@ async def _save_tag_labels(request):
             "file_path": json_path
         })
     except Exception as e:
-        print(f"Error saving tag labels: {e}")
+        print(f"[WeiLin] Error saving tag labels: {e}")
+        import traceback
+        traceback.print_exc()
         return web.Response(status=500, text=str(e))
 
 # ============================================ 标签数据管理 End ============================================
