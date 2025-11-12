@@ -24,7 +24,7 @@ export default defineConfig({
       // https://rollupjs.org/configuration-options/#watch
     // },
     lib: {
-      entry: resolve(__dirname, 'src/main.js'),
+      entry: resolve(__dirname, 'main.js'),
       name: 'weilin-prompt-ui',
       formats: ['umd'],
     },

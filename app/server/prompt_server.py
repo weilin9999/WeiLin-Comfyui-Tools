@@ -1076,6 +1076,81 @@ def _get_ai_server_get_ai_models(request):
 
 # ============================================ AI平台对接 End ============================================
 
+
+# ============================================ 标签数据管理 ============================================
+
+@PromptServer.instance.routes.get(baseUrl+"labels/get")
+async def _get_tag_labels(request):
+    """
+    获取标签数据
+    GET /weilin/prompt_ui/api/labels/get
+    """
+    try:
+        # 获取项目根目录下的 tag_labels.json
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        json_path = os.path.join(current_dir, '../../tag_labels.json')
+
+        # 如果文件不存在，返回默认空数据
+        if not os.path.exists(json_path):
+            default_data = {
+                "items": [],
+                "settings": {
+                    "sortMode": "time",
+                    "sortTimeDesc": True,
+                    "sortNameAsc": True,
+                    "selectedId": None
+                }
+            }
+            return web.json_response({
+                "code": 200,
+                "data": default_data
+            })
+
+        # 读取 JSON 文件
+        with open(json_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        return web.json_response({
+            "code": 200,
+            "data": data
+        })
+    except Exception as e:
+        print(f"Error getting tag labels: {e}")
+        return web.Response(status=500, text=str(e))
+
+
+@PromptServer.instance.routes.post(baseUrl+"labels/save")
+async def _save_tag_labels(request):
+    """
+    保存标签数据
+    POST /weilin/prompt_ui/api/labels/save
+    Body: {
+        "items": [...],
+        "settings": {...}
+    }
+    """
+    try:
+        data = await request.json()
+
+        # 获取项目根目录下的 tag_labels.json
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        json_path = os.path.join(current_dir, '../../tag_labels.json')
+
+        # 写入 JSON 文件
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+        return web.json_response({
+            "code": 200,
+            "message": "保存成功",
+            "file_path": json_path
+        })
+    except Exception as e:
+        print(f"Error saving tag labels: {e}")
+        return web.Response(status=500, text=str(e))
+
+# ============================================ 标签数据管理 End ============================================
+
 print("======== WeiLin插件服务已启动 ========")
 print("======== WeiLin Server Init ========")
 
