@@ -4,6 +4,11 @@
       <input v-model="search" class="mlm-search" type="text" placeholder="搜索标签…" />
       <button class="mlm-add" @click="createNew">+ 新建标签</button>
 
+      <!-- 从浏览器迁移数据按钮 -->
+      <button v-if="hasLocalStorageData" class="mlm-migrate" @click="migrateFromLocalStorage" title="将浏览器中的旧数据迁移到服务器">
+        📦 从浏览器迁移数据
+      </button>
+
       <!-- 导入导出按钮区域 -->
       <div class="mlm-io-grid">
         <button class="mlm-export" @click="exportToJSON" title="导出提示词数据到JSON文件">导出数据</button>
@@ -94,6 +99,10 @@ const sortMode = ref('time') // 'time' | 'name' | 'manual'
 const draggingId = ref(null)
 const dragOverId = ref(null)
 
+// localStorage 迁移相关
+const LEGACY_STORAGE_KEY = 'weilin_prompt_ui_main_labels_v1'
+const hasLocalStorageData = ref(false)
+
 /** ---------------- 持久化 ---------------- **/
 async function save() {
   const payload = {
@@ -151,6 +160,7 @@ async function load() {
 /** ---------------- 生命周期 ---------------- **/
 onMounted(() => {
   load()
+  checkLocalStorageData()
 
   // 1) 首次无数据：初始化示例并选中 + 通知父组件
   if (items.value.length === 0) {
@@ -412,6 +422,99 @@ function onDragEnd() {
   dragOverId.value = null
 }
 
+/** ---------------- localStorage 迁移功能 ---------------- **/
+function checkLocalStorageData() {
+  // 检查是否存在旧的 localStorage 数据
+  try {
+    const raw = localStorage.getItem(LEGACY_STORAGE_KEY)
+    hasLocalStorageData.value = !!raw && raw !== 'null' && raw !== 'undefined'
+  } catch {
+    hasLocalStorageData.value = false
+  }
+}
+
+async function migrateFromLocalStorage() {
+  try {
+    const raw = localStorage.getItem(LEGACY_STORAGE_KEY)
+    if (!raw) {
+      alert('未找到浏览器中的旧数据')
+      return
+    }
+
+    const parsed = JSON.parse(raw)
+
+    // 兼容旧数据（纯数组）与新数据（带 settings）
+    const localItems = Array.isArray(parsed) ? parsed : (parsed?.items ?? [])
+    const localSettings = Array.isArray(parsed) ? {} : (parsed?.settings ?? {})
+
+    if (!Array.isArray(localItems) || localItems.length === 0) {
+      alert('浏览器中没有可迁移的数据')
+      return
+    }
+
+    // 询问用户迁移模式
+    const confirmed = window.confirm(
+      `发现浏览器中有 ${localItems.length} 个标签\n\n` +
+      `点击"确定"将这些数据迁移到服务器\n` +
+      `（会与服务器现有数据合并，不会覆盖）\n\n` +
+      `迁移后，浏览器中的旧数据会被清除`
+    )
+
+    if (!confirmed) return
+
+    // 合并模式：检查ID冲突
+    const existingIds = new Set(items.value.map(i => i.id))
+    const maxOrder = items.value.reduce((m, x) =>
+      Math.max(m, typeof x.order === 'number' ? x.order : m), -1)
+
+    let addedCount = 0
+    localItems.forEach((i, idx) => {
+      let finalId = i.id
+      // 如果ID冲突，重新生成
+      if (existingIds.has(finalId)) {
+        finalId = genId()
+      }
+      existingIds.add(finalId)
+
+      items.value.push({
+        id: finalId,
+        name: i.name ?? '未命名',
+        content: i.content ?? '',
+        createdAt: i.createdAt ?? i.updatedAt ?? Date.now(),
+        updatedAt: i.updatedAt ?? i.createdAt ?? Date.now(),
+        pinned: !!i.pinned,
+        highlighted: !!i.highlighted,
+        order: typeof i.order === 'number' ? (maxOrder + 1 + idx) : (maxOrder + 1 + idx)
+      })
+      addedCount++
+    })
+
+    // 可选：恢复旧设置（如果服务器端没有设置的话）
+    if (!sortMode.value && localSettings.sortMode) {
+      sortMode.value = localSettings.sortMode
+    }
+    if (typeof sortTimeDesc.value === 'undefined' && typeof localSettings.sortTimeDesc === 'boolean') {
+      sortTimeDesc.value = localSettings.sortTimeDesc
+    }
+    if (typeof sortNameAsc.value === 'undefined' && typeof localSettings.sortNameAsc === 'boolean') {
+      sortNameAsc.value = localSettings.sortNameAsc
+    }
+
+    // 保存到服务器
+    await save()
+
+    // 清除 localStorage 中的旧数据
+    localStorage.removeItem(LEGACY_STORAGE_KEY)
+    hasLocalStorageData.value = false
+
+    alert(`迁移成功！\n\n已从浏览器迁移 ${addedCount} 个标签到服务器\n当前共 ${items.value.length} 个标签\n\n浏览器中的旧数据已清除`)
+
+  } catch (error) {
+    console.error('迁移失败:', error)
+    alert('迁移失败: ' + error.message)
+  }
+}
+
 /** ---------------- 导出/导入功能 ---------------- **/
 function exportToJSON() {
   try {
@@ -631,6 +734,28 @@ defineExpose({ updateSelectedContent })
   height: 32px;
   width: 100%;
   cursor: pointer;
+}
+
+.mlm-migrate {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  height: 32px;
+  width: 100%;
+  cursor: pointer;
+  font-weight: 500;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+}
+
+.mlm-migrate:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
+}
+
+.mlm-migrate:active {
+  transform: translateY(0);
 }
 
 .mlm-io-grid {
