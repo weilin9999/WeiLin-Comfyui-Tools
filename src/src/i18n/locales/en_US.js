@@ -20,6 +20,8 @@ export default {
         oneClickCleanAll: 'one Click Clean All',
         randomTagSettings: 'setting Random Tag',
         oneClickTranslate: "one Click Translate Tag",
+        showDeleteButton: "Show Delete Button",
+        hideDeleteButton: "Hide Delete Button",
         modelWeight: "Model Weight",
         textWeight: "Text Weight",
         favour: "Favour",

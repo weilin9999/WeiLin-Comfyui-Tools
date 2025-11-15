@@ -307,6 +307,18 @@
           <span class="action-text">{{ t('promptBox.oneClickRandomTag') }}</span>
         </button>
 
+        <!-- 删除按钮显示开关 -->
+        <button class="translate-btn toggle-delete-btn" @click="toggleDeleteButton" 
+          :title="showDeleteButton ? t('promptBox.hideDeleteButton') : t('promptBox.showDeleteButton')"
+          :class="{ 'active': showDeleteButton }">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="utils-item-icon" width="24" height="24">
+            <path
+              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+              fill="currentColor"/>
+          </svg>
+          <span class="action-text">{{ showDeleteButton ? t('promptBox.hideDeleteButton') : t('promptBox.showDeleteButton') }}</span>
+        </button>
+
         <!-- 一键清空按钮 -->
         <button class="translate-btn clear-all-btn" @click="clearAllPrompt" :title="t('promptBox.oneClickCleanAll')">
           <svg class="utils-item-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
@@ -370,7 +382,7 @@
                 @blur="finishEditing(index)" @keyup.enter="finishEditing(index)"
                 :ref="el => { if (el) tokenInputRefs[index] = el }">
               <!-- 右侧快捷删除按钮 -->
-              <button class="quick-delete-btn" @click.stop="deleteToken(index)" :title="t('promptBox.delete')"
+              <button v-if="showDeleteButton" class="quick-delete-btn" @click.stop="deleteToken(index)" :title="t('promptBox.delete')"
                 style="margin-left: 4px;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                   <path
@@ -691,6 +703,37 @@ const showTagTipsBox = ref(false);
 const tagTipsPosition = ref({
   top: '0px',
   left: '0px'
+});
+
+// 控制标签删除按钮是否显示的状态
+const showDeleteButton = ref(localStorage.getItem('weilin_prompt_ui_show_delete_button') !== 'false');
+
+// 保存删除按钮设置到localStorage
+const saveShowDeleteButtonSetting = () => {
+  localStorage.setItem('weilin_prompt_ui_show_delete_button', String(showDeleteButton.value));
+};
+
+// 切换删除按钮显示状态
+const toggleDeleteButton = () => {
+  showDeleteButton.value = !showDeleteButton.value;
+  saveShowDeleteButtonSetting();
+};
+
+// 监听删除按钮设置的变化
+const handleStorageChange = (e) => {
+  if (e.key === 'weilin_prompt_ui_show_delete_button') {
+    showDeleteButton.value = e.newValue !== 'false';
+  }
+};
+
+// 组件挂载时添加监听器
+onMounted(() => {
+  window.addEventListener('storage', handleStorageChange);
+});
+
+// 组件卸载时移除监听器
+onUnmounted(() => {
+  window.removeEventListener('storage', handleStorageChange);
 });
 
 
@@ -3397,20 +3440,11 @@ const selectAutocomplete = (index, event) => {
     replaceEnd++;
   }
 
-  // 执行替换
-  let newText =
-    currentText.substring(0, replaceStart) +
-    tagText +
-    currentText.substring(replaceEnd);
+  // 执行替换 - 始终在tag后添加逗号和空格，光标在分隔符后
+  let newText = currentText.substring(0, replaceStart) + tagText + ', ' + currentText.substring(replaceEnd);
 
-  // 如果右侧不是分隔符，在新 tag 与右侧之间补上分隔符，避免覆盖后续 tag
-  if (currentText[replaceEnd] && !(/[\,\s]/.test(currentText[replaceEnd]))) {
-    newText = currentText.substring(0, replaceStart) + tagText + ', ' + currentText.substring(replaceEnd);
-  }
-
-  // 计算新光标位置
-  const separatorAdded = currentText[replaceEnd] && !(/[\,\s]/.test(currentText[replaceEnd]));
-  const newCursorPosition = replaceStart + tagText.length + (separatorAdded ? 2 : 0);
+  // 计算新光标位置 - 补全完成后光标在逗号和空格后面
+  const newCursorPosition = replaceStart + tagText.length + 2; // +2表示逗号和空格
 
   // 更新输入文本
   inputText.value = newText;

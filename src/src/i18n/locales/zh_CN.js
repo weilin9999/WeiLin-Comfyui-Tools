@@ -20,6 +20,8 @@ export default {
         oneClickCleanAll: '一键清空所有',
         randomTagSettings: '设置随机Tag规则',
         oneClickTranslate: "一键翻译Tag",
+        showDeleteButton: "显示删除按钮",
+        hideDeleteButton: "隐藏删除按钮",
         modelWeight: "模型权重",
         textWeight: "文本权重",
         favour: "收藏",
