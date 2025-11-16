@@ -6,6 +6,9 @@
           <li :class="{ 'weilin-comfyui-active': selectedSetting === 'translator' }"
             @click="selectSetting('translator')">{{
               t('promptBox.settings.translator') }}</li>
+          <li :class="{ 'weilin-comfyui-active': selectedSetting === 'setting_function_toggles' }"
+            @click="selectSetting('setting_function_toggles')">{{
+              t('promptBox.settings.setting_function_toggles') }}</li>
           <li :class="{ 'weilin-comfyui-active': selectedSetting === 'setting_auto_complete_limit' }"
             @click="selectSetting('setting_auto_complete_limit')">{{
               t('promptBox.settings.setting_auto_complete_limit') }}</li>
@@ -159,6 +162,50 @@
                 :placeholder="t('promptBox.settings.settingAutoCompleteHeightPlaceholder')" />
             </div>
             <button class="weilin-comfyui-save-button" @click="saveAutoCompleteSetting">
+              {{ t('promptBox.settings.save') }}
+            </button>
+          </div>
+        </div>
+        <div v-if="selectedSetting === 'setting_function_toggles'">
+          <h3>{{ t('promptBox.settings.setting_function_toggles_full') }}</h3>
+          <div class="weilin-comfyui-floating-ball-settings">
+            <div class="weilin-comfyui-setting-item">
+              <label>
+                <input type="checkbox" v-model="isClearAllEnabled" />
+                {{ t('promptBox.settings.enableClearAll') }}
+              </label>
+            </div>
+            <div class="weilin-comfyui-setting-item">
+              <label>
+                <input type="checkbox" v-model="isDeleteButtonEnabled" />
+                {{ t('promptBox.settings.enableDeleteButton') }}
+              </label>
+            </div>
+            <div class="weilin-comfyui-setting-item">
+              <label>
+                <input type="checkbox" v-model="isRandomTagEnabled" />
+                {{ t('promptBox.settings.enableRandomTag') }}
+              </label>
+            </div>
+            <div class="weilin-comfyui-setting-item">
+              <label>
+                <input type="checkbox" v-model="isRandomTagSettingsEnabled" />
+                {{ t('promptBox.settings.enableRandomTagSettings') }}
+              </label>
+            </div>
+            <div class="weilin-comfyui-setting-item">
+              <label>
+                <input type="checkbox" v-model="isTranslateTagEnabled" />
+                {{ t('promptBox.settings.enableTranslateTag') }}
+              </label>
+            </div>
+            <div class="weilin-comfyui-setting-item">
+              <label>
+                <input type="checkbox" v-model="isClearDisabledEnabled" />
+                {{ t('promptBox.settings.enableClearDisabled') }}
+              </label>
+            </div>
+            <button class="weilin-comfyui-save-button" @click="saveFunctionToggles">
               {{ t('promptBox.settings.save') }}
             </button>
           </div>
@@ -386,8 +433,10 @@
 
 <script setup>
 import Dialog from '@/components/Dialog.vue'
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, defineEmits } from 'vue'
 import { useI18n } from 'vue-i18n'
+
+const emit = defineEmits(['functionTogglesUpdated'])
 import { translatorApi } from '@/api/translator'
 import { autocompleteApi } from '@/api/autocomplete'
 import message from '@/utils/message'
@@ -427,7 +476,14 @@ const isUnderscoreToBracketEnabled = ref(localStorage.getItem('weilin_prompt_ui_
 const isCommaCloseAutocompleteEnabled = ref(localStorage.getItem('weilin_prompt_ui_comma_close_autocomplete') === 'true');
 const isBracketEscapeEnabled = ref(localStorage.getItem('weilin_prompt_ui_bracket_escape') === 'true');
 
-// 翻译库设置
+// 功能开关状态
+const isClearAllEnabled = ref(localStorage.getItem('weilin_function_toggles_clearAll') !== 'false'); // 默认true
+const isDeleteButtonEnabled = ref(localStorage.getItem('weilin_function_toggles_deleteButton') !== 'false'); // 默认true
+const isRandomTagEnabled = ref(localStorage.getItem('weilin_function_toggles_randomTag') !== 'false'); // 默认true
+const isRandomTagSettingsEnabled = ref(localStorage.getItem('weilin_function_toggles_randomTagSettings') !== 'false'); // 默认true
+const isTranslateTagEnabled = ref(localStorage.getItem('weilin_function_toggles_translateTag') !== 'false'); // 默认true
+const isClearDisabledEnabled = ref(localStorage.getItem('weilin_function_toggles_clearDisabled') !== 'false'); // 默认true
+
 const selectedTranslatorService = ref('');
 const sourceLanguage = ref('');
 const targetLanguage = ref('');
@@ -505,6 +561,28 @@ const saveTranslatorSettings = () => {
   // 显示保存成功提示
   message({ type: "success", str: 'message.saveSuccess' });
 }
+
+// 保存功能开关设置
+const saveFunctionToggles = () => {
+  localStorage.setItem('weilin_function_toggles_clearAll', isClearAllEnabled.value);
+  localStorage.setItem('weilin_function_toggles_deleteButton', isDeleteButtonEnabled.value);
+  localStorage.setItem('weilin_function_toggles_randomTag', isRandomTagEnabled.value);
+  localStorage.setItem('weilin_function_toggles_randomTagSettings', isRandomTagSettingsEnabled.value);
+  localStorage.setItem('weilin_function_toggles_translateTag', isTranslateTagEnabled.value);
+  localStorage.setItem('weilin_function_toggles_clearDisabled', isClearDisabledEnabled.value);
+  
+  // 通知父组件更新功能开关状态
+  emit('functionTogglesUpdated', {
+    clearAll: isClearAllEnabled.value,
+    deleteButton: isDeleteButtonEnabled.value,
+    randomTag: isRandomTagEnabled.value,
+    randomTagSettings: isRandomTagSettingsEnabled.value,
+    translateTag: isTranslateTagEnabled.value,
+    clearDisabled: isClearDisabledEnabled.value
+  });
+  
+  message({ type: "success", str: 'message.saveSuccess' });
+};
 
 // 添加皮肤上传处理函数
 const handleSkinUpload = (e) => {

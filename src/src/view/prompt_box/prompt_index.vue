@@ -267,7 +267,7 @@
         </div>
 
         <!-- 添加一键翻译按钮 -->
-        <button class="translate-btn" @click="oneClickTranslatePrompt" :title="t('promptBox.oneClickTranslate')">
+        <button v-if="isTranslateTagEnabled" class="translate-btn" @click="oneClickTranslatePrompt" :title="t('promptBox.oneClickTranslate')">
           <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" class="token-item-icon" width="24"
             height="24">
             <path
@@ -281,7 +281,7 @@
         </button>
 
         <!-- 添加设置随机Tag规则按钮 -->
-        <button class="translate-btn random-tag-settings-btn" @click="openRandomTagSettings"
+        <button v-if="isRandomTagSettingsEnabled" class="translate-btn random-tag-settings-btn" @click="openRandomTagSettings"
           :title="t('promptBox.randomTagSettings')">
           <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" class="utils-item-icon" width="24"
             height="24">
@@ -296,7 +296,7 @@
         </button>
 
         <!-- 添加一键随机Tag按钮 -->
-        <button class="translate-btn random-tag-btn" @click="oneClickRandomTag"
+        <button v-if="isRandomTagEnabled" class="translate-btn random-tag-btn" @click="oneClickRandomTag"
           :title="t('promptBox.oneClickRandomTag')">
           <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" class="utils-item-icon" width="24"
             height="24">
@@ -308,7 +308,7 @@
         </button>
 
         <!-- 删除按钮显示开关 -->
-        <button class="translate-btn toggle-delete-btn" @click="toggleDeleteButton" 
+        <button v-if="isDeleteButtonEnabled" class="translate-btn toggle-delete-btn" @click="toggleDeleteButton" 
           :title="showDeleteButton ? t('promptBox.hideDeleteButton') : t('promptBox.showDeleteButton')"
           :class="{ 'active': showDeleteButton }">
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="utils-item-icon" width="24" height="24">
@@ -320,7 +320,7 @@
         </button>
 
         <!-- 一键清空按钮 -->
-        <button class="translate-btn clear-all-btn" @click="clearAllPrompt" :title="t('promptBox.oneClickCleanAll')">
+        <button v-if="isClearAllEnabled" class="translate-btn clear-all-btn" @click="clearAllPrompt" :title="t('promptBox.oneClickCleanAll')">
           <svg class="utils-item-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
             p-id="1605" width="24" height="24">
             <path
@@ -337,6 +337,26 @@
             </path>
           </svg>
           <span class="action-text">{{ t('promptBox.oneClickCleanAll') }}</span>
+        </button>
+
+        <!-- 一键清空禁用按钮 -->
+        <button v-if="isClearDisabledEnabled" class="translate-btn clear-disabled-btn" @click="clearDisabledTags" :title="t('promptBox.oneClickClearDisabled')">
+          <svg class="utils-item-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
+            p-id="1605" width="24" height="24">
+            <path
+              d="M716.8 338.944H307.2v-102.4a76.8 76.8 0 0 1 76.8-76.8h256a77.312 77.312 0 0 1 76.8 76.8z m-358.4-51.2h307.2v-51.2a26.112 26.112 0 0 0-25.6-25.6h-256a25.6 25.6 0 0 0-25.6 25.6zM702.464 856.576H321.536A65.024 65.024 0 0 1 256 791.04V406.528a25.6 25.6 0 0 1 25.6-25.6 25.6 25.6 0 0 1 25.6 25.6v384.512a14.336 14.336 0 0 0 13.824 14.336h380.928a14.848 14.848 0 0 0 14.336-14.336V406.528a25.6 25.6 0 0 1 25.6-25.6 25.6 25.6 0 0 1 25.6 25.6v384.512a65.536 65.536 0 0 1-65.024 65.536z">
+            </path>
+            <path
+              d="M432.128 678.912a25.6 25.6 0 0 1-25.6-25.6v-220.16a25.6 25.6 0 0 1 25.6-25.6 26.112 26.112 0 0 1 25.6 25.6v220.16a25.6 25.6 0 0 1-25.6 25.6z">
+            </path>
+            <path
+              d="M593.408 678.912a25.6 25.6 0 0 1-25.6-25.6v-220.16a26.112 26.112 0 0 1 25.6-25.6 25.6 25.6 0 0 1 25.6 25.6v220.16a25.6 25.6 0 0 1-25.6 25.6z">
+            </path>
+            <path
+              d="M828.416 338.944H196.096a25.6 25.6 0 0 1-25.6-25.6 25.6 25.6 0 0 1 25.6-25.6h632.32a25.6 25.6 0 0 1 25.6 25.6 25.6 25.6 0 0 1-25.6 25.6z">
+            </path>
+          </svg>
+          <span class="action-text">{{ t('promptBox.oneClickClearDisabled') }}</span>
         </button>
 
       </div>
@@ -729,11 +749,13 @@ const handleStorageChange = (e) => {
 // 组件挂载时添加监听器
 onMounted(() => {
   window.addEventListener('storage', handleStorageChange);
+  window.addEventListener('storage', handleFunctionTogglesStorageChange);
 });
 
 // 组件卸载时移除监听器
 onUnmounted(() => {
   window.removeEventListener('storage', handleStorageChange);
+  window.removeEventListener('storage', handleFunctionTogglesStorageChange);
 });
 
 
@@ -750,6 +772,43 @@ const isLabelManagerVisible = ref(true);
 
 // 用于本地存储的键名
 const STORAGE_KEY_SIDEBAR_VISIBLE = 'weilin_prompt_ui_sidebar_visible';
+
+// 功能开关状态变量 - 从localStorage读取初始值，默认值都为true
+const isClearAllEnabled = ref(localStorage.getItem('weilin_function_toggles_clearAll') !== 'false');
+const isDeleteButtonEnabled = ref(localStorage.getItem('weilin_function_toggles_deleteButton') !== 'false');
+const isRandomTagEnabled = ref(localStorage.getItem('weilin_function_toggles_randomTag') !== 'false');
+const isRandomTagSettingsEnabled = ref(localStorage.getItem('weilin_function_toggles_randomTagSettings') !== 'false');
+const isTranslateTagEnabled = ref(localStorage.getItem('weilin_function_toggles_translateTag') !== 'false');
+const isClearDisabledEnabled = ref(localStorage.getItem('weilin_function_toggles_clearDisabled') !== 'false');
+
+// 监听功能开关变化并保存到 localStorage
+watch([isClearAllEnabled, isDeleteButtonEnabled, isRandomTagEnabled, isRandomTagSettingsEnabled, isTranslateTagEnabled, isClearDisabledEnabled], 
+  ([clearAll, deleteButton, randomTag, randomTagSettings, translateTag, clearDisabled]) => {
+    localStorage.setItem('weilin_function_toggles_clearAll', String(clearAll));
+    localStorage.setItem('weilin_function_toggles_deleteButton', String(deleteButton));
+    localStorage.setItem('weilin_function_toggles_randomTag', String(randomTag));
+    localStorage.setItem('weilin_function_toggles_randomTagSettings', String(randomTagSettings));
+    localStorage.setItem('weilin_function_toggles_translateTag', String(translateTag));
+    localStorage.setItem('weilin_function_toggles_clearDisabled', String(clearDisabled));
+  }
+);
+
+// 监听功能开关设置的存储变化
+const handleFunctionTogglesStorageChange = (e) => {
+  if (e.key === 'weilin_function_toggles_clearAll') {
+    isClearAllEnabled.value = e.newValue !== 'false';
+  } else if (e.key === 'weilin_function_toggles_deleteButton') {
+    isDeleteButtonEnabled.value = e.newValue !== 'false';
+  } else if (e.key === 'weilin_function_toggles_randomTag') {
+    isRandomTagEnabled.value = e.newValue !== 'false';
+  } else if (e.key === 'weilin_function_toggles_randomTagSettings') {
+    isRandomTagSettingsEnabled.value = e.newValue !== 'false';
+  } else if (e.key === 'weilin_function_toggles_translateTag') {
+    isTranslateTagEnabled.value = e.newValue !== 'false';
+  } else if (e.key === 'weilin_function_toggles_clearDisabled') {
+    isClearDisabledEnabled.value = e.newValue !== 'false';
+  }
+};
 
 // 切换标签管理器的显示状态
 const toggleLabelManager = () => {
@@ -3929,6 +3988,21 @@ const clearAllPrompt = () => {
   lastInputValue.value = '';
   // 如有其它需要清空的内容可一并处理
   updateInputText();
+};
+
+// 一键清空禁用标签方法
+const clearDisabledTags = () => {
+  // 过滤掉隐藏的标签，保留其他标签
+  const filteredTokens = tokens.value.filter(token => !token.isHidden);
+  
+  // 更新 tokens 数组
+  tokens.value = filteredTokens;
+  
+  // 重新构建输入文本
+  updateInputText();
+  
+  // 显示成功提示
+  message({ type: "success", str: t('promptBox.clearDisabledSuccess') || '已清空所有禁用标签' });
 };
 
 defineExpose({
