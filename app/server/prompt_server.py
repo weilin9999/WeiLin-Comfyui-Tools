@@ -33,6 +33,38 @@ static_path = os.path.join(os.path.dirname(__file__), "../../dist/")
 dir = os.path.join(os.path.dirname(__file__), "../../dist/javascript/")
 baseUrl = "/weilin/prompt_ui/api/"
 
+@PromptServer.instance.routes.post("/weilin/clipboard/read")
+async def _read_clipboard(request):
+    try:
+        import platform
+        system = platform.system()
+        if system == "Windows":
+            import ctypes
+            CF_UNICODETEXT = 13
+            ctypes.windll.user32.OpenClipboard(0)
+            try:
+                handle = ctypes.windll.user32.GetClipboardData(CF_UNICODETEXT)
+                if handle:
+                    ctypes.windll.kernel32.GlobalLock.restype = ctypes.c_wchar_p
+                    text = ctypes.windll.kernel32.GlobalLock(handle) or ""
+                    ctypes.windll.kernel32.GlobalUnlock(handle)
+                else:
+                    text = ""
+            finally:
+                ctypes.windll.user32.CloseClipboard()
+        elif system == "Darwin":
+            import subprocess
+            result = subprocess.run(["pbpaste"], capture_output=True, text=True, timeout=3)
+            text = result.stdout
+        else:
+            import subprocess
+            result = subprocess.run(["xclip", "-selection", "clipboard", "-o"], capture_output=True, text=True, timeout=3)
+            text = result.stdout
+        return web.json_response({"text": text})
+    except Exception as e:
+        return web.json_response({"error": str(e)}, status=500)
+
+
 
 @PromptServer.instance.routes.get("/weilin/prompt_ui/webjs")
 async def _getWeiLinPromptUIWebJs(request):
