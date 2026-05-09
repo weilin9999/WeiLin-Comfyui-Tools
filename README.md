@@ -30,9 +30,20 @@
 
 # 版本更新介绍
 
-> 最新更新：2026-04-18
+> 最新更新：2026-05-09
 
-> 0.0.74 公测版本介绍 如果你要使用本插件请务必进我们的官方 QQ 群（1018231382）！
+> 0.0.75 公测版本介绍 如果你要使用本插件请务必进我们的官方 QQ 群（1018231382）！
+>
+> 1. 合并PR [#71](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/71) 感谢各位小伙伴的帮助
+>
+> 2. 合并PR [#72](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/72) 感谢各位小伙伴的帮助
+>
+>
+
+<details>
+<summary>点击查看往期更多更新内容</summary>
+
+> 0.0.74 公测版本介绍 2026-04-18
 >
 > 1. 合并PR [#62](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/62) 感谢各位小伙伴的帮助
 >
@@ -40,10 +51,6 @@
 >
 > 3. 合并PR [#70](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/70) 感谢各位小伙伴的帮助
 >
-
-<details>
-<summary>点击查看往期更多更新内容</summary>
-
 
 > 0.0.73 公测版本介绍 2026-03-21
 >
