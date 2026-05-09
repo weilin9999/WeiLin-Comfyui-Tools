@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "axios": "^1.7.9",
+    "interactjs": "^1.10.27",
     "js-yaml": "^4.1.0",
     "pako": "^2.1.0",
     "pinia": "^3.0.1",

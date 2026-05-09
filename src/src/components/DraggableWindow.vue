@@ -1,6 +1,7 @@
 <template>
   <Teleport to="#weilin_comfyui_tools_prompt_ui_div">
     <div
+      ref="windowRef"
       class="weilin_prompt_ui_draggable-window"
       :style="{
         left: `${currentPosition.x}px`,
@@ -24,11 +25,22 @@
         <slot></slot>
       </div>
 
-      <!-- 调整大小的手柄 -->
+      <!-- 调整大小的手柄（四角） -->
       <div
-        class="weilin_prompt_ui_resize-handle"
+        class="weilin_prompt_ui_resize-handle weilin_prompt_ui_resize-handle-nw"
         :title="t('common.windowSize')"
-        @mousedown.stop="startResize"
+      ></div>
+      <div
+        class="weilin_prompt_ui_resize-handle weilin_prompt_ui_resize-handle-ne"
+        :title="t('common.windowSize')"
+      ></div>
+      <div
+        class="weilin_prompt_ui_resize-handle weilin_prompt_ui_resize-handle-sw"
+        :title="t('common.windowSize')"
+      ></div>
+      <div
+        class="weilin_prompt_ui_resize-handle weilin_prompt_ui_resize-handle-se"
+        :title="t('common.windowSize')"
       ></div>
     </div>
   </Teleport>
@@ -36,6 +48,7 @@
 
 <script setup>
   import { ref, onMounted, onUnmounted, watch } from 'vue'
+  import interact from 'interactjs'
   import { useI18n } from 'vue-i18n'
 
   const props = defineProps({
@@ -64,6 +77,9 @@
   const { t } = useI18n()
 
   const emit = defineEmits(['update:position', 'update:size', 'active', 'close'])
+  const windowRef = ref(null)
+  let interactable = null
+  let activeInteraction = null
 
   // 当前位置和大小状态
   const currentPosition = ref({ x: 0, y: 0 })
@@ -106,157 +122,145 @@
     }, 100)
   }
 
+  const clampPosition = (x, y, width = currentSize.value.width) => {
+    const viewportWidth = window.innerWidth
+    const viewportHeight = window.innerHeight
+    const minLeftSpace = 100
+    return {
+      x: Math.min(Math.max(minLeftSpace - width, x), viewportWidth - 100),
+      y: Math.min(Math.max(100, y), viewportHeight - 100)
+    }
+  }
+
+  const forceStopInteraction = () => {
+    if (!activeInteraction) {
+      return
+    }
+    activeInteraction.stop()
+    activeInteraction = null
+  }
+
+  const isPointerReleased = (event) => {
+    const buttons = event?.buttons ?? event?.originalEvent?.buttons
+    return buttons === 0
+  }
+
+  const ensurePointerPressed = (event) => {
+    if (!isPointerReleased(event)) {
+      return false
+    }
+    forceStopInteraction()
+    return true
+  }
+
+  const handleWindowBlur = () => {
+    forceStopInteraction()
+  }
+
+  const initInteract = () => {
+    if (!windowRef.value) return
+
+    interactable = interact(windowRef.value)
+      .draggable({
+        allowFrom: '.weilin_prompt_ui_window-header',
+        ignoreFrom: '.weilin_prompt_ui_close-btn,.weilin_prompt_ui_resize-handle',
+        listeners: {
+          start(event) {
+            activeInteraction = event.interaction
+          },
+          move(event) {
+            if (ensurePointerPressed(event)) {
+              return
+            }
+            const next = clampPosition(
+              currentPosition.value.x + event.dx,
+              currentPosition.value.y + event.dy
+            )
+            currentPosition.value = next
+            emit('update:position', next)
+          },
+          end() {
+            activeInteraction = null
+          }
+        }
+      })
+      .resizable({
+        edges: {
+          top: '.weilin_prompt_ui_resize-handle-nw, .weilin_prompt_ui_resize-handle-ne',
+          right: '.weilin_prompt_ui_resize-handle-ne, .weilin_prompt_ui_resize-handle-se',
+          bottom: '.weilin_prompt_ui_resize-handle-sw, .weilin_prompt_ui_resize-handle-se',
+          left: '.weilin_prompt_ui_resize-handle-nw, .weilin_prompt_ui_resize-handle-sw'
+        },
+        modifiers: [
+          interact.modifiers.restrictSize({
+            min: { width: 200, height: 200 }
+          })
+        ],
+        listeners: {
+          start(event) {
+            activeInteraction = event.interaction
+          },
+          move(event) {
+            if (ensurePointerPressed(event)) {
+              return
+            }
+            const nextSize = {
+              width: event.rect.width,
+              height: event.rect.height
+            }
+            const nextPosition = clampPosition(
+              currentPosition.value.x + event.deltaRect.left,
+              currentPosition.value.y + event.deltaRect.top,
+              nextSize.width
+            )
+
+            currentPosition.value = nextPosition
+            currentSize.value = nextSize
+            emit('update:position', nextPosition)
+            emit('update:size', nextSize)
+          },
+          end() {
+            activeInteraction = null
+          }
+        }
+      })
+  }
+
   // 在组件挂载时初始化位置和大小
   onMounted(() => {
-    // 设置初始位置
     if (props.position) {
-      const viewportWidth = window.innerWidth
-      const viewportHeight = window.innerHeight
-      const minLeftSpace = 100 // 左侧保留的最小空间
-
-      // 边界检测
-      let x = props.position.x
-      let y = props.position.y
-
-      // 确保左侧保留至少窗口宽度100px的位置
-      x = Math.max(minLeftSpace - (props.size?.width || currentSize.value.width), x)
-      // 确保右侧保留最少100px的位置
-      x = Math.min(x, viewportWidth - 100)
-      // 确保顶部不超出边界
-      y = Math.max(100, y)
-      // 确保底部保留最少100px的位置
-      y = Math.min(y, viewportHeight - 100)
-
-      currentPosition.value = { x, y }
+      currentPosition.value = clampPosition(
+        props.position.x,
+        props.position.y,
+        props.size?.width || currentSize.value.width
+      )
     }
 
-    // 设置初始大小
     if (props.size) {
       currentSize.value = { ...props.size }
     }
+
+    initInteract()
+    window.addEventListener('blur', handleWindowBlur)
+    window.addEventListener('mouseup', forceStopInteraction)
+    window.addEventListener('pointerup', forceStopInteraction)
   })
 
-  // 组件卸载时清理定时器
+  // 组件卸载时清理定时器和交互绑定
   onUnmounted(() => {
     if (scrollThrottleTimer) {
       clearTimeout(scrollThrottleTimer)
       scrollThrottleTimer = null
     }
+    window.removeEventListener('blur', handleWindowBlur)
+    window.removeEventListener('mouseup', forceStopInteraction)
+    window.removeEventListener('pointerup', forceStopInteraction)
+    forceStopInteraction()
+    if (interactable) {
+      interactable.unset()
+      interactable = null
+    }
   })
-
-  // 拖动相关状态和方法
-  const isDragging = ref(false)
-  const dragOffset = ref({ x: 0, y: 0 })
-
-  // 优化：使用 requestAnimationFrame 优化拖动性能
-  let dragRafId = null
-
-  const startDrag = (event) => {
-    isDragging.value = true
-    dragOffset.value = {
-      x: event.clientX - currentPosition.value.x,
-      y: event.clientY - currentPosition.value.y
-    }
-    document.addEventListener('mousemove', handleDrag)
-    document.addEventListener('mouseup', stopDrag)
-  }
-
-  const handleDrag = (event) => {
-    if (!isDragging.value) {
-      return
-    }
-
-    // 取消之前的动画帧
-    if (dragRafId) {
-      cancelAnimationFrame(dragRafId)
-    }
-
-    // 使用 requestAnimationFrame 优化性能
-    dragRafId = requestAnimationFrame(() => {
-      const viewportWidth = window.innerWidth
-      const viewportHeight = window.innerHeight
-      const minLeftSpace = 100 // 左侧保留的最小空间
-
-      let newX = event.clientX - dragOffset.value.x
-      let newY = event.clientY - dragOffset.value.y
-
-      // 确保左侧保留至少窗口宽度100px的位置
-      newX = Math.max(minLeftSpace - currentSize.value.width, newX)
-      // 确保右侧保留最少100px的位置
-      newX = Math.min(newX, viewportWidth - 100)
-      // 确保顶部不超出边界
-      newY = Math.max(100, newY)
-      // 确保底部保留最少100px的位置
-      newY = Math.min(newY, viewportHeight - 100)
-
-      const newPosition = {
-        x: newX,
-        y: newY
-      }
-
-      currentPosition.value = newPosition
-      emit('update:position', newPosition)
-    })
-  }
-
-  const stopDrag = () => {
-    isDragging.value = false
-    document.removeEventListener('mousemove', handleDrag)
-    document.removeEventListener('mouseup', stopDrag)
-    if (dragRafId) {
-      cancelAnimationFrame(dragRafId)
-      dragRafId = null
-    }
-  }
-
-  // 调整大小相关状态和方法
-  const isResizing = ref(false)
-  const resizeStartPos = ref({ x: 0, y: 0 })
-  const resizeStartSize = ref({ width: 0, height: 0 })
-
-  // 优化：使用 requestAnimationFrame 优化调整大小性能
-  let resizeRafId = null
-
-  const startResize = (event) => {
-    isResizing.value = true
-    resizeStartPos.value = { x: event.clientX, y: event.clientY }
-    resizeStartSize.value = { ...currentSize.value }
-    document.addEventListener('mousemove', handleResize)
-    document.addEventListener('mouseup', stopResize)
-  }
-
-  const handleResize = (event) => {
-    if (!isResizing.value) {
-      return
-    }
-
-    // 取消之前的动画帧
-    if (resizeRafId) {
-      cancelAnimationFrame(resizeRafId)
-    }
-
-    // 使用 requestAnimationFrame 优化性能
-    resizeRafId = requestAnimationFrame(() => {
-      const deltaX = event.clientX - resizeStartPos.value.x
-      const deltaY = event.clientY - resizeStartPos.value.y
-      const newSize = {
-        width: Math.max(200, resizeStartSize.value.width + deltaX),
-        height: Math.max(200, resizeStartSize.value.height + deltaY)
-      }
-      currentSize.value = newSize
-      emit('update:size', newSize)
-    })
-  }
-
-  const stopResize = () => {
-    isResizing.value = false
-    document.removeEventListener('mousemove', handleResize)
-    document.removeEventListener('mouseup', stopResize)
-    if (resizeRafId) {
-      cancelAnimationFrame(resizeRafId)
-      resizeRafId = null
-    }
-  }
 
   const setActive = () => {
     emit('active')
@@ -267,11 +271,9 @@
   }
 
   // 处理标题栏点击
-  const handleHeaderMouseDown = (event) => {
-    // 先设置为活动窗口
+  const handleHeaderMouseDown = () => {
+    // 先设置为活动窗口，拖拽行为由 interact.js 处理
     setActive()
-    // 然后开始拖动
-    startDrag(event)
   }
 </script>
 
@@ -331,23 +333,65 @@
 
   .weilin_prompt_ui_resize-handle {
     position: absolute;
-    right: 0;
-    bottom: 0;
-    width: 16px;
-    height: 16px;
-    cursor: se-resize;
+    width: 14px;
+    height: 14px;
     user-select: none;
+    opacity: 0.75;
+    transition: opacity 0.2s ease;
+  }
+
+  .weilin_prompt_ui_resize-handle:hover {
+    opacity: 1;
   }
 
   .weilin_prompt_ui_resize-handle::after {
     content: '';
     position: absolute;
-    right: 7px;
-    bottom: 4px;
-    width: 8px;
-    height: 8px;
+    inset: 2px;
+  }
+
+  .weilin_prompt_ui_resize-handle-se {
+    right: 0;
+    bottom: 0;
+    cursor: se-resize;
+  }
+
+  .weilin_prompt_ui_resize-handle-se::after {
     border-right: 2px solid #999;
     border-bottom: 2px solid #999;
+  }
+
+  .weilin_prompt_ui_resize-handle-ne {
+    right: 0;
+    top: 0;
+    cursor: ne-resize;
+  }
+
+  .weilin_prompt_ui_resize-handle-ne::after {
+    border-right: 2px solid #999;
+    border-top: 2px solid #999;
+  }
+
+  .weilin_prompt_ui_resize-handle-sw {
+    left: 0;
+    bottom: 0;
+    cursor: sw-resize;
+  }
+
+  .weilin_prompt_ui_resize-handle-sw::after {
+    border-left: 2px solid #999;
+    border-bottom: 2px solid #999;
+  }
+
+  .weilin_prompt_ui_resize-handle-nw {
+    left: 0;
+    top: 0;
+    cursor: nw-resize;
+  }
+
+  .weilin_prompt_ui_resize-handle-nw::after {
+    border-left: 2px solid #999;
+    border-top: 2px solid #999;
   }
 
   .weilin_prompt_ui_window-content::-webkit-scrollbar {
