@@ -314,13 +314,10 @@ waitForApp((app) => {
         // ========================================
         const fixCurrentNodeDomWidgets = () => {
           if (!this.widgets) return;
-          // 三种 WeiLin 节点统一保留 Comfy 原生缩放链，
-          // 避免小画布/缩放时 dom-widget 与 canvas widget 叠层错位。
-          if (
+          const isWeiLinNode =
             nodeData.name === "WeiLinPromptUI" ||
             nodeData.name === "WeiLinPromptUIWithoutLora" ||
-            nodeData.name === "WeiLinPromptUIOnlyLoraStack"
-          ) return;
+            nodeData.name === "WeiLinPromptUIOnlyLoraStack";
           const processedDomWidgets = new Set();
           
           this.widgets.forEach(widget => {
@@ -335,11 +332,18 @@ waitForApp((app) => {
                   }
                   processedDomWidgets.add(parent);
 
-                  const isFirstFix = !parent.classList.contains('weilin-owned-dom-widget');
+                  const isFirstFix = !parent.classList.contains('weilin-owned-dom-widget')
+                    && !parent.classList.contains('weilin-owned-dom-widget-fixed');
                   parent.style.setProperty('pointer-events', 'none', 'important');
-                  parent.classList.add('weilin-owned-dom-widget');
-                  parent.style.setProperty('position', 'absolute', 'important');
-                  parent.classList.remove('size-full');
+                  // WeiLin 节点保留 Comfy 原生缩放链（position:fixed + size-full），
+                  // 仅修复 pointer-events 以消除透明遮罩
+                  if (isWeiLinNode) {
+                    parent.classList.add('weilin-owned-dom-widget-fixed');
+                  } else {
+                    parent.classList.add('weilin-owned-dom-widget');
+                    parent.style.setProperty('position', 'absolute', 'important');
+                    parent.classList.remove('size-full');
+                  }
                   if (isFirstFix) {
                     console.log('[WeiLin] Fixed dom-widget for node:', nodeData.name);
                   }

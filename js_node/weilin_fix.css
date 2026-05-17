@@ -18,3 +18,21 @@
 .dom-widget.weilin-owned-dom-widget .weilin-lora-manager-container {
     pointer-events: auto !important;
 }
+
+/* WeiLin 节点保留 position:fixed 以兼容 Comfy 原生缩放链，仅禁用 pointer-events */
+.dom-widget.weilin-owned-dom-widget-fixed {
+    pointer-events: none !important;
+}
+
+.dom-widget.weilin-owned-dom-widget-fixed textarea,
+.dom-widget.weilin-owned-dom-widget-fixed input,
+.dom-widget.weilin-owned-dom-widget-fixed select,
+.dom-widget.weilin-owned-dom-widget-fixed button,
+.dom-widget.weilin-owned-dom-widget-fixed canvas,
+.dom-widget.weilin-owned-dom-widget-fixed iframe,
+.dom-widget.weilin-owned-dom-widget-fixed a,
+.dom-widget.weilin-owned-dom-widget-fixed [contenteditable='true'],
+.dom-widget.weilin-owned-dom-widget-fixed .weilin-prompt-ui-container,
+.dom-widget.weilin-owned-dom-widget-fixed .weilin-lora-manager-container {
+    pointer-events: auto !important;
+}
