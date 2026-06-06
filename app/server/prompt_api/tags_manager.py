@@ -606,7 +606,7 @@ async def get_tag_tags(g_uuid):
     """根据g_uuid获取标签"""
     query = """
         SELECT
-            id_index, text, desc, color, create_time, g_uuid
+            id_index, text, desc, color, create_time, g_uuid, t_uuid, image_path, image_status
         FROM tag_tags
         WHERE g_uuid = ?
         ORDER BY create_time DESC
@@ -620,6 +620,9 @@ async def get_tag_tags(g_uuid):
             "color": row[3],
             "create_time": row[4],
             "g_uuid": row[5],
+            "t_uuid": row[6],
+            "image_path": row[7],
+            "image_status": row[8],
         }
         for row in data
     ]
