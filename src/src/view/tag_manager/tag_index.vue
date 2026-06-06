@@ -728,6 +728,12 @@ const getTagList = async (g_uuid) => {
     await tagsApi.getTagList(g_uuid).then((res) => {
       // console.log(res);
       currentTags.value = res
+      // Restore polling for any tags with pending/generating status
+      for (const tag of res) {
+        if (tag.image_status === 'pending' || tag.image_status === 'generating') {
+          refreshSingleTagImageStatus(tag.t_uuid)
+        }
+      }
     }).catch((err) => {
       console.error(err);
       message({ type: "warn", str: 'message.networkError' });
@@ -753,14 +759,6 @@ onMounted(async () => {
   // if (categories.value.length <= 0) {
   getTagsList()
   // }
-
-  // Polling recovery for tags with pending/generating image status
-  await nextTick()
-  for (const tag of currentTags.value) {
-    if (tag.image_status === 'pending' || tag.image_status === 'generating') {
-      await refreshSingleTagImageStatus(tag.t_uuid)
-    }
-  }
 })
 
 onBeforeUnmount(() => {
