@@ -1,17 +1,51 @@
-<div align="center">
-  
-### [🇨🇳 简体中文](README.md) | [🇺🇸 English](README_EN.md)
+# 标签预览图功能
 
-</div>
+## 功能概述
+
+在标签管理界面（Tag Manager）中，每个标签卡片新增 120×120 的预览图显示区域。使用 ComfyUI 内部队列 API 进行文生图生成，支持单个生成、重新生成和一键批量生成。
+
+---
 
 # 特别关注！
 ##### 一定要进群！一定要进群！一定要进群！
 官方 QQ 群： `905656521` (由于旧的群聊`1018231382`已被封请更换新群聊!)
 
-如果你有什么意见或者想法亦或者是BUG提交请你进入群聊AT群主！或者写群文档中
+## 功能列表
 
-插件使用教程：[点击访问](https://www.bilibili.com/list/288025756/?sid=4690314&spm_id_from=333.1387.0.0&oid=114342431298474&bvid=BV1txdfYxE7X)
-或者在B站搜索：WeiLin-Comfyui-Tools
+- **预览图缩略图**：每个标签卡片顶部显示 120×120 预览图
+- **单个生成**：点击未生成标签的缩略图区域，弹出参数配置对话框
+- **重新生成**：已有预览图的标签，鼠标悬停时显示刷新按钮，可删除旧图重新生成
+- **一键批量生成**：为当前分组所有标签批量生成预览图，带实时进度条
+- **浮窗预览**：鼠标悬停缩略图 200ms 后显示原尺寸大图
+- **中止生成**：一键取消所有排队中和生成中的任务
+- **参数持久化**：生成参数自动保存到本地，下次打开无需重新设置
+- **异步队列**：后台顺序执行生成任务，页面刷新后自动恢复轮询状态
+
+
+## 使用说明
+
+### 基本操作
+
+1. 打开标签管理界面，选择任意分组
+2. 点击标签卡片的缩略图区域（"生成"按钮），弹出参数配置对话框
+3. 设置模型、尺寸、采样器等参数，点击"生成"
+4. 等待生成完成，缩略图自动刷新显示
+5. 鼠标悬停缩略图 200ms 查看原尺寸大图
+
+### 重新生成
+
+1. 鼠标悬停在已有预览图的缩略图上
+2. 右上角出现刷新图标，点击弹出配置对话框
+3. 修改参数后点击"重新生成"，旧图会被删除并重新生成
+
+### 一键批量生成
+
+1. 点击标签列表上方的"一键生成"按钮
+2. 在弹出的对话框中配置生成参数
+3. 对话框标题显示待生成的标签数量
+4. 点击"开始生成"，实时进度条显示当前进度
+
+---
 
 # 注意！
 ##### 如果你需要使用或不了解又或者想要沟通交流都可以加入QQ群进行了解！
@@ -479,80 +513,98 @@
 如果你对本项目有兴趣赏一个 Star 吧！
 
 ## 标签预览图功能使用说明
+=======
+## 使用说明
+>>>>>>> ae99690 (docs: rewrite README for tag preview image feature)
 
 ### 基本操作
-1. 在标签管理界面（Tag Manager）中，每个标签卡片顶部会显示 120×120 的预览图缩略图
-2. **生成预览图**：点击缩略图区域（未生成状态显示"生成"按钮），弹出参数配置对话框
-3. **重新生成**：已有预览图的标签，鼠标悬停缩略图时右上角出现刷新图标，点击可重新生成
-4. **查看大图**：鼠标悬停缩略图 200ms 后自动弹出原尺寸浮窗预览
-5. **一键生成**：点击标签列表上方的"一键生成"按钮，为当前分组所有未生成预览图的标签批量生成
 
-### 生成参数说明
-| 参数 | 说明 |
-|------|------|
-| 模型 | 自动扫描 ComfyUI `models/checkpoints` 目录下的 `.safetensors` 和 `.ckpt` 文件 |
-| 尺寸 | 预设尺寸：512×512、768×512、512×768、768×768、1024×1024 |
-| 采样器 | KSampler 采样器，默认 euler |
-| 调度器 | KSampler 调度器，默认 normal |
-| 步数 | 1-50，默认 20 |
-| CFG | 1-20，默认 7.0 |
-| 种子 | -1 为随机种子 |
-| 正向提示词 | 单张生成时自动填充 `{标签文本}, masterpiece, best quality`，可手动修改 |
-| 负向提示词 | 默认 `worst quality, low quality, nsfw` |
+1. 打开标签管理界面，选择任意分组
+2. 点击标签卡片的缩略图区域（"生成"按钮），弹出参数配置对话框
+3. 设置模型、尺寸、采样器等参数，点击"生成"
+4. 等待生成完成，缩略图自动刷新显示
+5. 鼠标悬停缩略图 200ms 查看原尺寸大图
 
-### 批量生成
-- 一键生成使用模板 `{text}, masterpiece, best quality` 作为正向提示词，其中 `{text}` 会被替换为每个标签的文本
-- 批量生成对话框会显示实时进度条
-- 可通过"中止生成"按钮取消所有排队中和生成中的任务
+### 重新生成
 
-### 存储说明
-- 预览图原图保存在 `user_data/tag_images/` 目录
-- 缩略图保存在 `user_data/tag_thumbs/` 目录（120×120 WebP 格式）
-- 数据库 `tag_tags` 表中通过 `image_path` 和 `image_status` 字段记录状态
+1. 鼠标悬停在已有预览图的缩略图上
+2. 右上角出现刷新图标，点击弹出配置对话框
+3. 修改参数后点击"重新生成"，旧图会被删除并重新生成
 
-### 注意事项
-- 生成任务在后台异步队列中逐个执行，多个标签会排队依次生成
-- 页面刷新后会自动恢复轮询状态
-- 模型路径通过插件位置推断，确保 ComfyUI 正常运行即可
+### 一键批量生成
 
-# 如何参与开发？
+1. 点击标签列表上方的"一键生成"按钮
+2. 在弹出的对话框中配置生成参数
+3. 对话框标题显示待生成的标签数量
+4. 点击"开始生成"，实时进度条显示当前进度
+5. 如需取消，点击"中止生成"按钮
 
-#### 项目主要结构
+### 生成参数
+
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| 模型 | 自动扫描 ComfyUI `models/checkpoints` 目录 | 第一个可用模型 |
+| 尺寸 | 512×512 / 768×512 / 512×768 / 768×768 / 1024×1024 | 512×512 |
+| 采样器 | KSampler 采样器 | euler |
+| 调度器 | KSampler 调度器 | normal |
+| 步数 | 1-50 | 20 |
+| CFG | 1-20 | 7.0 |
+| 种子 | -1 为随机 | -1 |
+| 正向提示词 | 单张：`{标签文本}, masterpiece, best quality`；批量：`{text}` 模板替换 | - |
+| 负向提示词 | 可自定义 | worst quality, low quality, nsfw |
+
+## 技术架构
+
+### 新增文件
+
 ```
-WeiLin-Comfyui-Tools 
-├── README.md - 中文文档
-├── README_EN.md - 英文文档
-├── __init__.py - 插件主入口
-├── app - 插件的业务代码（API、数据库操作等）
-│   ├── __init__.py
-│   └── server - 服务入口
-│       ├── __pycache__
-│       ├── ai_translator - AI设置业务层
-│       ├── dao - 数据层操作
-│       ├── fast_autocomplete - 补全功能业务层
-│       ├── history - 历史记录业务层
-│       ├── prompt_api - 提示词业务层
-│       │   ├── tags_manager.py - 标签管理
-│       │   ├── tag_image_manager.py - 标签预览图 CRUD
-│       │   ├── comfyui_workflow.py - ComfyUI 工作流构建和执行
-│       │   └── tag_image_queue.py - 图片生成异步任务队列
-│       ├── prompt_server.py - API暴露入口
-│       ├── translate - 本地/离线翻译Tag业务层
-│       └── user_init - 用户设置初始化业务层
-├── dist - 前端编译后的文件
-├── init.json - AI服务的Key保存文件
-├── install_request.py - 自动安装功能
-├── js_node - comfyui的JS业务代码
-├── lora_userdatas - 用户Lora的本地数据
-├── pyproject.toml - comfyui的仓库文件
-├── requirements.txt - 安装三方库检测文件
-├── src - 前端源码
-├── tags_templete 用户数据库文件模板 （Tag和Danbooru，如果需要修改请前往插件配套的后台面板使用）
-└── user_data 用户使用的数据库文件（不需要修改）
+app/server/prompt_api/
+├── tag_image_manager.py    # 标签预览图 CRUD（增删改查）
+├── comfyui_workflow.py     # ComfyUI 工作流构建、提交、轮询、下载
+└── tag_image_queue.py      # 异步任务队列（单 worker 顺序执行）
+
+src/src/view/tag_manager/components/
+├── GenerateImageDialog.vue # 单张生成/重新生成参数配置对话框
+└── BatchGenerateDialog.vue # 批量生成参数配置对话框（含进度条）
 ```
 
-#### 前端源码说明
-前端框架是Vue3+Javascript，yarn管理依赖包，使用时请先执行`yarn install`安装依赖包，编译请使用`yarn run build`，会自动打包到插件的`dist`目录中
+### 修改文件
+
+| 文件 | 变更内容 |
+|------|----------|
+| `app/server/dao/dao.py` | DB 迁移 V4：`tag_tags` 表新增 `image_path`、`image_status` 列 |
+| `app/server/prompt_server.py` | 新增 8 个 API 路由 |
+| `app/server/prompt_api/tags_manager.py` | `get_tag_tags` 返回 `t_uuid`、`image_path`、`image_status` |
+| `src/src/api/tags.js` | 新增 7 个前端 API 方法 |
+| `src/src/view/tag_manager/tag_index.vue` | 缩略图显示、悬停大图、生成/批量生成/中止按钮 |
+
+### API 路由
+
+| 方法 | 路由 | 说明 |
+|------|------|------|
+| POST | `/tag_image/options` | 获取生成选项（模型列表、采样器、调度器、尺寸预设） |
+| POST | `/tag_image/generate` | 提交单个生成任务（支持 `regenerate` 标志） |
+| POST | `/tag_image/batch_generate` | 批量提交生成任务 |
+| POST | `/tag_image/cancel_all` | 取消所有任务 |
+| POST | `/tag_image/status` | 按 task_id 查询任务状态 |
+| GET | `/tag_image/status/{t_uuid}` | 按标签 UUID 查询任务状态（页面刷新恢复用） |
+| GET | `/tag_image/{t_uuid}` | 获取预览图原图 |
+| GET | `/tag_thumb/{t_uuid}` | 获取缩略图（120×120 WebP） |
+
+### 存储结构
+
+```
+user_data/
+├── tag_images/    # 原图（PNG/WebP）
+└── tag_thumbs/    # 缩略图（120×120 WebP）
+```
+
+### 工作流程
+
+```
+用户点击生成 → API 入队 → Worker 出队 → 构建 Workflow → 提交 ComfyUI
+→ 轮询 /api/history → 下载结果 → 保存原图+缩略图 → 更新 DB 状态
+```
 
 #### 提交代码
 请克隆完整的仓库代码，提交代码时请测试一遍随后提交代码，等待我的审核确认后即可合并代码
