@@ -310,5 +310,25 @@ export const tagsApi = {
       url: `/tag_image/status/${t_uuid}`,
       method: 'get'
     })
+  },
+
+  // 重新生成（删除旧图再生成）
+  // eslint-disable-next-line camelcase
+  regenerateTagImage: (t_uuid, params) => {
+    return request({
+      url: '/tag_image/generate',
+      method: 'post',
+      // eslint-disable-next-line camelcase
+      data: { t_uuid, params, regenerate: true }
+    })
+  },
+
+  // 批量生成
+  batchGenerateTagImages: (tags, params) => {
+    return request({
+      url: '/tag_image/batch_generate',
+      method: 'post',
+      data: { tags, params }
+    })
   }
 }

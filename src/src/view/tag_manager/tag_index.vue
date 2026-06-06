@@ -172,6 +172,12 @@
             <span class="plus-icon">+</span>
             {{ t('tagManager.addTag') }}
           </button>
+          <button class="add-btn batch-generate-btn" @click="batchGenerateAll" :disabled="!selectedGroup || batchGenerating">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="margin-right:4px">
+              <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+            </svg>
+            {{ batchGenerating ? '生成中…' : '一键生成' }}
+          </button>
 
           <!-- 批量分享按钮 -->
           <button v-if="isShareTagAction" class="share-selected-btn" @click="shareSelectedTags"
@@ -206,13 +212,20 @@
           <div class="tag-thumb-area"
             @mouseenter="onThumbHover(tag, $event)"
             @mouseleave="onThumbLeave">
-            <!-- Ready: show thumbnail -->
-            <img v-if="tag.image_status === 'ready' && tag.t_uuid"
-              class="tag-thumb-img"
-              :src="getThumbUrl(tag.t_uuid)"
-              alt="preview"
-              loading="lazy"
-            />
+            <!-- Ready: show thumbnail with regenerate overlay -->
+            <div v-if="tag.image_status === 'ready' && tag.t_uuid" class="tag-thumb-ready-wrap">
+              <img
+                class="tag-thumb-img"
+                :src="getThumbUrl(tag.t_uuid)"
+                alt="preview"
+                loading="lazy"
+              />
+              <button class="tag-thumb-regen-btn" @click.stop="regenerateTag(tag)" title="重新生成">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                  <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                </svg>
+              </button>
+            </div>
             <!-- Pending/Generating: show loading -->
             <div v-else-if="tag.image_status === 'pending' || tag.image_status === 'generating'"
               class="tag-thumb-placeholder tag-thumb-loading">
@@ -603,6 +616,7 @@ const pollingTimers = ref({})
 const hoverTimer = ref(null)
 const hoveredTag = ref(null)
 const hoverImageCache = ref({})
+const batchGenerating = ref(false)
 
 // 新增状态变量
 const showTabSizeConfig = ref(false)
@@ -1691,6 +1705,93 @@ async function openGenerateDialog(tag) {
   }
   generateTargetTag.value = tag
   showGenerateDialog.value = true
+}
+
+async function regenerateTag(tag) {
+  if (!generationOptions.value.checkpoints.length) {
+    try {
+      const res = await tagsApi.getGenerationOptions()
+      generationOptions.value = res.data || res || generationOptions.value
+    } catch (e) {
+      console.error('Failed to load generation options:', e)
+      return
+    }
+  }
+  const size = generationOptions.value.sizes?.[0] || { width: 512, height: 512 }
+  const checkpoint = generationOptions.value.checkpoints?.[0]?.name || ''
+  try {
+    const params = {
+      checkpoint,
+      width: size.width,
+      height: size.height,
+      sampler_name: 'euler',
+      steps: 20,
+      cfg: 7.0,
+      seed: -1,
+      positive: `${tag.text || ''}, masterpiece, best quality`,
+      negative: 'worst quality, low quality'
+    }
+    const res = await tagsApi.regenerateTagImage(tag.t_uuid, params)
+    tag.image_status = 'pending'
+    startPolling(res.data.task_id, tag.t_uuid)
+  } catch (err) {
+    if (err.response?.status === 409) {
+      alert('已有生成任务进行中')
+    } else {
+      alert('重新生成失败: ' + (err.message || '未知错误'))
+    }
+  }
+}
+
+async function batchGenerateAll() {
+  if (!generationOptions.value.checkpoints.length) {
+    try {
+      const res = await tagsApi.getGenerationOptions()
+      generationOptions.value = res.data || res || generationOptions.value
+    } catch (e) {
+      console.error('Failed to load generation options:', e)
+      return
+    }
+  }
+  const size = generationOptions.value.sizes?.[0] || { width: 512, height: 512 }
+  const checkpoint = generationOptions.value.checkpoints?.[0]?.name || ''
+
+  // Collect tags without images
+  const tagsToGenerate = currentTags.value.filter(t => !t.image_status || t.image_status === 'failed')
+  if (!tagsToGenerate.length) {
+    alert('所有标签已有预览图')
+    return
+  }
+
+  batchGenerating.value = true
+  try {
+    const params = {
+      checkpoint,
+      width: size.width,
+      height: size.height,
+      sampler_name: 'euler',
+      steps: 20,
+      cfg: 7.0,
+      seed: -1,
+      positive_template: '{text}, masterpiece, best quality',
+      negative: 'worst quality, low quality'
+    }
+    const res = await tagsApi.batchGenerateTagImages(tagsToGenerate, params)
+    const taskIds = res.data?.task_ids || []
+
+    // Mark all as pending and start polling
+    for (const item of taskIds) {
+      const tag = currentTags.value.find(t => t.t_uuid === item.t_uuid)
+      if (tag) {
+        tag.image_status = 'pending'
+        startPolling(item.task_id, item.t_uuid)
+      }
+    }
+  } catch (err) {
+    alert('批量生成失败: ' + (err.message || '未知错误'))
+  } finally {
+    batchGenerating.value = false
+  }
 }
 
 function onGenerateDialogClose() {
@@ -2810,6 +2911,55 @@ function onThumbLeave() {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* Regenerate button overlay on thumbnail */
+.tag-thumb-ready-wrap {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.tag-thumb-regen-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.tag-thumb-ready-wrap:hover .tag-thumb-regen-btn {
+  opacity: 1;
+}
+
+.tag-thumb-regen-btn:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+/* Batch generate button */
+.batch-generate-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+}
+
+.batch-generate-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #5a6fd6 0%, #6a4196 100%);
+}
+
+.batch-generate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .tag-thumb-placeholder {
