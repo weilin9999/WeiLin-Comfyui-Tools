@@ -68,3 +68,37 @@ async def reset_pending_statuses():
         WHERE image_status IN ('pending', 'generating')
     """
     await execute_query("tags", query, ())
+
+
+async def delete_tag_image(t_uuid):
+    """Delete image and thumbnail files, reset status to NULL."""
+    info = await get_tag_image_info(t_uuid)
+    if not info:
+        return
+
+    # Delete image file
+    if info["image_path"]:
+        img_path = os.path.join(_get_user_data_dir(), info["image_path"])
+        if os.path.isfile(img_path):
+            os.remove(img_path)
+
+    # Delete thumbnail
+    t_dir = thumb_dir()
+    thumb_path = os.path.join(t_dir, f"{t_uuid}.webp")
+    if os.path.isfile(thumb_path):
+        os.remove(thumb_path)
+
+    # Also try other extensions for the original
+    img_dir = image_dir()
+    for ext in (".png", ".jpg", ".jpeg", ".webp"):
+        p = os.path.join(img_dir, f"{t_uuid}{ext}")
+        if os.path.isfile(p):
+            os.remove(p)
+
+    # Reset DB
+    query = """
+        UPDATE tag_tags
+        SET image_path = NULL, image_status = NULL
+        WHERE t_uuid = ?
+    """
+    await execute_query("tags", query, (t_uuid,))

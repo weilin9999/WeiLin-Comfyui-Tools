@@ -28,7 +28,7 @@ from .translate.local_translate import translate_phrase
 from .translate.new_translate_api import api_service_translate
 from .translate.openai_translate import openai_translate
 from .user_init.user_init import *
-from .prompt_api.tag_image_manager import get_tag_image_info, image_dir, thumb_dir
+from .prompt_api.tag_image_manager import get_tag_image_info, image_dir, thumb_dir, delete_tag_image
 from .prompt_api.comfyui_workflow import get_generation_options
 from .prompt_api.tag_image_queue import enqueue_generation, get_task_status, get_task_status_by_tuuid, start_worker
 
@@ -1233,6 +1233,7 @@ async def _generate_tag_image(request):
     data = await request.json()
     t_uuid = data.get("t_uuid")
     params = data.get("params", {})
+    regenerate = data.get("regenerate", False)
 
     if not t_uuid:
         return web.json_response({"error": "t_uuid is required"}, status=400)
@@ -1244,6 +1245,8 @@ async def _generate_tag_image(request):
             return web.json_response({"error": f"Missing required param: {key}"}, status=400)
 
     try:
+        if regenerate:
+            await delete_tag_image(t_uuid)
         task_id = await enqueue_generation(t_uuid, params)
         return web.json_response({"data": {"task_id": task_id}})
     except RuntimeError as e:
@@ -1251,6 +1254,50 @@ async def _generate_tag_image(request):
     except Exception as e:
         print(f"Error enqueuing generation: {e}")
         return web.Response(status=500)
+
+
+@PromptServer.instance.routes.post(baseUrl + "tag_image/batch_generate")
+async def _batch_generate_tag_images(request):
+    data = await request.json()
+    tags = data.get("tags", [])
+    params = data.get("params", {})
+
+    if not tags or not isinstance(tags, list):
+        return web.json_response({"error": "tags array is required"}, status=400)
+
+    # Validate default params
+    required = ["checkpoint", "width", "height", "sampler_name", "steps", "cfg", "seed", "positive_template", "negative"]
+    for key in required:
+        if key not in params:
+            return web.json_response({"error": f"Missing required param: {key}"}, status=400)
+
+    task_ids = []
+    for tag in tags:
+        t_uuid = tag.get("t_uuid")
+        tag_text = tag.get("text", "")
+        if not t_uuid:
+            continue
+        try:
+            # Build per-tag params: replace {text} in positive_template with tag text
+            positive = params["positive_template"].replace("{text}", tag_text)
+            tag_params = {
+                "checkpoint": params["checkpoint"],
+                "width": params["width"],
+                "height": params["height"],
+                "sampler_name": params["sampler_name"],
+                "steps": params["steps"],
+                "cfg": params["cfg"],
+                "seed": params["seed"],
+                "positive": positive,
+                "negative": params["negative"],
+            }
+            task_id = await enqueue_generation(t_uuid, tag_params)
+            task_ids.append({"t_uuid": t_uuid, "task_id": task_id})
+        except RuntimeError:
+            # Skip tags that already have a generation in progress
+            pass
+
+    return web.json_response({"data": {"task_ids": task_ids}})
 
 
 @PromptServer.instance.routes.post(baseUrl + "tag_image/status")
