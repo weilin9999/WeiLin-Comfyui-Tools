@@ -202,6 +202,51 @@
       <div class="tags-grid" v-if="selectedGroup">
         <div v-for="tag in currentTags" :key="'tag-grid-' + tag.id_index"
           :class="highlightedTagId === tag.id_index ? 'tag-wrapper highlight' : 'tag-wrapper'">
+          <!-- Thumbnail area -->
+          <div class="tag-thumb-area"
+            @mouseenter="onThumbHover(tag, $event)"
+            @mouseleave="onThumbLeave">
+            <!-- Ready: show thumbnail -->
+            <img v-if="tag.image_status === 'ready' && tag.t_uuid"
+              class="tag-thumb-img"
+              :src="getThumbUrl(tag.t_uuid)"
+              alt="preview"
+              loading="lazy"
+            />
+            <!-- Pending/Generating: show loading -->
+            <div v-else-if="tag.image_status === 'pending' || tag.image_status === 'generating'"
+              class="tag-thumb-placeholder tag-thumb-loading">
+              <div class="tag-thumb-spinner"></div>
+              <span>{{ tag.image_status === 'pending' ? '排队中…' : '生成中…' }}</span>
+            </div>
+            <!-- Failed: show retry -->
+            <div v-else-if="tag.image_status === 'failed'"
+              class="tag-thumb-placeholder tag-thumb-failed"
+              @click.stop="openGenerateDialog(tag)"
+              title="生成失败，点击重试">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="#ff6b6b">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+              </svg>
+              <span>重试</span>
+            </div>
+            <!-- NULL: show generate button -->
+            <div v-else class="tag-thumb-placeholder tag-thumb-empty"
+              @click.stop="openGenerateDialog(tag)"
+              title="生成预览图">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" opacity="0.5">
+                <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+              </svg>
+              <span>生成</span>
+            </div>
+          </div>
+
+          <!-- Hover overlay with full-size image -->
+          <div v-if="hoveredTag === tag.id_index && hoverImageCache[tag.t_uuid]"
+            class="tag-thumb-overlay"
+            :style="hoverOverlayStyle">
+            <img :src="hoverImageCache[tag.t_uuid]" class="tag-thumb-full" />
+          </div>
+
           <div class="tag-content" @click="handleTagClick(tag)">
             <div class="tag-main" :style="{ backgroundColor: tag.color || 'transparent' }">
               {{ tag.desc }}
@@ -483,6 +528,15 @@
 
     <ImportTagDialog ref="importTagDialogItem" />
 
+    <!-- 生成预览图对话框 -->
+    <GenerateImageDialog
+      :visible="showGenerateDialog"
+      :tag="generateTargetTag"
+      :options="generationOptions"
+      @close="onGenerateDialogClose"
+      @generated="onImageGenerated"
+    />
+
   </div>
 </template>
 
@@ -493,6 +547,7 @@ import { tagsApi } from '@/api/tags'
 import message from '@/utils/message'
 import { useTagStore } from '@/stores/tagStore';
 import ImportTagDialog from "./import_tag.vue";
+import GenerateImageDialog from './components/GenerateImageDialog.vue'
 import yaml from 'js-yaml';
 
 const tagStore = useTagStore();
@@ -540,6 +595,14 @@ const isDeleteTagAction = ref(false);
 // 批量分享
 const isShareTagAction = ref(false);
 
+// --- Tag image preview state ---
+const showGenerateDialog = ref(false)
+const generateTargetTag = ref(null)
+const generationOptions = ref({ checkpoints: [], samplers: [], sizes: [] })
+const pollingTimers = ref({})
+const hoverTimer = ref(null)
+const hoveredTag = ref(null)
+const hoverImageCache = ref({})
 
 // 新增状态变量
 const showTabSizeConfig = ref(false)
@@ -675,7 +738,7 @@ const getTagList = async (g_uuid) => {
 }
 
 
-onMounted(() => {
+onMounted(async () => {
   updateSearchResultsStyle() // 初始化样式
   // 添加全局点击事件监听
   window.addEventListener('click', handleClickOutside)
@@ -690,6 +753,14 @@ onMounted(() => {
   // if (categories.value.length <= 0) {
   getTagsList()
   // }
+
+  // Polling recovery for tags with pending/generating image status
+  await nextTick()
+  for (const tag of currentTags.value) {
+    if (tag.image_status === 'pending' || tag.image_status === 'generating') {
+      await refreshSingleTagImageStatus(tag.t_uuid)
+    }
+  }
 })
 
 onBeforeUnmount(() => {
@@ -1599,6 +1670,109 @@ const closeTabSizeDialog = () => {
 const resetTabSizeConfig = () => {
   const defaultTabData = JSON.parse(JSON.stringify(defaultTabSizeConfig))
   tabSizeConfig.value = { ...defaultTabData }
+}
+
+// --- Tag image methods ---
+
+function getThumbUrl(t_uuid) {
+  return `/weilin/prompt_ui/api/tag_thumb/${t_uuid}`
+}
+
+function getImageUrl(t_uuid) {
+  return `/weilin/prompt_ui/api/tag_image/${t_uuid}`
+}
+
+async function openGenerateDialog(tag) {
+  if (!generationOptions.value.checkpoints.length) {
+    try {
+      const res = await tagsApi.getGenerationOptions()
+      generationOptions.value = res.data || res || generationOptions.value
+    } catch (e) {
+      console.error('Failed to load generation options:', e)
+    }
+  }
+  generateTargetTag.value = tag
+  showGenerateDialog.value = true
+}
+
+function onGenerateDialogClose() {
+  showGenerateDialog.value = false
+  generateTargetTag.value = null
+}
+
+async function onImageGenerated({ task_id, t_uuid }) {
+  const tag = currentTags.value.find(t => t.t_uuid === t_uuid)
+  if (tag) {
+    tag.image_status = 'pending'
+  }
+  startPolling(task_id, t_uuid)
+}
+
+function startPolling(task_id, t_uuid) {
+  if (pollingTimers.value[t_uuid]) {
+    clearInterval(pollingTimers.value[t_uuid])
+  }
+  const timer = setInterval(async () => {
+    try {
+      const res = await tagsApi.getTagImageStatus(task_id)
+      const data = res.data || res
+      if (data.status === 'ready' || data.status === 'failed') {
+        clearInterval(timer)
+        delete pollingTimers.value[t_uuid]
+        await refreshSingleTagImageStatus(t_uuid)
+      }
+    } catch (e) {
+      console.error('Polling error:', e)
+    }
+  }, 2000)
+  pollingTimers.value[t_uuid] = timer
+}
+
+async function refreshSingleTagImageStatus(t_uuid) {
+  try {
+    const res = await tagsApi.getTagImageStatusByUuid(t_uuid)
+    const data = res.data || res
+    const tag = currentTags.value.find(t => t.t_uuid === t_uuid)
+    if (tag) {
+      tag.image_status = data.status
+      if (data.status === 'ready' && data.thumb_url) {
+        tag.image_path = data.image_url
+      }
+    }
+    if ((data.status === 'pending' || data.status === 'generating') && data.task_id) {
+      startPolling(data.task_id, t_uuid)
+    }
+    if (data.status === 'ready') {
+      delete hoverImageCache.value[t_uuid]
+    }
+  } catch (e) {
+    console.error('Failed to refresh tag image status:', e)
+  }
+}
+
+// --- Hover overlay ---
+const hoverOverlayStyle = ref({})
+
+function onThumbHover(tag, event) {
+  if (tag.image_status !== 'ready' || !tag.t_uuid) return
+
+  clearTimeout(hoverTimer.value)
+  hoverTimer.value = setTimeout(async () => {
+    hoveredTag.value = tag.id_index
+    if (!hoverImageCache.value[tag.t_uuid]) {
+      hoverImageCache.value[tag.t_uuid] = getImageUrl(tag.t_uuid)
+    }
+    const rect = event.target.getBoundingClientRect()
+    hoverOverlayStyle.value = {
+      left: (rect.right + 12) + 'px',
+      top: rect.top + 'px',
+    }
+  }, 200)
+}
+
+function onThumbLeave() {
+  clearTimeout(hoverTimer.value)
+  hoveredTag.value = null
 }
 
 </script>
@@ -2622,5 +2796,95 @@ const resetTabSizeConfig = () => {
 
 .reset-btn:hover {
   opacity: 0.9;
+}
+
+/* --- Tag thumbnail --- */
+.tag-thumb-area {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 6px auto;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.tag-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tag-thumb-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.tag-thumb-empty {
+  border: 2px dashed var(--weilin-prompt-ui-border-color);
+  border-radius: 6px;
+  color: var(--weilin-prompt-ui-secondary-text);
+}
+
+.tag-thumb-empty:hover {
+  border-color: var(--weilin-prompt-ui-primary-color);
+  color: var(--weilin-prompt-ui-primary-color);
+  background: color-mix(in srgb, var(--weilin-prompt-ui-primary-color) 8%, transparent);
+}
+
+.tag-thumb-loading {
+  border: 2px solid var(--weilin-prompt-ui-border-color);
+  border-radius: 6px;
+  color: var(--weilin-prompt-ui-secondary-text);
+}
+
+.tag-thumb-failed {
+  border: 2px dashed #ff6b6b;
+  border-radius: 6px;
+  color: #ff6b6b;
+  gap: 2px;
+}
+
+.tag-thumb-failed:hover {
+  background: color-mix(in srgb, #ff6b6b 8%, transparent);
+}
+
+.tag-thumb-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--weilin-prompt-ui-border-color);
+  border-top-color: var(--weilin-prompt-ui-primary-color);
+  border-radius: 50%;
+  animation: thumb-spin 0.8s linear infinite;
+}
+
+@keyframes thumb-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Hover overlay */
+.tag-thumb-overlay {
+  position: fixed;
+  z-index: 9999;
+  max-width: 400px;
+  max-height: 500px;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  background: #000;
+  pointer-events: none;
+}
+
+.tag-thumb-full {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 </style>
