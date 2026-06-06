@@ -330,5 +330,13 @@ export const tagsApi = {
       method: 'post',
       data: { tags, params }
     })
+  },
+
+  // 取消所有任务
+  cancelAllTasks: () => {
+    return request({
+      url: '/tag_image/cancel_all',
+      method: 'post'
+    })
   }
 }

@@ -178,6 +178,12 @@
             </svg>
             一键生成
           </button>
+          <button class="add-btn cancel-generate-btn" @click="cancelAllTasks" :disabled="!hasActiveTasks">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="margin-right:4px">
+              <path d="M6 6h12v12H6V6z"/>
+            </svg>
+            中止生成
+          </button>
 
           <!-- 批量分享按钮 -->
           <button v-if="isShareTagAction" class="share-selected-btn" @click="shareSelectedTags"
@@ -630,6 +636,10 @@ const hoverImageCache = ref({})
 const showBatchDialog = ref(false)
 const regenerateModeTag = ref(null)
 const imageVersions = reactive({})
+
+const hasActiveTasks = computed(() => {
+  return Object.keys(pollingTimers.value).length > 0
+})
 
 // 新增状态变量
 const showTabSizeConfig = ref(false)
@@ -1752,6 +1762,29 @@ async function batchGenerateAll() {
     }
   }
   showBatchDialog.value = true
+}
+
+async function cancelAllTasks() {
+  try {
+    const res = await tagsApi.cancelAllTasks()
+    const count = (res.data || res).cancelled || 0
+    message.success(`已中止 ${count} 个任务`)
+
+    // Clear all polling timers
+    for (const [key, timer] of Object.entries(pollingTimers.value)) {
+      clearInterval(timer)
+      delete pollingTimers.value[key]
+    }
+
+    // Refresh tag statuses
+    for (const tag of currentTags.value) {
+      if (tag.image_status === 'pending' || tag.image_status === 'generating') {
+        tag.image_status = null
+      }
+    }
+  } catch (e) {
+    message.error('中止失败: ' + (e.message || '未知错误'))
+  }
 }
 
 function onGenerateDialogClose() {
@@ -2931,6 +2964,22 @@ function onThumbLeave() {
 }
 
 .batch-generate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Cancel generate button */
+.cancel-generate-btn {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  display: flex;
+  align-items: center;
+}
+
+.cancel-generate-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #d44235 0%, #a93226 100%);
+}
+
+.cancel-generate-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }

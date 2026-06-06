@@ -9,6 +9,7 @@ from .comfyui_workflow import build_workflow, submit_workflow, poll_history, dow
 _tasks: dict[str, dict] = {}
 _queue = asyncio.Queue(maxsize=100)
 _worker_task = None
+_cancel_all_flag = False
 
 
 def _generate_task_id():
@@ -42,6 +43,13 @@ async def _worker_loop():
         task_id = task["task_id"]
         t_uuid = task["t_uuid"]
         params = task["params"]
+
+        # Check cancel flag before processing
+        if _cancel_all_flag:
+            _tasks[task_id]["status"] = "cancelled"
+            await update_tag_image_status(t_uuid, None)
+            _queue.task_done()
+            continue
 
         try:
             # Set status to generating
@@ -126,3 +134,33 @@ def get_task_status_by_tuuid(t_uuid):
         if t["t_uuid"] == t_uuid:
             return t
     return None
+
+
+async def cancel_all_tasks():
+    """Cancel all pending and generating tasks. Returns count of cancelled tasks."""
+    global _cancel_all_flag
+    _cancel_all_flag = True
+
+    cancelled = 0
+
+    # Drain all pending items from the queue
+    while not _queue.empty():
+        try:
+            _queue.get_nowait()
+            _queue.task_done()
+        except asyncio.QueueEmpty:
+            break
+
+    # Mark all pending/generating tasks as cancelled
+    for task_id, task in list(_tasks.items()):
+        if task["status"] in ("pending", "generating"):
+            task["status"] = "cancelled"
+            task["error_msg"] = "user cancelled"
+            try:
+                await update_tag_image_status(task["t_uuid"], None)
+            except Exception:
+                pass
+            cancelled += 1
+
+    _cancel_all_flag = False
+    return cancelled

@@ -30,7 +30,7 @@ from .translate.openai_translate import openai_translate
 from .user_init.user_init import *
 from .prompt_api.tag_image_manager import get_tag_image_info, image_dir, thumb_dir, delete_tag_image
 from .prompt_api.comfyui_workflow import get_generation_options
-from .prompt_api.tag_image_queue import enqueue_generation, get_task_status, get_task_status_by_tuuid, start_worker
+from .prompt_api.tag_image_queue import enqueue_generation, get_task_status, get_task_status_by_tuuid, cancel_all_tasks, start_worker
 
 static_path = os.path.join(os.path.dirname(__file__), "../../dist/")
 dir = os.path.join(os.path.dirname(__file__), "../../dist/javascript/")
@@ -1299,6 +1299,16 @@ async def _batch_generate_tag_images(request):
             pass
 
     return web.json_response({"data": {"task_ids": task_ids}})
+
+
+@PromptServer.instance.routes.post(baseUrl + "tag_image/cancel_all")
+async def _cancel_all_tag_image_tasks(request):
+    try:
+        count = await cancel_all_tasks()
+        return web.json_response({"data": {"cancelled": count}})
+    except Exception as e:
+        print(f"Error cancelling tasks: {e}")
+        return web.Response(status=500)
 
 
 @PromptServer.instance.routes.post(baseUrl + "tag_image/status")
