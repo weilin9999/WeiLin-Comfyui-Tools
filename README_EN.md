@@ -24,18 +24,24 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 
 # Version update introduction
 
-> Last updated: 2026-05-09
+> Last updated: 2026-06-06
 
-> 0.0.75 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+> 0.0.76 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (1018231382)! 
+>
+> 1. Merger PR [#74](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/74) thank you for your friend's help
+>
+>
+
+<details>
+<summary>Click here for more updates from the past</summary>
+
+> 0.0.75 Public Beta Version 2026-05-09
 >
 > 1. Merger PR [#71](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/71) thank you for your friend's help
 >
 > 2. Merger PR [#72](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/72) thank you for your friend's help
 >
 >
-
-<details>
-<summary>Click here for more updates from the past</summary>
 
 > 0.0.74 Public Beta Version 2026-04-18
 >
