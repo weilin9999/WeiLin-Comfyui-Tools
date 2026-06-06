@@ -1,19 +1,19 @@
 import os
-from ..dao.dao import execute_query, fetch_one, fetch_all, tags_db_path
+from ..dao.dao import execute_query, fetch_one, tags_db_path
 
 
-# Get the project root (ComfyUI-aki-v2/ComfyUI/custom_nodes/WeiLin-Comfyui-Tools)
 def _get_user_data_dir():
+    """Get the user_data directory path."""
     return os.path.normpath(os.path.join(os.path.dirname(tags_db_path), "."))
 
 
-def _image_dir():
+def image_dir():
     d = os.path.join(_get_user_data_dir(), "tag_images")
     os.makedirs(d, exist_ok=True)
     return d
 
 
-def _thumb_dir():
+def thumb_dir():
     d = os.path.join(_get_user_data_dir(), "tag_thumbs")
     os.makedirs(d, exist_ok=True)
     return d
