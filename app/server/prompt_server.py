@@ -28,6 +28,9 @@ from .translate.local_translate import translate_phrase
 from .translate.new_translate_api import api_service_translate
 from .translate.openai_translate import openai_translate
 from .user_init.user_init import *
+from .prompt_api.tag_image_manager import get_tag_image_info, image_dir, thumb_dir
+from .prompt_api.comfyui_workflow import get_generation_options
+from .prompt_api.tag_image_queue import enqueue_generation, get_task_status, get_task_status_by_tuuid, start_worker
 
 static_path = os.path.join(os.path.dirname(__file__), "../../dist/")
 dir = os.path.join(os.path.dirname(__file__), "../../dist/javascript/")
@@ -1217,6 +1220,111 @@ def _get_ai_server_get_ai_models(request):
 # ============================================ AI平台对接 End ============================================
 
 
+# ============================================ 标签图片管理 ============================================
+
+
+@PromptServer.instance.routes.post(baseUrl + "tag_image/options")
+async def _get_tag_image_options(request):
+    return web.json_response({"data": get_generation_options()})
+
+
+@PromptServer.instance.routes.post(baseUrl + "tag_image/generate")
+async def _generate_tag_image(request):
+    data = await request.json()
+    t_uuid = data.get("t_uuid")
+    params = data.get("params", {})
+
+    if not t_uuid:
+        return web.json_response({"error": "t_uuid is required"}, status=400)
+
+    # Validate required params
+    required = ["checkpoint", "width", "height", "sampler_name", "steps", "cfg", "seed", "positive", "negative"]
+    for key in required:
+        if key not in params:
+            return web.json_response({"error": f"Missing required param: {key}"}, status=400)
+
+    try:
+        task_id = await enqueue_generation(t_uuid, params)
+        return web.json_response({"data": {"task_id": task_id}})
+    except RuntimeError as e:
+        return web.json_response({"error": str(e)}, status=409)
+    except Exception as e:
+        print(f"Error enqueuing generation: {e}")
+        return web.Response(status=500)
+
+
+@PromptServer.instance.routes.post(baseUrl + "tag_image/status")
+async def _get_tag_image_status_by_task(request):
+    data = await request.json()
+    task_id = data.get("task_id")
+
+    if not task_id:
+        return web.json_response({"error": "task_id is required"}, status=400)
+
+    task = get_task_status(task_id)
+    if not task:
+        return web.json_response({"error": "task not found"}, status=404)
+
+    return web.json_response({"data": {
+        "task_id": task["task_id"],
+        "status": task["status"],
+        "error_msg": task.get("error_msg"),
+        "image_path": task.get("image_path"),
+    }})
+
+
+@PromptServer.instance.routes.get(baseUrl + "tag_image/status/{t_uuid}")
+async def _get_tag_image_status_by_uuid(request):
+    t_uuid = request.match_info.get("t_uuid")
+
+    if not t_uuid:
+        return web.json_response({"error": "t_uuid is required"}, status=400)
+
+    # Check DB first
+    db_info = await get_tag_image_info(t_uuid)
+    status = db_info["image_status"] if db_info else None
+    image_path = db_info["image_path"] if db_info else None
+
+    # Check if there's a running task
+    task = get_task_status_by_tuuid(t_uuid)
+    task_id = task["task_id"] if task else None
+    if task and task["status"] in ("pending", "generating"):
+        status = task["status"]
+
+    return web.json_response({"data": {
+        "status": status,
+        "task_id": task_id,
+        "image_url": f"/weilin/prompt_ui/api/tag_image/{t_uuid}" if status == "ready" else None,
+        "thumb_url": f"/weilin/prompt_ui/api/tag_thumb/{t_uuid}" if status == "ready" else None,
+        "error_msg": task.get("error_msg") if task else None,
+    }})
+
+
+@PromptServer.instance.routes.get(baseUrl + "tag_image/{t_uuid}")
+async def _serve_tag_image(request):
+    t_uuid = request.match_info.get("t_uuid")
+    img_dir = image_dir()
+    # Try common extensions
+    for ext in (".png", ".jpg", ".jpeg", ".webp"):
+        path = os.path.join(img_dir, f"{t_uuid}{ext}")
+        if os.path.isfile(path):
+            return web.FileResponse(path)
+    return web.Response(status=404, text="Image not found")
+
+
+@PromptServer.instance.routes.get(baseUrl + "tag_thumb/{t_uuid}")
+async def _serve_tag_thumb(request):
+    t_uuid = request.match_info.get("t_uuid")
+    t_dir = thumb_dir()
+    path = os.path.join(t_dir, f"{t_uuid}.webp")
+    if os.path.isfile(path):
+        return web.FileResponse(path)
+    return web.Response(status=404, text="Thumbnail not found")
+
+
+# ============================================ 标签图片管理 End ============================================
+
+
 # ============================================ 标签数据管理 ============================================
 
 
@@ -1311,3 +1419,14 @@ def go_run_node_auto_random_tag(name):
     except Exception as e:
         print(f"Error: {e}")
         return ""
+
+# Start the tag image generation worker
+import asyncio as _asyncio
+try:
+    _loop = _asyncio.get_event_loop()
+    if _loop.is_running():
+        _asyncio.ensure_future(start_worker())
+    else:
+        _loop.run_until_complete(start_worker())
+except Exception:
+    pass
