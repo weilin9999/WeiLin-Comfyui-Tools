@@ -219,7 +219,9 @@ def create_tables():
                 color TEXT,
                 create_time INTEGER,
                 t_uuid TEXT(128),
-                g_uuid TEXT(128)
+                g_uuid TEXT(128),
+                image_path TEXT,
+                image_status TEXT
             )
         """
         )
@@ -476,6 +478,27 @@ def migrate_db():
         conn.commit()
         conn.close()
         print("升级完成")
+
+    # 添加版本4的迁移
+    if current_version < 4:
+        print("检测到数据库版本变动 版本V4 正在升级中...")
+        conn = sqlite3.connect(tags_db_path)
+        cursor = conn.cursor()
+
+        # 添加 image_path 和 image_status 列
+        def add_column_if_not_exists(table, column, column_type):
+            cursor.execute(f"PRAGMA table_info({table})")
+            columns = [info[1] for info in cursor.fetchall()]
+            if column not in columns:
+                cursor.execute(f"ALTER TABLE {table} ADD COLUMN {column} {column_type}")
+
+        add_column_if_not_exists("tag_tags", "image_path", "TEXT")
+        add_column_if_not_exists("tag_tags", "image_status", "TEXT")
+
+        update_version("tags", 4)
+        conn.commit()
+        conn.close()
+        print("升级完成 V4")
 
     # history数据库迁移
     current_version = get_current_version("history")
