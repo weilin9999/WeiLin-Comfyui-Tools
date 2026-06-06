@@ -31,6 +31,13 @@
           </select>
         </div>
 
+        <div class="form-group">
+          <label>调度器</label>
+          <select v-model="form.scheduler" class="form-select">
+            <option v-for="s in options.schedulers" :key="s" :value="s">{{ s }}</option>
+          </select>
+        </div>
+
         <div class="form-row">
           <div class="form-group form-group-half">
             <label>步数: {{ form.steps }}</label>
@@ -87,6 +94,7 @@ const form = reactive({
   checkpoint: '',
   sizeIndex: 0,
   sampler_name: 'euler',
+  scheduler: 'normal',
   steps: 20,
   cfg: 7.0,
   seed: -1
@@ -96,6 +104,7 @@ watch(() => props.visible, (v) => {
   if (v) {
     form.checkpoint = props.options.checkpoints?.[0]?.name || ''
     form.sampler_name = 'euler'
+    form.scheduler = 'normal'
     form.steps = 20
     form.cfg = 7.0
     form.seed = -1
@@ -103,6 +112,20 @@ watch(() => props.visible, (v) => {
     generating.value = false
     completedCount.value = 0
     totalCount.value = 0
+
+    // Load saved params
+    try {
+      const saved = JSON.parse(localStorage.getItem('weilin_tools_gen_params') || '{}')
+      if (saved.checkpoint && props.options.checkpoints.some(c => c.name === saved.checkpoint)) {
+        form.checkpoint = saved.checkpoint
+      }
+      if (saved.sizeIndex !== undefined) form.sizeIndex = saved.sizeIndex
+      if (saved.sampler_name) form.sampler_name = saved.sampler_name
+      if (saved.scheduler) form.scheduler = saved.scheduler
+      if (saved.steps !== undefined) form.steps = saved.steps
+      if (saved.cfg !== undefined) form.cfg = saved.cfg
+      if (saved.seed !== undefined) form.seed = saved.seed
+    } catch (e) { /* ignore */ }
   }
 })
 
@@ -129,11 +152,25 @@ async function onStartGenerate() {
   totalCount.value = tagsToGenerate.length
   completedCount.value = 0
 
+  // Save params
+  try {
+    localStorage.setItem('weilin_tools_gen_params', JSON.stringify({
+      checkpoint: form.checkpoint,
+      sizeIndex: form.sizeIndex,
+      sampler_name: form.sampler_name,
+      scheduler: form.scheduler,
+      steps: form.steps,
+      cfg: form.cfg,
+      seed: form.seed,
+    }))
+  } catch (e) { /* ignore */ }
+
   const params = {
     checkpoint: form.checkpoint,
     width: size.width,
     height: size.height,
     sampler_name: form.sampler_name,
+    scheduler: form.scheduler,
     steps: form.steps,
     cfg: form.cfg,
     seed: form.seed,

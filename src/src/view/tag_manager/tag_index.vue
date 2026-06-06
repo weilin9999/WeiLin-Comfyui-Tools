@@ -564,7 +564,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { tagsApi } from '@/api/tags'
 import message from '@/utils/message'
@@ -629,6 +629,7 @@ const hoveredTag = ref(null)
 const hoverImageCache = ref({})
 const showBatchDialog = ref(false)
 const regenerateModeTag = ref(null)
+const imageVersions = reactive({})
 
 // 新增状态变量
 const showTabSizeConfig = ref(false)
@@ -1699,11 +1700,13 @@ const resetTabSizeConfig = () => {
 // --- Tag image methods ---
 
 function getThumbUrl(t_uuid) {
-  return `/weilin/prompt_ui/api/tag_thumb/${t_uuid}`
+  const v = imageVersions[t_uuid] || 0
+  return `/weilin/prompt_ui/api/tag_thumb/${t_uuid}?v=${v}`
 }
 
 function getImageUrl(t_uuid) {
-  return `/weilin/prompt_ui/api/tag_image/${t_uuid}`
+  const v = imageVersions[t_uuid] || 0
+  return `/weilin/prompt_ui/api/tag_image/${t_uuid}?v=${v}`
 }
 
 async function openGenerateDialog(tag) {
@@ -1811,6 +1814,7 @@ async function refreshSingleTagImageStatus(t_uuid) {
       startPolling(data.task_id, t_uuid)
     }
     if (data.status === 'ready') {
+      imageVersions[t_uuid] = Date.now()
       delete hoverImageCache.value[t_uuid]
     }
   } catch (e) {

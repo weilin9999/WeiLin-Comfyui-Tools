@@ -54,6 +54,7 @@ async def _worker_loop():
                 width=params["width"],
                 height=params["height"],
                 sampler_name=params["sampler_name"],
+                scheduler=params.get("scheduler", "normal"),
                 steps=params["steps"],
                 cfg=params["cfg"],
                 seed=params["seed"],

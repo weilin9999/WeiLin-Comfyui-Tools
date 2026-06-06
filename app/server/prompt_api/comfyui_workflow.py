@@ -46,10 +46,19 @@ def _get_samplers():
     ]
 
 
+def _get_schedulers():
+    """Return KSampler scheduler options."""
+    return [
+        "normal", "karras", "exponential", "sgm_uniform",
+        "simple", "ddim_uniform", "beta",
+    ]
+
+
 def get_generation_options():
     return {
         "checkpoints": _get_checkpoints(),
         "samplers": _get_samplers(),
+        "schedulers": _get_schedulers(),
         "sizes": [
             {"label": "512×512", "width": 512, "height": 512},
             {"label": "768×512", "width": 768, "height": 512},
@@ -60,7 +69,7 @@ def get_generation_options():
     }
 
 
-def build_workflow(checkpoint, width, height, sampler_name, steps, cfg, seed, positive, negative):
+def build_workflow(checkpoint, width, height, sampler_name, scheduler, steps, cfg, seed, positive, negative):
     """Build a minimal txt2img ComfyUI workflow JSON (API format)."""
     import random as _random
     if seed is None or seed < 0:
@@ -94,7 +103,7 @@ def build_workflow(checkpoint, width, height, sampler_name, steps, cfg, seed, po
                 "steps": steps,
                 "cfg": cfg,
                 "sampler_name": sampler_name,
-                "scheduler": "normal",
+                "scheduler": scheduler,
                 "denoise": 1.0,
                 "model": ["1", 0],
                 "positive": ["3", 0],

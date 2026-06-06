@@ -1239,7 +1239,7 @@ async def _generate_tag_image(request):
         return web.json_response({"error": "t_uuid is required"}, status=400)
 
     # Validate required params
-    required = ["checkpoint", "width", "height", "sampler_name", "steps", "cfg", "seed", "positive", "negative"]
+    required = ["checkpoint", "width", "height", "sampler_name", "scheduler", "steps", "cfg", "seed", "positive", "negative"]
     for key in required:
         if key not in params:
             return web.json_response({"error": f"Missing required param: {key}"}, status=400)
@@ -1266,7 +1266,7 @@ async def _batch_generate_tag_images(request):
         return web.json_response({"error": "tags array is required"}, status=400)
 
     # Validate default params
-    required = ["checkpoint", "width", "height", "sampler_name", "steps", "cfg", "seed", "positive_template", "negative"]
+    required = ["checkpoint", "width", "height", "sampler_name", "scheduler", "steps", "cfg", "seed", "positive_template", "negative"]
     for key in required:
         if key not in params:
             return web.json_response({"error": f"Missing required param: {key}"}, status=400)
@@ -1285,6 +1285,7 @@ async def _batch_generate_tag_images(request):
                 "width": params["width"],
                 "height": params["height"],
                 "sampler_name": params["sampler_name"],
+                "scheduler": params.get("scheduler", "normal"),
                 "steps": params["steps"],
                 "cfg": params["cfg"],
                 "seed": params["seed"],
