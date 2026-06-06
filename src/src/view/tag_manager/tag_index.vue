@@ -102,6 +102,13 @@
 
           <div class="group-edit-mode">
             <label>
+              <input type="checkbox" v-model="hideThumbnails" />
+              隐藏示意图
+            </label>
+          </div>
+
+          <div class="group-edit-mode">
+            <label>
               <input type="checkbox" v-model="editGroupCategroy" :true-value="1" :false-value="0" />
               {{ editGroupCategroy == 1 ? t('tagManager.exitEditMode') : t('tagManager.editGroupMode') }}
             </label>
@@ -215,7 +222,7 @@
         <div v-for="tag in currentTags" :key="'tag-grid-' + tag.id_index"
           :class="highlightedTagId === tag.id_index ? 'tag-wrapper highlight' : 'tag-wrapper'">
           <!-- Thumbnail area -->
-          <div class="tag-thumb-area"
+          <div class="tag-thumb-area" v-show="!hideThumbnails"
             @mouseenter="onThumbHover(tag, $event)"
             @mouseleave="onThumbLeave">
             <!-- Ready: show thumbnail with regenerate overlay -->
@@ -605,6 +612,7 @@ const hoverTabsActionFrist = ref('None');
 const hoverTabsActionSecond = ref('None');
 const editGroupTabs = ref(0); // 添加编辑模式状态
 const editGroupCategroy = ref(0); // 添加编辑模式状态
+const hideThumbnails = ref(false)
 
 const highlightedTagId = ref(null); // 添加高亮状态
 const isAutoAddSearchTag = ref(0); // 添加高亮状态
