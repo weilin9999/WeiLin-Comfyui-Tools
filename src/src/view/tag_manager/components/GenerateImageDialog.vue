@@ -2,7 +2,7 @@
   <div v-if="visible" class="weilin-tools-dialog-overlay" @mousedown.self="onCancel">
     <div class="weilin-tools-dialog-content generate-image-dialog" @mousedown.stop>
       <div class="weilin-tools-dialog-header">
-        <h2>生成标签预览图</h2>
+        <h2>{{ mode === 'regenerate' ? '重新生成预览图' : '生成标签预览图' }}</h2>
         <button class="close-btn" @click="onCancel">×</button>
       </div>
       <div class="weilin-tools-dialog-body">
@@ -59,7 +59,9 @@
       </div>
       <div class="weilin-tools-dialog-footer">
         <button class="cancel-btn" @click="onCancel">取消</button>
-        <button class="confirm-btn" @click="onGenerate" :disabled="generating">生成</button>
+        <button class="confirm-btn" @click="onGenerate" :disabled="generating">
+          {{ mode === 'regenerate' ? '重新生成' : '生成' }}
+        </button>
       </div>
     </div>
   </div>
@@ -72,7 +74,8 @@ import { tagsApi } from '@/api/tags'
 const props = defineProps({
   visible: { type: Boolean, default: false },
   tag: { type: Object, default: null },
-  options: { type: Object, default: () => ({ checkpoints: [], samplers: [], sizes: [] }) }
+  options: { type: Object, default: () => ({ checkpoints: [], samplers: [], sizes: [] }) },
+  mode: { type: String, default: 'generate' }  // 'generate' | 'regenerate'
 })
 const emit = defineEmits(['close', 'generated'])
 
@@ -91,7 +94,6 @@ const form = reactive({
 
 watch(() => props.visible, (v) => {
   if (v && props.tag) {
-    // Set defaults from tag
     form.positive = `${props.tag.text || ''}, masterpiece, best quality`
     form.negative = 'worst quality, low quality, nsfw'
     form.checkpoint = props.options.checkpoints?.[0]?.name || ''
@@ -125,7 +127,12 @@ async function onGenerate() {
       positive: form.positive,
       negative: form.negative
     }
-    const res = await tagsApi.generateTagImage(props.tag.t_uuid, params)
+    let res
+    if (props.mode === 'regenerate') {
+      res = await tagsApi.regenerateTagImage(props.tag.t_uuid, params)
+    } else {
+      res = await tagsApi.generateTagImage(props.tag.t_uuid, params)
+    }
     emit('generated', { task_id: res.data.task_id, t_uuid: props.tag.t_uuid })
     emit('close')
   } catch (err) {

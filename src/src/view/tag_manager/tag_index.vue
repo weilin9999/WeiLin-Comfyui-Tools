@@ -172,11 +172,11 @@
             <span class="plus-icon">+</span>
             {{ t('tagManager.addTag') }}
           </button>
-          <button class="add-btn batch-generate-btn" @click="batchGenerateAll" :disabled="!selectedGroup || batchGenerating">
+          <button class="add-btn batch-generate-btn" @click="batchGenerateAll" :disabled="!selectedGroup">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="margin-right:4px">
               <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
             </svg>
-            {{ batchGenerating ? '生成中…' : '一键生成' }}
+            一键生成
           </button>
 
           <!-- 批量分享按钮 -->
@@ -544,10 +544,20 @@
     <!-- 生成预览图对话框 -->
     <GenerateImageDialog
       :visible="showGenerateDialog"
-      :tag="generateTargetTag"
+      :tag="generateTargetTag || regenerateModeTag"
       :options="generationOptions"
+      :mode="regenerateModeTag ? 'regenerate' : 'generate'"
       @close="onGenerateDialogClose"
       @generated="onImageGenerated"
+    />
+
+    <!-- 批量生成预览图对话框 -->
+    <BatchGenerateDialog
+      :visible="showBatchDialog"
+      :tags="currentTags"
+      :options="generationOptions"
+      @close="showBatchDialog = false"
+      @generated="onBatchGenerated"
     />
 
   </div>
@@ -561,6 +571,7 @@ import message from '@/utils/message'
 import { useTagStore } from '@/stores/tagStore';
 import ImportTagDialog from "./import_tag.vue";
 import GenerateImageDialog from './components/GenerateImageDialog.vue'
+import BatchGenerateDialog from './components/BatchGenerateDialog.vue'
 import yaml from 'js-yaml';
 
 const tagStore = useTagStore();
@@ -616,7 +627,8 @@ const pollingTimers = ref({})
 const hoverTimer = ref(null)
 const hoveredTag = ref(null)
 const hoverImageCache = ref({})
-const batchGenerating = ref(false)
+const showBatchDialog = ref(false)
+const regenerateModeTag = ref(null)
 
 // 新增状态变量
 const showTabSizeConfig = ref(false)
@@ -1717,33 +1729,16 @@ async function regenerateTag(tag) {
       return
     }
   }
-  const size = generationOptions.value.sizes?.[0] || { width: 512, height: 512 }
-  const checkpoint = generationOptions.value.checkpoints?.[0]?.name || ''
-  try {
-    const params = {
-      checkpoint,
-      width: size.width,
-      height: size.height,
-      sampler_name: 'euler',
-      steps: 20,
-      cfg: 7.0,
-      seed: -1,
-      positive: `${tag.text || ''}, masterpiece, best quality`,
-      negative: 'worst quality, low quality'
-    }
-    const res = await tagsApi.regenerateTagImage(tag.t_uuid, params)
-    tag.image_status = 'pending'
-    startPolling(res.data.task_id, tag.t_uuid)
-  } catch (err) {
-    if (err.response?.status === 409) {
-      alert('已有生成任务进行中')
-    } else {
-      alert('重新生成失败: ' + (err.message || '未知错误'))
-    }
-  }
+  regenerateModeTag.value = tag
+  showGenerateDialog.value = true
 }
 
 async function batchGenerateAll() {
+  const tagsToGenerate = currentTags.value.filter(t => !t.image_status || t.image_status === 'failed')
+  if (!tagsToGenerate.length) {
+    alert('当前分组所有标签已有预览图')
+    return
+  }
   if (!generationOptions.value.checkpoints.length) {
     try {
       const res = await tagsApi.getGenerationOptions()
@@ -1753,50 +1748,13 @@ async function batchGenerateAll() {
       return
     }
   }
-  const size = generationOptions.value.sizes?.[0] || { width: 512, height: 512 }
-  const checkpoint = generationOptions.value.checkpoints?.[0]?.name || ''
-
-  // Collect tags without images
-  const tagsToGenerate = currentTags.value.filter(t => !t.image_status || t.image_status === 'failed')
-  if (!tagsToGenerate.length) {
-    alert('所有标签已有预览图')
-    return
-  }
-
-  batchGenerating.value = true
-  try {
-    const params = {
-      checkpoint,
-      width: size.width,
-      height: size.height,
-      sampler_name: 'euler',
-      steps: 20,
-      cfg: 7.0,
-      seed: -1,
-      positive_template: '{text}, masterpiece, best quality',
-      negative: 'worst quality, low quality'
-    }
-    const res = await tagsApi.batchGenerateTagImages(tagsToGenerate, params)
-    const taskIds = res.data?.task_ids || []
-
-    // Mark all as pending and start polling
-    for (const item of taskIds) {
-      const tag = currentTags.value.find(t => t.t_uuid === item.t_uuid)
-      if (tag) {
-        tag.image_status = 'pending'
-        startPolling(item.task_id, item.t_uuid)
-      }
-    }
-  } catch (err) {
-    alert('批量生成失败: ' + (err.message || '未知错误'))
-  } finally {
-    batchGenerating.value = false
-  }
+  showBatchDialog.value = true
 }
 
 function onGenerateDialogClose() {
   showGenerateDialog.value = false
   generateTargetTag.value = null
+  regenerateModeTag.value = null
 }
 
 async function onImageGenerated({ task_id, t_uuid }) {
@@ -1805,6 +1763,17 @@ async function onImageGenerated({ task_id, t_uuid }) {
     tag.image_status = 'pending'
   }
   startPolling(task_id, t_uuid)
+}
+
+function onBatchGenerated({ task_ids }) {
+  showBatchDialog.value = false
+  for (const item of task_ids) {
+    const tag = currentTags.value.find(t => t.t_uuid === item.t_uuid)
+    if (tag) {
+      tag.image_status = 'pending'
+    }
+    startPolling(item.task_id, item.t_uuid)
+  }
 }
 
 function startPolling(task_id, t_uuid) {
