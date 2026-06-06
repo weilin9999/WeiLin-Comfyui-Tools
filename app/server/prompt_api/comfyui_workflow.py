@@ -62,6 +62,9 @@ def get_generation_options():
 
 def build_workflow(checkpoint, width, height, sampler_name, steps, cfg, seed, positive, negative):
     """Build a minimal txt2img ComfyUI workflow JSON (API format)."""
+    import random as _random
+    if seed is None or seed < 0:
+        seed = _random.randint(0, 2**31 - 1)
     workflow = {
         "1": {
             "inputs": {"ckpt_name": checkpoint},
