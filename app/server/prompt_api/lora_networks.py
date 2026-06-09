@@ -261,7 +261,7 @@ async def get_extra_networks(auto_fetch=False):
 
 
 def preview_file(filename: str):
-    preview_exts = [".jpg", ".png", ".jpeg", ".gif"]
+    preview_exts = [".jpg", ".png", ".jpeg", ".gif", ".webp"]
     preview_exts = [*preview_exts, *[".preview" + x for x in preview_exts]]
     for ext in preview_exts:
         try:
