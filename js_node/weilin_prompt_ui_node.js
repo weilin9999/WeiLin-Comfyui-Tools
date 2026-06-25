@@ -794,7 +794,8 @@ waitForApp((app) => {
         // 添加按钮点击事件
         if (nodeData.name === "WeiLinPromptUI" || nodeData.name === "WeiLinPromptUIWithoutLora") {
           // 节点按钮点击事件 - 打开提示词编辑器
-          this.addWidget("button", localLanguage, '', async ($e) => {
+          let promptOpenWidget = null;
+          promptOpenWidget = this.addWidget("button", localLanguage, '', async ($e) => {
             // 先加载资源（如果还未加载）
             await loadResourcesOnDemand();
             
@@ -804,7 +805,7 @@ waitForApp((app) => {
             promptBoxRandomID = generateUUID();
             // console.log("register====>",promptBoxRandomID)
             let jsonData = {
-              prompt: nodeTextAreaList[0].value,
+              prompt: promptOpenWidget._node.widgets[0].value,
               lora: [],
               temp_prompt: {},
               temp_lora: {},
