@@ -22,7 +22,7 @@ def image_upload(post, image_save_function=None):
     if not path_exists(lora_path):
         lora_path = os.path.abspath(lora_path)
 
-    for ext in ["jpg", "png", "jpeg", "gif"]:
+    for ext in ["jpg", "png", "jpeg", "gif", "webp"]:
         try_path = f"{os.path.splitext(lora_path)[0]}.{ext}"
         if path_exists(try_path):
             os.remove(try_path)  # 删除已经存在的图片
@@ -252,7 +252,7 @@ async def get_model_info(
     # Check if we have an image next to the file and, if so, add it to the front of the images
     # (if it isn't already).
     img_next_to_file = None
-    for ext in ["jpg", "png", "jpeg"]:
+    for ext in ["jpg", "png", "jpeg", "webp"]:
         try_path = f"{os.path.splitext(file_path)[0]}.{ext}"
         if path_exists(try_path):
             img_next_to_file = try_path

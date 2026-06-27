@@ -194,7 +194,7 @@ async def _api_get_loras_info_img(request):
         lora_path = os.path.abspath(lora_path)
 
     img_path = None
-    for ext in ["jpg", "png", "jpeg", "gif"]:
+    for ext in ["jpg", "png", "jpeg", "gif", "webp"]:
         try_path = f"{os.path.splitext(lora_path)[0]}.{ext}"
         if path_exists(try_path):
             img_path = try_path
