@@ -10,7 +10,25 @@
 ##### 一定要进群！一定要进群！一定要进群！
 官方 QQ 群： `905656521` (由于旧的群聊`1018231382`已被封请更换新群聊!)
 
-## 功能列表
+---
+
+# 注意！
+##### 如果你需要使用或不了解又或者想要沟通交流都可以加入QQ群进行了解！
+本插件还是在内测中，目前已经趋于稳定状态！如果要使用请进官方 QQ 群了解详情！
+
+## 配套使用说明 - 旧插件提示词迁移到新插件
+插件有专门的独立后台面板，可以把你的旧版的提示词转换成新版本插件的提示词以及便携式的离线修改Tag，项目入口 [WeiLin-Comfyui-Tools-panel
+](https://github.com/weilin9999/WeiLin-Comfyui-Tools-panel)
+
+## 插件的云Tag和Danbooru数据库仓库
+仓库位置：[WeiLin-Comfyui-Tools-Prompt](https://github.com/weilin9999/WeiLin-Comfyui-Tools-Prompt)，如果你感兴趣可以查看一起协作
+
+# 作者声明
+
+由于个人时间有限，更新插件的频率并不会很高，偶尔有空或许会更新一次，每次更新尽量满足所提出的需求，一般没有大的 BUG 基本上更新频率不高，一个月 2~5 更，感谢你对本插件的使用与支持，有需求可以提交 Issue 或者你可以提交你的 Request 帮助本插件更新。
+
+
+## 功能列表（0.0.77版本开始支持，由[PR#75-Dali8029](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/75)实现）
 
 - **预览图缩略图**：每个标签卡片顶部显示 120×120 预览图
 - **单个生成**：点击未生成标签的缩略图区域，弹出参数配置对话框
@@ -45,28 +63,12 @@
 3. 对话框标题显示待生成的标签数量
 4. 点击"开始生成"，实时进度条显示当前进度
 
----
-
-# 注意！
-##### 如果你需要使用或不了解又或者想要沟通交流都可以加入QQ群进行了解！
-本插件还是在内测中，目前已经趋于稳定状态！如果要使用请进官方 QQ 群了解详情！
-
-## 配套使用说明 - 旧插件提示词迁移到新插件
-插件有专门的独立后台面板，可以把你的旧版的提示词转换成新版本插件的提示词以及便携式的离线修改Tag，项目入口 [WeiLin-Comfyui-Tools-panel
-](https://github.com/weilin9999/WeiLin-Comfyui-Tools-panel)
-
-## 插件的云Tag和Danbooru数据库仓库
-仓库位置：[WeiLin-Comfyui-Tools-Prompt](https://github.com/weilin9999/WeiLin-Comfyui-Tools-Prompt)，如果你感兴趣可以查看一起协作
-
-# 作者声明
-
-由于个人时间有限，更新插件的频率并不会很高，偶尔有空或许会更新一次，每次更新尽量满足所提出的需求，一般没有大的 BUG 基本上更新频率不高，一个月 2~5 更，感谢你对本插件的使用与支持，有需求可以提交 Issue 或者你可以提交你的 Request 帮助本插件更新。
 
 # 版本更新介绍
 
-> 最新更新：2026-06-06
+> 最新更新：2026-06-27
 
-> 0.0.76 公测版本介绍 如果你要使用本插件请务必进我们的官方 QQ 群（1018231382）！
+> 0.0.77 公测版本介绍 如果你要使用本插件请务必进我们的官方 QQ 群（1018231382）！
 >
 > 1. **新增功能：标签预览图生成** —— 在标签管理界面中，每个标签卡片新增 120×120 的预览图显示区域
 >    - 使用 ComfyUI 内部队列 API 进行文生图生成
@@ -88,16 +90,27 @@
 >
 > 4. **中止生成按钮** —— 一键取消所有排队中和生成中的任务
 >
-> 5. 合并PR [#71](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/71) 感谢各位小伙伴的帮助
+> 5. 合并PR [#75](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/75) 感谢各位小伙伴的帮助
 >
-> 6. 合并PR [#72](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/72) 感谢各位小伙伴的帮助
+> 6. 合并PR [#76](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/76) 感谢各位小伙伴的帮助
 >
-> 7. 合并PR [#74](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/74) 感谢各位小伙伴的帮助
+> 7. 合并PR [#79](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/79) 感谢各位小伙伴的帮助
 >
 >
 
 <details>
 <summary>点击查看往期更多更新内容</summary>
+
+
+> 0.0.76 公测版本介绍 2026-06-06
+>
+> 1. 合并PR [#71](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/71) 感谢各位小伙伴的帮助
+>
+> 2. 合并PR [#72](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/72) 感谢各位小伙伴的帮助
+>
+> 3. 合并PR [#74](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/74) 感谢各位小伙伴的帮助
+>
+>
 
 > 0.0.75 公测版本介绍 2026-05-09
 >
