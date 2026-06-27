@@ -1693,23 +1693,34 @@ const processInput = async () => {
   // 然后处理剩余的segments（新增的token）
   segments.forEach(segment => {
     if (segment === '\n') {
-      // 保留换行符作为特殊token
-      result.push({
-        id: generateUniqueId(),
-        text: '\n',
-        translate: '',
-        isPunctuation: false,
-        isEditing: false,
-        isHidden: false,
-        color: ''
-      });
+      // 优先复用旧的换行token，以保持隐藏token的锚点关系
+      let matched = false;
+      for (const [index, token] of existingTokensMap) {
+        if (token.text === '\n' && !result.includes(token)) {
+          result.push(token);
+          existingTokensMap.delete(index);
+          matched = true;
+          break;
+        }
+      }
+      if (!matched) {
+        result.push({
+          id: generateUniqueId(),
+          text: '\n',
+          translate: '',
+          isPunctuation: false,
+          isEditing: false,
+          isHidden: false,
+          color: ''
+        });
+      }
     } else if (segment.trim()) {
       // 处理非空文本
       const trimmedSegment = segment.trim();
       // 检查是否是Lora标签格式 <wlr:LoraName:weight1:weight2>
       const isLoraTag = /^<wlr:[^:]+:\d+(\.\d+)?:\d+(\.\d+)?>$/.test(trimmedSegment);
 
-      // 优先匹配非隐藏的token
+      // 只匹配非隐藏的token——隐藏token绝不能通过输入文本被"偷"到新位置
       let matched = false;
       for (const [index, token] of existingTokensMap) {
         if (token.text === trimmedSegment && !token.isHidden && !result.includes(token)) {
@@ -1721,22 +1732,6 @@ const processInput = async () => {
           existingTokensMap.delete(index);
           matched = true;
           break;
-        }
-      }
-
-      // 如果没有匹配到非隐藏token，再尝试匹配隐藏token
-      if (!matched) {
-        for (const [index, token] of existingTokensMap) {
-          if (token.text === trimmedSegment && !result.includes(token)) {
-            // 如果是已存在的token，确保更新其Lora标签状态
-            if (isLoraTag && !token.isLoraTag) {
-              token.isLoraTag = true;
-            }
-            result.push(token);
-            existingTokensMap.delete(index);
-            matched = true;
-            break;
-          }
         }
       }
 
