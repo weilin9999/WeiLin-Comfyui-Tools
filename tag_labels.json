@@ -1,7 +1,7 @@
 {
   "items": [],
   "settings": {
-    "sortMode": "time",
+    "sortMode": "manual",
     "sortTimeDesc": true,
     "sortNameAsc": true,
     "selectedId": null

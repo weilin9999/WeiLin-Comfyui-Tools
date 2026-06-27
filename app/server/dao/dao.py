@@ -68,38 +68,56 @@ def check_and_repair_db(db_path: str, db_type: str = None) -> bool:
     if not os.path.exists(db_path):
         return True  # 文件不存在，不需要修复
 
+    file_size_mb = os.path.getsize(db_path) / (1024 * 1024)
+    print(f"检查数据库: {db_path} ({file_size_mb:.1f} MB)")
+
     try:
         # 先尝试关闭连接池中的连接
         if db_type and db_type in _connection_pool:
             try:
                 conn = _connection_pool.pop(db_type)
-                # 同步关闭异步连接需要特殊处理
                 import asyncio
 
                 loop = asyncio.get_event_loop()
                 if loop.is_running():
-                    # 如果事件循环正在运行，创建一个任务来关闭连接
                     asyncio.create_task(conn.close())
                 else:
                     loop.run_until_complete(conn.close())
             except Exception as e:
                 print(f"关闭连接池连接时出错: {e}")
 
-        conn = sqlite3.connect(db_path)
+        conn = sqlite3.connect(db_path, timeout=30)
         cursor = conn.cursor()
-        # 执行完整性检查
-        cursor.execute("PRAGMA integrity_check")
+
+        # 先尝试 WAL checkpoint 回放未提交的 WAL 日志
+        try:
+            cursor.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+            conn.commit()
+        except sqlite3.Error:
+            pass  # WAL 不是必需的
+
+        # 对大数据库使用 quick_check（快得多），小数据库用 integrity_check
+        if file_size_mb > 100:
+            print(f"  大数据库 ({file_size_mb:.1f} MB)，使用 quick_check...")
+            cursor.execute("PRAGMA quick_check")
+        else:
+            cursor.execute("PRAGMA integrity_check")
         result = cursor.fetchone()
         conn.close()
 
         if result and result[0] == "ok":
-            return True  # 数据库正常
+            print(f"  数据库完整性检查通过")
+            return True
 
-        print(f"数据库损坏，尝试修复: {db_path}")
+        print(f"数据库损坏: {result}, 尝试修复: {db_path}")
         return repair_database(db_path)
     except sqlite3.Error as e:
         print(f"检查数据库时出错: {e}")
         return repair_database(db_path)
+    except Exception as e:
+        print(f"检查数据库时出现意外错误: {e}")
+        # 非 sqlite3 错误不删除数据库，直接放行
+        return True
 
 
 def repair_database(db_path: str) -> bool:
@@ -108,18 +126,55 @@ def repair_database(db_path: str) -> bool:
     import time
 
     try:
-        # 创建备份
+        # 尝试方式1: 使用 .recover 命令导出可恢复的数据
+        print(f"尝试导出可恢复数据: {db_path}")
+        recovered = False
+        try:
+            conn = sqlite3.connect(db_path, timeout=30)
+            cursor = conn.cursor()
+            # 尝试 dump 所有可读数据
+            dump_lines = []
+            for line in conn.iterdump():
+                dump_lines.append(line)
+            conn.close()
+
+            if dump_lines:
+                # 创建备份
+                backup_path = db_path + ".corrupted_backup"
+                shutil.copy2(db_path, backup_path)
+                print(f"已创建损坏数据库备份: {backup_path}")
+
+                # 删除 WAL 文件
+                for extra_path in [db_path + "-wal", db_path + "-shm"]:
+                    if os.path.exists(extra_path):
+                        os.remove(extra_path)
+
+                # 删除原文件并重建
+                os.remove(db_path)
+
+                # 重新创建数据库并恢复数据
+                conn = sqlite3.connect(db_path)
+                conn.executescript("\n".join(dump_lines))
+                conn.close()
+                print(f"数据库数据已恢复: {db_path}")
+                recovered = True
+        except Exception as dump_err:
+            print(f"  .dump 恢复失败: {dump_err}")
+
+        if recovered:
+            return True
+
+        # 尝试方式2: 无法恢复，备份后重建
         backup_path = db_path + ".corrupted_backup"
         if os.path.exists(db_path):
             shutil.copy2(db_path, backup_path)
             print(f"已创建损坏数据库备份: {backup_path}")
 
-        # 尝试删除损坏的数据库文件
+        # 删除损坏的数据库文件
         if os.path.exists(db_path):
             try:
                 os.remove(db_path)
             except PermissionError:
-                # 如果文件被锁定，尝试重命名
                 timestamp = int(time.time())
                 renamed_path = db_path + f".locked_{timestamp}"
                 print(f"文件被锁定，尝试重命名为: {renamed_path}")
@@ -219,7 +274,9 @@ def create_tables():
                 color TEXT,
                 create_time INTEGER,
                 t_uuid TEXT(128),
-                g_uuid TEXT(128)
+                g_uuid TEXT(128),
+                image_path TEXT,
+                image_status TEXT
             )
         """
         )
@@ -476,6 +533,27 @@ def migrate_db():
         conn.commit()
         conn.close()
         print("升级完成")
+
+    # 添加版本4的迁移
+    if current_version < 4:
+        print("检测到数据库版本变动 版本V4 正在升级中...")
+        conn = sqlite3.connect(tags_db_path)
+        cursor = conn.cursor()
+
+        # 添加 image_path 和 image_status 列
+        def add_column_if_not_exists(table, column, column_type):
+            cursor.execute(f"PRAGMA table_info({table})")
+            columns = [info[1] for info in cursor.fetchall()]
+            if column not in columns:
+                cursor.execute(f"ALTER TABLE {table} ADD COLUMN {column} {column_type}")
+
+        add_column_if_not_exists("tag_tags", "image_path", "TEXT")
+        add_column_if_not_exists("tag_tags", "image_status", "TEXT")
+
+        update_version("tags", 4)
+        conn.commit()
+        conn.close()
+        print("升级完成 V4")
 
     # history数据库迁移
     current_version = get_current_version("history")

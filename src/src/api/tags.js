@@ -272,5 +272,71 @@ export const tagsApi = {
       method: 'post',
       data: { keyword }
     })
+  },
+
+  // 获取生成选项（checkpoint列表、采样器、尺寸预设）
+  getGenerationOptions: () => {
+    return request({
+      url: '/tag_image/options',
+      method: 'post'
+    })
+  },
+
+  // 提交生成任务
+  // eslint-disable-next-line camelcase
+  generateTagImage: (t_uuid, params) => {
+    return request({
+      url: '/tag_image/generate',
+      method: 'post',
+      // eslint-disable-next-line camelcase
+      data: { t_uuid, params }
+    })
+  },
+
+  // 按 task_id 查询任务状态
+  getTagImageStatus: (task_id) => {
+    return request({
+      url: '/tag_image/status',
+      method: 'post',
+      // eslint-disable-next-line camelcase
+      data: { task_id }
+    })
+  },
+
+  // 按 t_uuid 查询任务状态（页面刷新恢复用）
+  // eslint-disable-next-line camelcase
+  getTagImageStatusByUuid: (t_uuid) => {
+    return request({
+      url: `/tag_image/status/${t_uuid}`,
+      method: 'get'
+    })
+  },
+
+  // 重新生成（删除旧图再生成）
+  // eslint-disable-next-line camelcase
+  regenerateTagImage: (t_uuid, params) => {
+    return request({
+      url: '/tag_image/generate',
+      method: 'post',
+      // eslint-disable-next-line camelcase
+      data: { t_uuid, params, regenerate: true }
+    })
+  },
+
+  // 批量生成
+  batchGenerateTagImages: (tags, params) => {
+    return request({
+      url: '/tag_image/batch_generate',
+      method: 'post',
+      data: { tags, params }
+    })
+  },
+
+  // 取消所有任务
+  cancelAllTasks: () => {
+    return request({
+      url: '/tag_image/cancel_all',
+      method: 'post'
+    })
   }
 }
