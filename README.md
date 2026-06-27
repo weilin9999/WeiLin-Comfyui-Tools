@@ -102,7 +102,7 @@
 <summary>点击查看往期更多更新内容</summary>
 
 
-> 0.0.76 公测版本介绍 2026-06-06
+> 0.0.76/0.0.77 公测版本介绍 2026-06-06
 >
 > 1. 合并PR [#71](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/71) 感谢各位小伙伴的帮助
 >
@@ -110,6 +110,7 @@
 >
 > 3. 合并PR [#74](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/74) 感谢各位小伙伴的帮助
 >
+> 4. 修复提示词隐藏之后修改提示词会导致隐藏提示词位置变动的BUG
 >
 
 > 0.0.75 公测版本介绍 2026-05-09

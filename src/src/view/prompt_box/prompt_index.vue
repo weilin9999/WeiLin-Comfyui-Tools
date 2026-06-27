@@ -1577,7 +1577,6 @@ const processInput = async () => {
     .map((token, originalIndex) => ({
       token,
       originalIndex,  // 保存原始绝对位置
-      currentIndex: originalIndex  // 初始时currentIndex与originalIndex相同
     }))
     .filter(({ token }) => token.isHidden);
 
@@ -1760,37 +1759,67 @@ const processInput = async () => {
   // 使用ID来跟踪已处理的隐藏token
   const processedHiddenTokenIds = new Set();
 
-  //重新插入隐藏token到它们原来的位置
+  // 构建旧可见token ID → 新result位置的映射（用于基于相邻可见token定位隐藏token）
+  const oldVisibleToNewIndex = new Map();
+  result.forEach((t, idx) => {
+    if (t.id) {
+      oldVisibleToNewIndex.set(t.id, idx);
+    }
+  });
+
+  // 计算每个隐藏token应该插入的位置（锚定到后方的可见token，而非前方）
+  // 这样当隐藏token前面插入新数据时，隐藏token会被"推"向后方，保持与后方token的相对位置
+  const hiddenInsertions = [];
+
   hiddenTokensWithOriginalIndex.forEach(({ token, originalIndex }) => {
-    // 如果这个token已经处理过，跳过
     if (processedHiddenTokenIds.has(token.id)) {
       return;
     }
-
-    // 标记这个token已经处理
     processedHiddenTokenIds.add(token.id);
 
-    // 检查结果中是否已经包含这个隐藏token
-    const alreadyExists = result.some(t => t.id === token.id);
-
-    // 如果已经存在，不再添加
-    if (alreadyExists) {
+    if (result.some(t => t.id === token.id)) {
       return;
     }
 
-    let insertIndex = originalIndex;
-
-    // 确保插入位置有效
-    while (insertIndex > result.length) {
-      insertIndex--;
+    // 主策略：在旧数组中往后找最近的可见token，插入到它之前
+    // 这样当隐藏token前方插入新token时，锚点不变，隐藏token会被推后
+    let insertBeforeIndex = -1; // -1 表示后方没有可见token
+    for (let i = originalIndex + 1; i < tokens.value.length; i++) {
+      const oldToken = tokens.value[i];
+      if (!oldToken.isHidden && oldVisibleToNewIndex.has(oldToken.id)) {
+        insertBeforeIndex = oldVisibleToNewIndex.get(oldToken.id);
+        break;
+      }
     }
 
-    // 如果所有尝试都失败，插入到最后
-    if (insertIndex < 0) {
-      result.push(token);
-    } else {
-      result.splice(insertIndex, 0, token);
+    // 回退策略：如果后方没有可见token，往前找最近的可见token，插入到它之后
+    if (insertBeforeIndex === -1) {
+      for (let i = originalIndex - 1; i >= 0; i--) {
+        const oldToken = tokens.value[i];
+        if (!oldToken.isHidden && oldVisibleToNewIndex.has(oldToken.id)) {
+          insertBeforeIndex = oldVisibleToNewIndex.get(oldToken.id) + 1;
+          break;
+        }
+      }
     }
+
+    hiddenInsertions.push({ token, insertBeforeIndex, originalIndex });
+  });
+
+  // 从右到左插入，避免索引偏移；相同位置时originalIndex大的先插入以保持原顺序
+  hiddenInsertions.sort((a, b) => {
+    if (a.insertBeforeIndex !== b.insertBeforeIndex) {
+      return b.insertBeforeIndex - a.insertBeforeIndex;
+    }
+    return b.originalIndex - a.originalIndex;
+  });
+
+  hiddenInsertions.forEach(({ token, insertBeforeIndex }) => {
+    // clamp 到有效范围；-1 表示前后都找不到锚点，默认放到末尾
+    const idx = insertBeforeIndex === -1
+      ? result.length
+      : Math.max(0, Math.min(insertBeforeIndex, result.length));
+    result.splice(idx, 0, token);
   });
 
   tokens.value = result;
