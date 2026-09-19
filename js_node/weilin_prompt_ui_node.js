@@ -529,14 +529,38 @@ waitForApp((app) => {
         }
 
 
+        // 沿原型链查找属性描述符（id / title 的访问器定义在 LGraphNode.prototype 上，
+        // 而不是节点类自己的原型上，只查一层会取不到）
+        const findPrototypeDescriptor = (target, key) => {
+          let proto = Object.getPrototypeOf(target);
+          while (proto) {
+            const descriptor = Object.getOwnPropertyDescriptor(proto, key);
+            if (descriptor) return descriptor;
+            proto = Object.getPrototypeOf(proto);
+          }
+          return undefined;
+        };
+
         // 监听节点ID
+        // 注意：ComfyUI 0.36 起 LGraphNode.id 是定义在“原型”上的访问器（读写 _state.id）。
+        // 若在实例上再 defineProperty('id')，会遮蔽原型访问器，导致 node._state.id 永远停在
+        // 初始值（-1），内核 nodeShell 的 registerNodeState 会按 _state.id 建键，于是第二个
+        // 同类节点永远注册失败，attachNodeToStores 进入无上限重铸循环，整个前端被冻死。
+        // 这里改为把读写转发给原型访问器，仅旁路监听，不改变 id 的真实语义。
+        const idPrototypeDescriptor = findPrototypeDescriptor(this, 'id')
         let currentThisId = this.id
         Object.defineProperty(this, 'id', {
           get() {
-            return currentThisId;
+            return idPrototypeDescriptor && idPrototypeDescriptor.get
+              ? idPrototypeDescriptor.get.call(this)
+              : currentThisId;
           },
           set(newValue) {
-            currentThisId = newValue;
+            if (idPrototypeDescriptor && idPrototypeDescriptor.set) {
+              idPrototypeDescriptor.set.call(this, newValue);
+            } else {
+              currentThisId = newValue;
+            }
             onTisIdChange(newValue);
           },
           enumerable: true,
@@ -553,14 +577,22 @@ waitForApp((app) => {
         }
 
         // 监听 this.title 的变化
+        // 同 id：title 在 0.36 起也是原型访问器（读写 _state.title），必须转发而不是遮蔽，
+        // 否则标题不再写回节点状态，序列化与侧边栏显示都会读到旧值。
+        const titlePrototypeDescriptor = findPrototypeDescriptor(this, 'title')
         let currentTitle = this.title; // 缓存当前值
         Object.defineProperty(this, 'title', {
           get() {
-            return currentTitle;
+            return titlePrototypeDescriptor && titlePrototypeDescriptor.get
+              ? titlePrototypeDescriptor.get.call(this)
+              : currentTitle;
           },
           set(newValue) {
-            // console.log(`this.title changed from ${currentTitle} to ${newValue}`);
-            currentTitle = newValue;
+            if (titlePrototypeDescriptor && titlePrototypeDescriptor.set) {
+              titlePrototypeDescriptor.set.call(this, newValue);
+            } else {
+              currentTitle = newValue;
+            }
             // 触发回调，返回新的 this.title 数据
             onTitleChange(newValue);
           },
