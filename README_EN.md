@@ -23,10 +23,16 @@ Warehouse location: [WeiLin-Comfyui-Tools-Prompt](https://github.com/weilin9999/
 Due to limited personal time, the frequency of updating plug-ins will not be very high, occasionally free may update once, each update as far as possible to meet the proposed needs, generally no big BUG basically update frequency is not high, 2~5 a month, thank you for your use and support of this plug-in. You can submit an Issue or you can submit your Request to help update this plugin.
 
 # Version update introduction
+> Last updated: 2026-09-25
 
-> Last updated: 2026-06-27
+> 0.0.80 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (905656521)! 
+>
+> 1. Merger PR [83](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/83) thank you for your friend's help
 
-> 0.0.77 Public Beta Version Introduction: If you want to use this plugin, please be sure to join our official QQ group (905656521)! 
+<details>
+<summary>Click here for more updates from the past</summary>
+
+> 0.0.77 Public Beta Version 2026-06-27
 >
 > 1. Merger PR [#75](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/75) thank you for your friend's help
 >
@@ -35,8 +41,6 @@ Due to limited personal time, the frequency of updating plug-ins will not be ver
 > 3. Merger PR [79](https://github.com/weilin9999/WeiLin-Comfyui-Tools/pull/79) thank you for your friend's help
 >
 
-<details>
-<summary>Click here for more updates from the past</summary>
 
 > Last updated: 2026-06-06
 
